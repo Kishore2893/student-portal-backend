@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 
 export default function ExamConsole({ activeExam, currentThemeColor, handleDocClick }) {
-// 🌟 పాపప్ ఓపెన్/క్లోజ్ కంట్రోల్ చేయడం కోసం స్టేట్
+  
+  // 🌟 పాపప్ ఓపెన్/క్లోజ్ కంట్రోల్ చేయడం కోసం స్టేట్
   const [showJeePopup, setShowJeePopup] = useState(false);
   
   // 🌟 యూజర్ ఏ కార్డ్ క్లిక్ చేశారో ట్రాక్ చేయడానికి స్టేట్
