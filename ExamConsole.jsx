@@ -1,17 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 export default function ExamConsole({ activeExam, currentThemeColor, handleDocClick }) {
-    // 👇 1 నిమిషం ఆటో-లాగౌట్ టైమర్ లాజిక్
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            alert("మీ సెషన్ ముగిసింది (1 నిమిషం పూర్తయింది). దయచేసి మళ్లీ లాగిన్ అవ్వండి.");
-            window.location.reload(); // పేజీని రీఫ్రెッシュ చేసి లాగిన్ కి పంపుతుంది
-        }, 60000); // 1 నిమిషం = 60000 మిల్లీసెకన్లు
-
-        return () => clearTimeout(timer);
-    }, []);
-
-  // 🌟 పాపప్ ఓపెన్/క్లోజ్ కంట్రోల్ చేయడం కోసం స్టేట్
+// 🌟 పాపప్ ఓపెన్/క్లోజ్ కంట్రోల్ చేయడం కోసం స్టేట్
   const [showJeePopup, setShowJeePopup] = useState(false);
   
   // 🌟 యూజర్ ఏ కార్డ్ క్లిక్ చేశారో ట్రాక్ చేయడానికి స్టేట్
