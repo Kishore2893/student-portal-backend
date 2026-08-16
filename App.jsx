@@ -17,26 +17,21 @@ function App() {
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return new Date().toLocaleDateString('en-US', options); // ఇది ఎప్పుడూ ఆ రోజు కరెంట్ డేట్ (Live Date) నే చూపిస్తుంది
   });
-    // 👇 1 నిమిషం ఆటో-లాగౌట్ టైమర్ లాజిక్
-    useEffect(() => {
-        // లోకల్ స్టోరేజ్‌లో యూజర్ డేటా ఉందో లేదో సర్వర్ నిరంతరం చెక్ చేస్తుంది
-        const checkUserSession = () => {
-            const savedUser = localStorage.getItem('studentUser'); // మీ లాగిన్ కీ పేరు
-            if (savedUser) {
-                // యూజర్ లాగిన్ అయి ఉంటే కరెక్ట్‌గా 1 నిమిషం (60000ms) తర్వాత లాగౌట్ అవుతుంది
-                const timer = setTimeout(() => {
-                    localStorage.removeItem('studentUser');
-                    sessionStorage.clear();
-                    alert("మీ సెషన్ ముగిసింది (1 నిమిషం పూర్తయింది). దయచేసి మళ్లీ లాగిన్ అవ్వండి.");
-                    window.location.reload(); // పేజీని రీఫ్రెష్ చేసి లాగిన్ కి పంపుతుంది
-                }, 60000);
+  // 🟡 1 నిమిషం ఆటో-లాగౌట్ టైమర్ లాజిక్
+      useEffect(() => {
+        const hasSession = localStorage.length > 0 || sessionStorage.length > 0;
 
-                return () => clearTimeout(timer);
-            }
-        };
+        if (hasSession) {
+            const timer = setTimeout(() => {
+                localStorage.clear(); 
+                sessionStorage.clear();
+                alert("మీ సెషన్ ముగిసింది (1 నిమిషం పూర్తయింది). దయచేసి మళ్లీ లాగిన్ అవ్వండి.");
+                window.location.reload(); 
+            }, 60000);
 
-        checkUserSession();
-    }, [loading]); // లాగిన్ బటన్ నొక్కి లోడింగ్ ముగియగానే టైమర్ స్టార్ట్ అవుతుంది
+            return () => clearTimeout(timer);
+        }
+    }, [loading]);
 
   // 🎲 6 అంకెల ఆల్ఫాన్యూమరిక్ క్యాప్చా జనరేట్ చేసే ఫంక్షన్
   const generateCaptcha = () => {
