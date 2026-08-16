@@ -1,10 +1,65 @@
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
 const fs = require('fs');
 const xlsx = require('xlsx'); 
 const app = express();
 
+app.use('/jee-main', express.static(path.join(__dirname, 'jee-main')));
+app.use('/jee-advanced', express.static(path.join(__dirname, 'jee-advanced')));
+app.use('/tg-eapcet', express.static(path.join(__dirname, 'tg-eapcet')));
+app.use('/ap-eapcet', express.static(path.join(__dirname, 'ap-eapcet')));
+app.use('/ipe-2027', express.static(path.join(__dirname, 'ipe-2027')));
+// 👇 ఇక్కడి నుండి కోడ్‌ను కాపీ చేసి మీ server.js లో యాడ్ చేయండి
+
+app.use(express.json());
+
+// Enable CORS for frontend connectivity
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Accept']
+}));
+
+// Render Disk లో ఉన్న ఫైల్స్‌ను లింక్ చేయడం
+app.use('/public-docs', express.static(path.join(__dirname)));
+
+// డైనమిక్ పిడిఎఫ్ డౌన్‌లోడ్ రూట్
+app.get('/:filename', (req, res, next) => {
+    if (!req.params.filename.endsWith('.pdf')) return next();
+
+    const pdfName = req.params.filename;
+    
+    // మీ మెయిన్ కేటగిరీ ఫోల్డర్ల లిస్ట్
+    const categories = ['jee-main', 'jee-advanced', 'tg-eapcet', 'ap-eapcet', 'ipe-2027'];
+    
+    // ఆ ఫోల్డర్ల లోపల ఉండే సబ్-ఫోల్డర్ల లిస్ట్ 👇 (కొత్తగా యాడ్ చేసాం)
+    const subFolders = ['', 'admit-cards', 'application-forms'];
+
+    // సర్వర్ ఇప్పుడు మెయిన్ ఫోల్డర్ మరియు సబ్-ఫోల్డర్ల లోపల కూడా వెతుకుతుంది
+    for (let category of categories) {
+        for (let subFolder of subFolders) {
+            const filePath = path.join(__dirname, category, subFolder, pdfName);
+            
+            if (fs.existsSync(filePath)) {
+                return res.download(filePath); // ఫైల్ ఎక్కడ దొరికినా డౌన్‌లోడ్ అయిపోతుంది
+                return res.download(filePath);
+            }
+        }
+    }
+    
+    res.status(404).send(`Cannot find file ${pdfName} in any folder or subfolder.`);
+});
+       
+        if (fs.existsSync(filePath)) {
+            // ఫైల్ దొరికితే ఇక్కడి నుండే డౌన్‌లోడ్ అవుతుంది
+            return res.download(filePath); 
+        }
+    }
+
+    // ఏ ఫోల్డర్ లోనూ ఫైల్ దొరకకపోతే ఈ ఎర్రర్ చూపిస్తుంది
+    res.status(404).send(`Cannot find file ${pdfName} in any department folder.`);
+});
+// 👇 మీ పాత కోడ్‌లో ఉన్న తదుపరి లైన్ (బహుశా function loadStudentDatabase() లేదా app.listen) ఇక్కడి నుండి ప్రారంభం అవ్వాలి
+
+// 👆 ఇక్కడి వరకూ యాడ్ చేయండి
 app.use(express.json());
 
 // Enable CORS for frontend connectivity
@@ -14,7 +69,7 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Accept']
 }));
 // Render Disk లో ఉన్న ఫైల్స్‌ను లింక్ చేయడం
-aapp.use('/public-docs', express.static(path.join(__dirname, 'public-docs')));
+app.use('/public-docs', express.static(path.join(__dirname)));
 // Function to load and clean student data from Excel
 function loadStudentDatabase() {
     try {
@@ -27,7 +82,7 @@ function loadStudentDatabase() {
         const sheetName = workbook.SheetNames[0]; // Selects the first sheet
         const sheet = workbook.Sheets[sheetName];
         const data = xlsx.utils.sheet_to_json(sheet);
-        
+
         // Sanitize data by converting numbers to clean string formats
         return data.map(student => ({
             admissionNumber: String(student.admissionNumber || '').replace(/[^0-9]/g, '').trim(),
@@ -46,15 +101,15 @@ console.log(`[Database] Success: Loaded ${studentDatabase.length} students from 
 app.get('/public-docs/:fileName', (req, res) => {
     const fileName = req.params.fileName;
     // మీ సిస్టమ్ పాత్ ఇక్కడ పక్కాగా సెట్ చేయబడింది
-    const filePath = path.join('E:', '2026-27', 'C Exams', 'student-portal', 'public-docs', fileName);
-    
+    const filePath = path.join(__dirname, fileName);
+
     console.log(`[Notice Request] Checking file at: ${filePath}`);
-    
+
     if (!fs.existsSync(filePath)) {
         console.log(`[Notice Error] File not found in directory: ${filePath}`);
         return res.status(404).send(`<h3>Error: ${fileName} file is not available on the server!</h3><p>Checked Path: ${filePath}</p>`);
     }
-    
+
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'inline; filename=' + fileName);
     fs.createReadStream(filePath).pipe(res);
@@ -71,7 +126,7 @@ app.get('/{user.admissionNumber}.pdf', (req, res) => {
 // 1. Student Login Route
 app.post('/api/student-login', (req, res) => {
     const { admissionNumber, mobileNumber } = req.body;
-    
+
     const reqAdmissionNum = String(admissionNumber || '').replace(/[^0-9]/g, '').trim();
     const reqMobile = String(mobileNumber || '').replace(/[^0-9]/g, '').trim();
 
@@ -97,7 +152,7 @@ app.post('/api/student-login', (req, res) => {
 app.post('/api/download-doc', (req, res) => {
     const { admissionNumber, examType, docType, subOption } = req.body;
     const reqAdmissionNum = String(admissionNumber || '').replace(/[^0-9]/g, '').trim();
-    
+
     let filePath = "";
 
     // 🟦 A. కేవలం IPE-2027 లేదా IPE Hall Tickets కోసం మీ క్లీన్ లాజిక్
