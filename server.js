@@ -4,7 +4,11 @@ const path = require('path');
 const fs = require('fs');
 const xlsx = require('xlsx'); 
 const app = express();
-
+app.use('/jee-main', express.static(path.join(__dirname, 'jee-main')));
+app.use('/jee-advanced', express.static(path.join(__dirname, 'jee-advanced')));
+app.use('/tg-eapcet', express.static(path.join(__dirname, 'tg-eapcet')));
+app.use('/ap-eapcet', express.static(path.join(__dirname, 'ap-eapcet')));
+app.use('/ipe-2027', express.static(path.join(__dirname, 'ipe-2027')));
 app.use(express.json());
 
 // Enable CORS for frontend connectivity
