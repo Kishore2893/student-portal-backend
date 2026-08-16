@@ -17,25 +17,28 @@ function App() {
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return new Date().toLocaleDateString('en-US', options); // ఇది ఎప్పుడూ ఆ రోజు కరెంట్ డేట్ (Live Date) నే చూపిస్తుంది
   });
-  // 🟡 1 నిమిషం ఆటో-లాగౌట్ టైమర్ లాజిక్
-             useEffect(() => {
-        const savedUser = localStorage.getItem('examUser');
+    // 🟡 1 నిమిషం ఆటో-లాగౌట్ టైమర్ లాజిక్
+  useEffect(() => {
+    const savedUser = localStorage.getItem('examUser');
+    
+    if (savedUser) {
+      const timer = setTimeout(() => {
+        // 1. బ్రౌజర్ లోని డేటాను పూర్తిగా క్లియర్ చేయడం
+        localStorage.clear();
+        sessionStorage.clear();
         
-        if (savedUser) {
-            const timer = setTimeout(() => {
-                // బ్రౌజర్ లోని సమస్త డేటాను పూర్తిగా క్లియర్ చేయడం
-                localStorage.clear();
-                sessionStorage.clear();
-                
-                alert("మీ సెషన్ ముగిసింది (1 నిమిషం పూర్తయింది). దయచేసి మళ్లీ లాగిన్ అవ్వండి.");
-                
-                // బ్రౌజర్ హిస్టరీ మరియు మెమొరీని క్లియర్ చేస్తూ మొదటి పేజీకి పంపడం
-                window.location.replace(window.location.origin); 
-            }, 60000);
-
-            return () => clearTimeout(timer);
+        // 2. రియాక్ట్ మెమొరీ (State) ని కూడా null కి మార్చడం (ఇది చాలా ముఖ్యం) 👇
+        if (typeof setUser === 'function') {
+          setUser(null);
         }
-    }, [user]);
+        
+        alert("మీ సెషన్ ముగిసింది (1 నిమిషం పూర్తయింది). దయచేసి మళ్లీ లాగిన్ అవ్వండి.");
+        window.location.replace(window.location.origin); 
+      }, 60000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [user]); // యూజర్ లాగిన్ స్థితిని నిరంతరం గమనిస్తుంది
 
   // 🎲 6 అంకెల ఆల్ఫాన్యూమరిక్ క్యాప్చా జనరేట్ చేసే ఫంక్షన్
   const generateCaptcha = () => {
@@ -45,10 +48,10 @@ function App() {
       result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
     setCaptchaText(result);
-    setUserCaptchaInput(''); // రీఫ్రెష్ చేసినప్పుడు ఇన్‌పుట్ క్లియర్ అవ్వడానికి
+    setUserCaptchaInput(''); 
   };
 
-  // లోకల్ స్టోరేజ్ నుండి యూజర్ డేటా రికవర్ చేయడానికి స్టేట్
+  // 🌟 మీ పాత ఆటో-లాగిన్ కోడ్‌ను ఇక్కడ అలాగే ఉంచేశాను!
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('examUser');
     return savedUser ? JSON.parse(savedUser) : null;
