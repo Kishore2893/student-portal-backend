@@ -87,11 +87,13 @@ app.post('/api/student-login', (req, res) => {
     }
 
     console.log(`[Login Success] Verified: ${student.studentName}`);
-    res.json({ 
-        message: "Login Successful", 
-        studentName: student.studentName,
-        admissionNumber: student.admissionNumber
-    });
+    res.json({
+    message: "Login Successful",
+    studentName: student.studentName,
+    admissionNumber: student.admissionNumber,
+    loginTimestamp: Date.now() // 👈 యూజర్ లాగిన్ అయిన కరెక్ట్ టైమ్‌ను పంపుతున్నాం
+});
+
 });
 // 2. Document Fetch Route (Both IPE-2027 and JEE Main suboptions fixed for Admission Number format)
 app.post('/api/download-doc', (req, res) => {
