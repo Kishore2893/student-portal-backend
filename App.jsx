@@ -43,9 +43,9 @@ function App() {
   const [selectedDocLabel, setSelectedDocLabel] = useState('');
 
   const publicNoticesList = [
-    { id: 1, text: "• Declaration of Final NTA Scores for Joint Entrance Examination (Main) - 2026 for Paper 2A (B. Arch) and Paper 2B (B. Planning) - Reg.", pdfUrl: "https://student-portal-backend-e8wc.onrender.com/public-docs/notice1.pdf" },
-    { id: 2, text: "• Final Answer Keys for JEE(Main) - 2026 Paper-II [B.Arch / B.Planning]", pdfUrl: "https://student-portal-backend-e8wc.onrender.com/public-docs/notice2.pdf" },
-    { id: 3, text: "• Display of Provisional Answer Keys and Recorded Response Sheet for Answer Key Challenge of Joint Entrance Examination (Main) - 2026 Session 2, Paper 2A (B. Arch) & 2B (B. Planning) (April 2026) -", pdfUrl: "https://student-portal-backend-e8wc.onrender.com/public-docs/notice3.pdf" }
+    { id: 1, text: "• Declaration of Final NTA Scores for Joint Entrance Examination (Main) - 2026 for Paper 2A (B. Arch) and Paper 2B (B. Planning) - Reg.", pdfUrl: "https://student-portal-backend-vo2b.onrender.com/public-docs/notice1.pdf" },
+    { id: 2, text: "• Final Answer Keys for JEE(Main) - 2026 Paper-II [B.Arch / B.Planning]", pdfUrl: "https://student-portal-backend-vo2b.onrender.com/public-docs/notice2.pdf" },
+    { id: 3, text: "• Display of Provisional Answer Keys and Recorded Response Sheet for Answer Key Challenge of Joint Entrance Examination (Main) - 2026 Session 2, Paper 2A (B. Arch) & 2B (B. Planning) (April 2026) -", pdfUrl: "https://student-portal-backend-vo2b.onrender.com/public-docs/notice3.pdf" }
   ];
 
   // స్క్రోలింగ్ బార్ లో కేవలం టెక్స్ట్ మాత్రమే చూపించడానికి
