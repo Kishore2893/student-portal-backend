@@ -46,7 +46,7 @@ console.log(`[Database] Success: Loaded ${studentDatabase.length} students from 
 app.get('/public-docs/:fileName', (req, res) => {
     const fileName = req.params.fileName;
     // మీ సిస్టమ్ పాత్ ఇక్కడ పక్కాగా సెట్ చేయబడింది
-    const filePath = path.join(__dirname, 'public-docs', fileName);
+    const filePath = path.join(__dirname, fileName);
     
     console.log(`[Notice Request] Checking file at: ${filePath}`);
     
