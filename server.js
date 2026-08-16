@@ -9,6 +9,28 @@ app.use('/jee-advanced', express.static(path.join(__dirname, 'jee-advanced')));
 app.use('/tg-eapcet', express.static(path.join(__dirname, 'tg-eapcet')));
 app.use('/ap-eapcet', express.static(path.join(__dirname, 'ap-eapcet')));
 app.use('/ipe-2027', express.static(path.join(__dirname, 'ipe-2027')));
+// 👇 ఇక్కడి నుండి కోడ్‌ను కాపీ చేసి మీ server.js లో యాడ్ చేయండి
+app.get('/:filename.pdf', (req, res) => {
+    const filename = req.params.filename; // ఇందులో అడ్మిషన్ ఐడీ (ఉదా: 257000063) వస్తుంది
+    const pdfName = `${filename}.pdf`;
+
+    // మనం వెతకాల్సిన ఫోల్డర్ల లిస్ట్
+    const categories = ['jee-main', 'jee-advanced', 'tg-eapcet', 'ap-eapcet', 'ipe-2027'];
+
+    // ప్రతి ఫోల్డర్ లోనూ ఆ ఫైల్ ఉందేమో సర్వర్ వెతుకుతుంది
+    for (let category of categories) {
+        const filePath = path.join(__dirname, category, pdfName);
+        
+        if (fs.existsSync(filePath)) {
+            // ఫైల్ దొరికితే ఇక్కడి నుండే డౌన్‌లోడ్ అవుతుంది
+            return res.download(filePath); 
+        }
+    }
+
+    // ఏ ఫోల్డర్ లోనూ ఫైల్ దొరకకపోతే ఈ ఎర్రర్ చూపిస్తుంది
+    res.status(404).send(`Cannot find file ${pdfName} in any department folder.`);
+});
+// 👆 ఇక్కడి వరకూ యాడ్ చేయండి
 app.use(express.json());
 
 // Enable CORS for frontend connectivity
