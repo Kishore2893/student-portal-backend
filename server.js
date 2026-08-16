@@ -26,29 +26,21 @@ app.get('/:filename', (req, res, next) => {
     if (!req.params.filename.endsWith('.pdf')) return next();
 
     const pdfName = req.params.filename;
-    
-    // మీ మెయిన్ కేటగిరీ ఫోల్డర్ల లిస్ట్
     const categories = ['jee-main', 'jee-advanced', 'tg-eapcet', 'ap-eapcet', 'ipe-2027'];
-    
-    // ఆ ఫోల్డర్ల లోపల ఉండే సబ్-ఫోల్డర్ల లిస్ట్ 👇 (కొత్తగా యాడ్ చేసాం)
     const subFolders = ['', 'admit-cards', 'application-forms'];
 
-    // సర్వర్ ఇప్పుడు మెయిన్ ఫోల్డర్ మరియు సబ్-ఫోల్డర్ల లోపల కూడా వెతుకుతుంది
     for (let category of categories) {
         for (let subFolder of subFolders) {
             const filePath = path.join(__dirname, category, subFolder, pdfName);
-            
+
             if (fs.existsSync(filePath)) {
-                return res.download(filePath); // ఫైల్ ఎక్కడ దొరికినా డౌన్‌లోడ్ అయిపోతుంది
                 return res.download(filePath);
             }
         }
     }
-    
+
     res.status(404).send(`Cannot find file ${pdfName} in any folder or subfolder.`);
 });
-
-// 👇 మీ పాత కోడ్‌లో ఉన్న తదుపరి లైన్ (బహుశా function loadStudentDatabase() లేదా app.listen) ఇక్కడి నుండి ప్రారంభం అవ్వాలి
 
 // 👆 ఇక్కడి వరకూ యాడ్ చేయండి
 app.use(express.json());
