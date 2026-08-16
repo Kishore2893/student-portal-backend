@@ -96,13 +96,9 @@ app.post('/api/student-login', (req, res) => {
 });
 // 2. Document Fetch Route (Both IPE-2027 and JEE Main suboptions fixed for Admission Number format)
 app.post('/api/download-doc', (req, res) => {
-    // 👇 1 నిమిషం సెక్యూరిటీ టైమర్ చెక్
-    const { loginTimestamp, admissionNumber, examType, docType, subOption } = req.body;
-    if (loginTimestamp && (Date.now() - loginTimestamp > 60000)) {
-        return res.status(401).json({ error: "Session Expired! Please login again." });
-    }
-
+    const { admissionNumber, examType, docType, subOption } = req.body;
     const reqAdmissionNum = String(admissionNumber || '').replace(/[^0-9]/g, '').trim();
+    
     let filePath = "";
 
     // 🟦 A. కేవలం IPE-2027 లేదా IPE Hall Tickets కోసం మీ క్లీన్ లాజిక్
