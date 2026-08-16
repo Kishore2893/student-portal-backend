@@ -47,15 +47,7 @@ app.get('/:filename', (req, res, next) => {
     
     res.status(404).send(`Cannot find file ${pdfName} in any folder or subfolder.`);
 });
-       
-        if (fs.existsSync(filePath)) {
-            // ఫైల్ దొరికితే ఇక్కడి నుండే డౌన్‌లోడ్ అవుతుంది
-            return res.download(filePath); 
-        }   
 
-    // ఏ ఫోల్డర్ లోనూ ఫైల్ దొరకకపోతే ఈ ఎర్రర్ చూపిస్తుంది
-    res.status(404).send(`Cannot find file ${pdfName} in any department folder.`);
-;
 // 👇 మీ పాత కోడ్‌లో ఉన్న తదుపరి లైన్ (బహుశా function loadStudentDatabase() లేదా app.listen) ఇక్కడి నుండి ప్రారంభం అవ్వాలి
 
 // 👆 ఇక్కడి వరకూ యాడ్ చేయండి
