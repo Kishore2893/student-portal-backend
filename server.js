@@ -1,6 +1,11 @@
+const express = require('express');
+const path = require('path');
+const cors = require('cors');
 const fs = require('fs');
-const xlsx = require('xlsx'); 
+const xlsx = require('xlsx');
+
 const app = express();
+
 
 app.use('/jee-main', express.static(path.join(__dirname, 'jee-main')));
 app.use('/jee-advanced', express.static(path.join(__dirname, 'jee-advanced')));
