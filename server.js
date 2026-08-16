@@ -14,7 +14,7 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Accept']
 }));
 // Render Disk లో ఉన్న ఫైల్స్‌ను లింక్ చేయడం
-aapp.use('/public-docs', express.static(path.join(__dirname, 'public-docs')));
+app.use('/public-docs', express.static(path.join(__dirname, 'public-docs')));
 // Function to load and clean student data from Excel
 function loadStudentDatabase() {
     try {
