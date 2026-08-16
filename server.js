@@ -12,15 +12,29 @@ app.use('/ipe-2027', express.static(path.join(__dirname, 'ipe-2027')));
 // 👇 ఇక్కడి నుండి కోడ్‌ను కాపీ చేసి మీ server.js లో యాడ్ చేయండి
 app.get('/:filename', (req, res, next) => {
     if (!req.params.filename.endsWith('.pdf')) return next();
-    const filename = req.params.filename.replace('.pdf', ''); 
+    
     const pdfName = req.params.filename;
-    // మనం వెతకాల్సిన ఫోల్డర్ల లిస్ట్
+    
+    // మీ మెయిన్ కేటగిరీ ఫోల్డర్ల లిస్ట్
     const categories = ['jee-main', 'jee-advanced', 'tg-eapcet', 'ap-eapcet', 'ipe-2027'];
+    
+    // ఆ ఫోల్డర్ల లోపల ఉండే సబ్-ఫోల్డర్ల లిస్ట్ 👇 (కొత్తగా యాడ్ చేసాం)
+    const subFolders = ['', 'admit-cards', 'application-forms'];
 
-    // ప్రతి ఫోల్డర్ లోనూ ఆ ఫైల్ ఉందేమో సర్వర్ వెతుకుతుంది
+    // సర్వర్ ఇప్పుడు మెయిన్ ఫోల్డర్ మరియు సబ్-ఫోల్డర్ల లోపల కూడా వెతుకుతుంది
     for (let category of categories) {
-        const filePath = path.join(__dirname, category, pdfName);
-        
+        for (let subFolder of subFolders) {
+            const filePath = path.join(__dirname, category, subFolder, pdfName);
+            
+            if (fs.existsSync(filePath)) {
+                return res.download(filePath); // ఫైల్ ఎక్కడ దొరికినా డౌన్‌లోడ్ అయిపోతుంది
+            }
+        }
+    }
+    
+    res.status(404).send(`Cannot find file ${pdfName} in any folder or subfolder.`);
+});
+       
         if (fs.existsSync(filePath)) {
             // ఫైల్ దొరికితే ఇక్కడి నుండే డౌన్‌లోడ్ అవుతుంది
             return res.download(filePath); 
