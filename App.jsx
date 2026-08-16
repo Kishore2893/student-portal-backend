@@ -18,20 +18,19 @@ function App() {
     return new Date().toLocaleDateString('en-US', options); // ఇది ఎప్పుడూ ఆ రోజు కరెంట్ డేట్ (Live Date) నే చూపిస్తుంది
   });
   // 🟡 1 నిమిషం ఆటో-లాగౌట్ టైమర్ లాజిక్
-         useEffect(() => {
+             useEffect(() => {
         const savedUser = localStorage.getItem('examUser');
         
         if (savedUser) {
             const timer = setTimeout(() => {
-                localStorage.removeItem('examUser');
+                // బ్రౌజర్ లోని సమస్త డేటాను పూర్తిగా క్లియర్ చేయడం
+                localStorage.clear();
                 sessionStorage.clear();
                 
-                if (typeof setUser === 'function') {
-                    setUser(null);
-                }
-                
                 alert("మీ సెషన్ ముగిసింది (1 నిమిషం పూర్తయింది). దయచేసి మళ్లీ లాగిన్ అవ్వండి.");
-                window.location.reload(); 
+                
+                // బ్రౌజర్ హిస్టరీ మరియు మెమొరీని క్లియర్ చేస్తూ మొదటి పేజీకి పంపడం
+                window.location.replace(window.location.origin); 
             }, 60000);
 
             return () => clearTimeout(timer);
