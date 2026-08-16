@@ -18,20 +18,25 @@ function App() {
     return new Date().toLocaleDateString('en-US', options); // ఇది ఎప్పుడూ ఆ రోజు కరెంట్ డేట్ (Live Date) నే చూపిస్తుంది
   });
   // 🟡 1 నిమిషం ఆటో-లాగౌట్ టైమర్ లాజిక్
-      useEffect(() => {
-        const hasSession = localStorage.length > 0 || sessionStorage.length > 0;
-
-        if (hasSession) {
+         useEffect(() => {
+        const savedUser = localStorage.getItem('examUser');
+        
+        if (savedUser) {
             const timer = setTimeout(() => {
-                localStorage.clear(); 
+                localStorage.removeItem('examUser');
                 sessionStorage.clear();
+                
+                if (typeof setUser === 'function') {
+                    setUser(null);
+                }
+                
                 alert("మీ సెషన్ ముగిసింది (1 నిమిషం పూర్తయింది). దయచేసి మళ్లీ లాగిన్ అవ్వండి.");
                 window.location.reload(); 
             }, 60000);
 
             return () => clearTimeout(timer);
         }
-    }, []); // 👈 ఇక్కడ loading తీసేసి కేవలం ఖాళీ బ్రాకెట్లు పెట్టండి
+    }, [user]);
 
   // 🎲 6 అంకెల ఆల్ఫాన్యూమరిక్ క్యాప్చా జనరేట్ చేసే ఫంక్షన్
   const generateCaptcha = () => {
