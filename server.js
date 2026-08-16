@@ -5,46 +5,6 @@ const fs = require('fs');
 const xlsx = require('xlsx'); 
 const app = express();
 
-app.use('/jee-main', express.static(path.join(__dirname, 'jee-main')));
-app.use('/jee-advanced', express.static(path.join(__dirname, 'jee-advanced')));
-app.use('/tg-eapcet', express.static(path.join(__dirname, 'tg-eapcet')));
-app.use('/ap-eapcet', express.static(path.join(__dirname, 'ap-eapcet')));
-app.use('/ipe-2027', express.static(path.join(__dirname, 'ipe-2027')));
-
-app.use(express.json());
-
-// Enable CORS for frontend connectivity
-app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type', 'Accept']
-}));
-
-// Render Disk లో ఉన్న ఫైల్స్‌ను లింక్ చేయడం
-app.use('/public-docs', express.static(path.join(__dirname)));
-
-// డైనమిక్ పిడిఎఫ్ డౌన్‌లోడ్ రూట్
-app.get('/:filename', (req, res, next) => {
-    if (!req.params.filename.endsWith('.pdf')) return next();
-    
-    const pdfName = req.params.filename;
-    const categories = ['jee-main', 'jee-advanced', 'tg-eapcet', 'ap-eapcet', 'ipe-2027'];
-    const subFolders = ['', 'admit-cards', 'application-forms'];
-
-    for (let category of categories) {
-        for (let subFolder of subFolders) {
-            const filePath = path.join(__dirname, category, subFolder, pdfName);
-            if (fs.existsSync(filePath)) {
-                return res.download(filePath);
-            }
-        }
-    }
-    res.status(404).send(`Cannot find file ${pdfName} in any folder or subfolder.`);
-});
-
-// 👇 మీ పాత కోడ్‌లో ఉన్న తదుపరి లైన్ (బహుశా function loadStudentDatabase() లేదా app.listen) ఇక్కడి నుండి ప్రారంభం అవ్వాలి
-
-// 👆 ఇక్కడి వరకూ యాడ్ చేయండి
 app.use(express.json());
 
 // Enable CORS for frontend connectivity
@@ -54,7 +14,7 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Accept']
 }));
 // Render Disk లో ఉన్న ఫైల్స్‌ను లింక్ చేయడం
-app.use('/public-docs', express.static(path.join(__dirname)));
+aapp.use('/public-docs', express.static(path.join(__dirname, 'public-docs')));
 // Function to load and clean student data from Excel
 function loadStudentDatabase() {
     try {
@@ -86,7 +46,7 @@ console.log(`[Database] Success: Loaded ${studentDatabase.length} students from 
 app.get('/public-docs/:fileName', (req, res) => {
     const fileName = req.params.fileName;
     // మీ సిస్టమ్ పాత్ ఇక్కడ పక్కాగా సెట్ చేయబడింది
-    const filePath = path.join(__dirname, fileName);
+    const filePath = path.join('E:', '2026-27', 'C Exams', 'student-portal', 'public-docs', fileName);
     
     console.log(`[Notice Request] Checking file at: ${filePath}`);
     
@@ -127,17 +87,22 @@ app.post('/api/student-login', (req, res) => {
     }
 
     console.log(`[Login Success] Verified: ${student.studentName}`);
-    res.json({ 
-        message: "Login Successful", 
-        studentName: student.studentName,
-        admissionNumber: student.admissionNumber
-    });
+    res.json({
+    message: "Login Successful",
+    studentName: student.studentName,
+    admissionNumber: student.admissionNumber,
+    loginTimestamp: Date.now() // 👈 యూజర్ లాగిన్ అయిన కరెక్ట్ టైమ్‌ను పంపుతున్నాం
+});
 });
 // 2. Document Fetch Route (Both IPE-2027 and JEE Main suboptions fixed for Admission Number format)
 app.post('/api/download-doc', (req, res) => {
-    const { admissionNumber, examType, docType, subOption } = req.body;
+    // 👇 1 నిమిషం సెక్యూరిటీ టైమర్ చెక్
+    const { loginTimestamp, admissionNumber, examType, docType, subOption } = req.body;
+    if (loginTimestamp && (Date.now() - loginTimestamp > 60000)) {
+        return res.status(401).json({ error: "Session Expired! Please login again." });
+    }
+
     const reqAdmissionNum = String(admissionNumber || '').replace(/[^0-9]/g, '').trim();
-    
     let filePath = "";
 
     // 🟦 A. కేవలం IPE-2027 లేదా IPE Hall Tickets కోసం మీ క్లీన్ లాజిక్
