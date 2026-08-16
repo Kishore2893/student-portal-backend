@@ -4,46 +4,46 @@ const path = require('path');
 const fs = require('fs');
 const xlsx = require('xlsx'); 
 const app = express();
+
 app.use('/jee-main', express.static(path.join(__dirname, 'jee-main')));
 app.use('/jee-advanced', express.static(path.join(__dirname, 'jee-advanced')));
 app.use('/tg-eapcet', express.static(path.join(__dirname, 'tg-eapcet')));
 app.use('/ap-eapcet', express.static(path.join(__dirname, 'ap-eapcet')));
 app.use('/ipe-2027', express.static(path.join(__dirname, 'ipe-2027')));
-// 👇 ఇక్కడి నుండి కోడ్‌ను కాపీ చేసి మీ server.js లో యాడ్ చేయండి
+
+app.use(express.json());
+
+// Enable CORS for frontend connectivity
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Accept']
+}));
+
+// Render Disk లో ఉన్న ఫైల్స్‌ను లింక్ చేయడం
+app.use('/public-docs', express.static(path.join(__dirname)));
+
+// డైనమిక్ పిడిఎఫ్ డౌన్‌లోడ్ రూట్
 app.get('/:filename', (req, res, next) => {
     if (!req.params.filename.endsWith('.pdf')) return next();
     
     const pdfName = req.params.filename;
-    
-    // మీ మెయిన్ కేటగిరీ ఫోల్డర్ల లిస్ట్
     const categories = ['jee-main', 'jee-advanced', 'tg-eapcet', 'ap-eapcet', 'ipe-2027'];
-    
-    // ఆ ఫోల్డర్ల లోపల ఉండే సబ్-ఫోల్డర్ల లిస్ట్ 👇 (కొత్తగా యాడ్ చేసాం)
     const subFolders = ['', 'admit-cards', 'application-forms'];
 
-    // సర్వర్ ఇప్పుడు మెయిన్ ఫోల్డర్ మరియు సబ్-ఫోల్డర్ల లోపల కూడా వెతుకుతుంది
     for (let category of categories) {
         for (let subFolder of subFolders) {
             const filePath = path.join(__dirname, category, subFolder, pdfName);
-            
             if (fs.existsSync(filePath)) {
-                return res.download(filePath); // ఫైల్ ఎక్కడ దొరికినా డౌన్‌లోడ్ అయిపోతుంది
+                return res.download(filePath);
             }
         }
     }
-    
     res.status(404).send(`Cannot find file ${pdfName} in any folder or subfolder.`);
 });
-       
-        if (fs.existsSync(filePath)) {
-            // ఫైల్ దొరికితే ఇక్కడి నుండే డౌన్‌లోడ్ అవుతుంది
-            return res.download(filePath); 
-        }
-    }
 
-    // ఏ ఫోల్డర్ లోనూ ఫైల్ దొరకకపోతే ఈ ఎర్రర్ చూపిస్తుంది
-    res.status(404).send(`Cannot find file ${pdfName} in any department folder.`);
-});
+// 👇 మీ పాత కోడ్‌లో ఉన్న తదుపరి లైన్ (బహుశా function loadStudentDatabase() లేదా app.listen) ఇక్కడి నుండి ప్రారంభం అవ్వాలి
+
 // 👆 ఇక్కడి వరకూ యాడ్ చేయండి
 app.use(express.json());
 
