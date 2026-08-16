@@ -10,10 +10,10 @@ app.use('/tg-eapcet', express.static(path.join(__dirname, 'tg-eapcet')));
 app.use('/ap-eapcet', express.static(path.join(__dirname, 'ap-eapcet')));
 app.use('/ipe-2027', express.static(path.join(__dirname, 'ipe-2027')));
 // 👇 ఇక్కడి నుండి కోడ్‌ను కాపీ చేసి మీ server.js లో యాడ్ చేయండి
-app.get('/:filename.pdf', (req, res) => {
-    const filename = req.params.filename; // ఇందులో అడ్మిషన్ ఐడీ (ఉదా: 257000063) వస్తుంది
-    const pdfName = `${filename}.pdf`;
-
+app.get('/:filename', (req, res, next) => {
+    if (!req.params.filename.endsWith('.pdf')) return next();
+    const filename = req.params.filename.replace('.pdf', ''); 
+    const pdfName = req.params.filename;
     // మనం వెతకాల్సిన ఫోల్డర్ల లిస్ట్
     const categories = ['jee-main', 'jee-advanced', 'tg-eapcet', 'ap-eapcet', 'ipe-2027'];
 
