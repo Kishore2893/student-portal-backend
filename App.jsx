@@ -31,7 +31,7 @@ function App() {
 
             return () => clearTimeout(timer);
         }
-    }, [loading]);
+    }, []); // 👈 ఇక్కడ loading తీసేసి కేవలం ఖాళీ బ్రాకెట్లు పెట్టండి
 
   // 🎲 6 అంకెల ఆల్ఫాన్యూమరిక్ క్యాప్చా జనరేట్ చేసే ఫంక్షన్
   const generateCaptcha = () => {
