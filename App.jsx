@@ -26,6 +26,7 @@ function App() {
       localStorage.clear();
       sessionStorage.clear();
       setShowTimeoutModal(true); // కస్టమ్ పాప్-అప్ ఆన్ అవుతుంది
+      return;
     };
 
     // యూజర్ యాక్టివిటీని బట్టి టైమర్ రీసెట్ చేసే ఫంక్షన్
