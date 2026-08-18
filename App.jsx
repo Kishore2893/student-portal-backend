@@ -212,7 +212,7 @@ function App() {
                 {/* 1. Application Number ఫీల్డ్ */}
                 <div style={{ marginBottom: '24px', width: '100%', display: 'flex', flexDirection: 'column' }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#000000', fontSize: '15px', textAlign: 'left', fontFamily: 'sans-serif' }}>
-                    Application Number
+                    Admission Number:
                   </label>
                   <input 
                     type="text" 
