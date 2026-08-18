@@ -20,16 +20,30 @@ function App() {
     // 🛡️ 2 నిమిషాల ఇన్‌యాక్టివిటీ ఆటో-లాగౌట్ మరియు వెబ్‌సైట్ సెక్యూరిటీ లాజిక్
   useEffect(() => {
     // 🚫 బ్రౌజర్ పాత తెలుగు అలెర్ట్ బాక్సులను పూర్తిగా బ్లాక్ చేయడం
-    window.alert = function() { return true; };
+    const originalAlert = window.alert;
+    window.alert = function(msg) {
+      if (msg && msg.includes("మీ సెషన్ ముగిసింది")) {
+        return true; // పాత తెలుగు మెసేజ్ వస్తే ఇక్కడే నొక్కేస్తుంది
+      }
+      return originalAlert(msg);
+    };
 
     let timeoutId;
 
     // ఆటోమేటిక్ లాగౌట్ ఫంక్షన్ (నేరుగా కన్ఫర్మ్ పాప్-అప్ చూపిస్తుంది)
+        // ఆటోమేటిక్ లాగౌట్ ఫంక్షన్ (నేరుగా పేజీని లాగిన్ స్క్రీన్ కి విసిరేస్తుంది)
     const triggerTimeout = () => {
+      // 1. బ్రౌజర్ డేటా క్లియర్ చేయడం
       localStorage.clear();
       sessionStorage.clear();
+      
+      // 2. కస్టమ్ పాప్-అప్ ఆన్ చేయడం
       setShowTimeoutModal(true); 
-      return;
+
+      // 3. కరెక్ట్‌గా 1 సెకన్ తర్వాత ఆటోమేటిక్‌గా లాగిన్ పేజీకి రీడైరెక్ట్ చేయడం (మెయిన్ టాస్క్)
+      setTimeout(() => {
+        window.location.replace(window.location.origin);
+      }, 1000);
     };
 
     // 2 నిమిషాల ఇన్‌యాక్టివిటీ టైమర్ రీసెట్ ఫంక్షన్
