@@ -17,40 +17,37 @@ function App() {
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return new Date().toLocaleDateString('en-US', options); // ఇది ఎప్పుడూ ఆ రోజు కరెంట్ డేట్ (Live Date) నే చూపిస్తుంది
   });
-    // 🟡 1 నిమిషం ఆటో-లాగౌట్ టైమర్ లాజిక్
-    // ⏳ 1 నిమిషం ఆటో-లాగౌట్ టైమర్ మరియు 🛡️ వెబ్‌సైట్ సెక్యూరిటీ లాజిక్
-    // 🛡️ 1 నిమిషం ఇన్‌యాక్టివిటీ ఆటో-లాగౌట్ మరియు వెబ్‌సైట్ సెక్యూరిటీ లాజిక్
+    // 🛡️ 2 నిమిషాల ఇన్‌యాక్టివిటీ ఆటో-లాగౌట్ మరియు వెబ్‌సైట్ సెక్యూరిటీ లాజిక్
   useEffect(() => {
     let timeoutId;
 
-    // ఆటోమేటిక్ సైలెంట్ లాగౌట్ ఫంక్షన్
-    const logoutUser = () => {
+    // ఆటోమేటిక్ లాగౌట్ ఫంక్షన్ (నేరుగా పాప్-అప్ చూపిస్తుంది)
+    const triggerTimeout = () => {
       localStorage.clear();
       sessionStorage.clear();
-      window.location.replace(window.location.origin);
+      setShowTimeoutModal(true); // కస్టమ్ పాప్-అప్ ఆన్ అవుతుంది
     };
 
     // యూజర్ యాక్టివిటీని బట్టి టైమర్ రీసెట్ చేసే ఫంక్షన్
     const resetTimer = () => {
       if (timeoutId) clearTimeout(timeoutId);
-      timeoutId = setTimeout(logoutUser, 60000); // 1 నిమిషం
+      timeoutId = setTimeout(triggerTimeout, 120000); // 2 నిమిషాలు
     };
 
     const savedUser = localStorage.getItem('examUser');
     if (savedUser) {
-      // యూజర్ కదలికలను ట్రాక్ చేయడానికి ఈవెంట్స్
       window.addEventListener('mousemove', resetTimer);
       window.addEventListener('keydown', resetTimer);
       window.addEventListener('scroll', resetTimer);
       window.addEventListener('touchstart', resetTimer);
-      resetTimer(); // మొదటిసారి టైమర్ స్టార్ట్ అవ్వడానికి
+      resetTimer(); 
     }
 
     // 1. రైట్ క్లిక్ (Right Click) పూర్తిగా బ్లాక్ చేయడం
     const handleContextMenu = (e) => e.preventDefault();
     document.addEventListener('contextmenu', handleContextMenu);
 
-    // 2. F12, Ctrl+Shift+I, Ctrl+U వంటి షార్ట్‌కట్స్ బ్లాక్ చేయడం
+    // 2. F12, Ctrl+Shift+I షార్ట్‌కట్స్ బ్లాక్ చేయడం
     const handleKeyDown = (e) => {
       if (
         e.key === 'F12' ||
@@ -68,7 +65,6 @@ function App() {
       console.clear();
     }, 1000);
 
-    // క్లీనప్ ఫంక్షన్ (Memory Leaks రాకుండా ఉండటానికి)
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
       window.removeEventListener('mousemove', resetTimer);
@@ -391,7 +387,7 @@ function App() {
           <span style={{ cursor: 'pointer' }}>Help</span>
         </div>
         
-        {/* 2. Down Pure Black Section */}
+                {/* 2. Down Pure Black Section */}
         <div style={{ backgroundColor: '#111111', padding: '25px 20px', color: '#ffffff' }}>
           <div style={{ textAlign: 'center', fontSize: '12px', color: '#cbd5e1', lineHeight: '1.9', maxWidth: '800px', margin: '0 auto' }}>
             Content Owned and Maintained by <span style={{ fontWeight: '600', color: '#7ba8e0' }}>Kk Information Technology</span><br />
@@ -403,8 +399,25 @@ function App() {
           </div>
         </div>
 
-      </footer>
+        {/* 🚨 కస్టమ్ సెషన్ టైమ్-అవుట్ పాప్-అప్ బాక్స్ (వెబ్‌సైట్ పేరు రాకుండా స్క్రీన్ మధ్యలో కనిపిస్తుంది) */}
+        {showTimeoutModal && (
+          <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
+            <div style={{ backgroundColor: '#fff', padding: '30px', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.2)', textAlign: 'center', maxWidth: '400px', width: '90%' }}>
+              <h3 style={{ color: '#d32f2f', marginTop: 0, fontSize: '22px' }}>Session time out.</h3>
+              <p style={{ color: '#555', marginBottom: '25px', fontSize: '15px' }}>Your session has expired due to inactivity.</p>
+              <button 
+                onClick={() => window.location.replace(window.location.origin)} 
+                style={{ backgroundColor: '#0043a4', color: '#fff', border: 'none', padding: '10px 30px', borderRadius: '4px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer', transition: 'background 0.2s' }}
+                onMouseOver={(e) => e.target.style.backgroundColor = '#002f75'}
+                onMouseOut={(e) => e.target.style.backgroundColor = '#0043a4'}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        )}
 
+      </footer>
     </div>
   );
 }
