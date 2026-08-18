@@ -18,27 +18,68 @@ function App() {
     return new Date().toLocaleDateString('en-US', options); // ఇది ఎప్పుడూ ఆ రోజు కరెంట్ డేట్ (Live Date) నే చూపిస్తుంది
   });
     // 🟡 1 నిమిషం ఆటో-లాగౌట్ టైమర్ లాజిక్
+    // ⏳ 1 నిమిషం ఆటో-లాగౌట్ టైమర్ మరియు 🛡️ వెబ్‌సైట్ సెక్యూరిటీ లాజిక్
+    // 🛡️ 1 నిమిషం ఇన్‌యాక్టివిటీ ఆటో-లాగౌట్ మరియు వెబ్‌సైట్ సెక్యూరిటీ లాజిక్
   useEffect(() => {
-    const savedUser = localStorage.getItem('examUser');
-    
-    if (savedUser) {
-      const timer = setTimeout(() => {
-        // 1. బ్రౌజర్ లోని డేటాను పూర్తిగా క్లియర్ చేయడం
-        localStorage.clear();
-        sessionStorage.clear();
-        
-        // 2. రియాక్ట్ మెమొరీ (State) ని కూడా null కి మార్చడం (ఇది చాలా ముఖ్యం) 👇
-        if (typeof setUser === 'function') {
-          setUser(null);
-        }
-        
-        alert("మీ సెషన్ ముగిసింది (1 నిమిషం పూర్తయింది). దయచేసి మళ్లీ లాగిన్ అవ్వండి.");
-        window.location.replace(window.location.origin); 
-      }, 60000);
+    let timeoutId;
 
-      return () => clearTimeout(timer);
+    // ఆటోమేటిక్ సైలెంట్ లాగౌట్ ఫంక్షన్
+    const logoutUser = () => {
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.replace(window.location.origin);
+    };
+
+    // యూజర్ యాక్టివిటీని బట్టి టైమర్ రీసెట్ చేసే ఫంక్షన్
+    const resetTimer = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      timeoutId = setTimeout(logoutUser, 60000); // 1 నిమిషం
+    };
+
+    const savedUser = localStorage.getItem('examUser');
+    if (savedUser) {
+      // యూజర్ కదలికలను ట్రాక్ చేయడానికి ఈవెంట్స్
+      window.addEventListener('mousemove', resetTimer);
+      window.addEventListener('keydown', resetTimer);
+      window.addEventListener('scroll', resetTimer);
+      window.addEventListener('touchstart', resetTimer);
+      resetTimer(); // మొదటిసారి టైమర్ స్టార్ట్ అవ్వడానికి
     }
-  }, [user]); // యూజర్ లాగిన్ స్థితిని నిరంతరం గమనిస్తుంది
+
+    // 1. రైట్ క్లిక్ (Right Click) పూర్తిగా బ్లాక్ చేయడం
+    const handleContextMenu = (e) => e.preventDefault();
+    document.addEventListener('contextmenu', handleContextMenu);
+
+    // 2. F12, Ctrl+Shift+I, Ctrl+U వంటి షార్ట్‌కట్స్ బ్లాక్ చేయడం
+    const handleKeyDown = (e) => {
+      if (
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'i' || e.key === 'j')) ||
+        (e.ctrlKey && (e.key === 'U' || e.key === 'u'))
+      ) {
+        e.preventDefault();
+        return false;
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+
+    // 3. కన్సోల్ నిరంతరం క్లియర్ చేయడం
+    const clearConsoleInterval = setInterval(() => {
+      console.clear();
+    }, 1000);
+
+    // క్లీనప్ ఫంక్షన్ (Memory Leaks రాకుండా ఉండటానికి)
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      window.removeEventListener('mousemove', resetTimer);
+      window.removeEventListener('keydown', resetTimer);
+      window.removeEventListener('scroll', resetTimer);
+      window.removeEventListener('touchstart', resetTimer);
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('keydown', handleKeyDown);
+      clearInterval(clearConsoleInterval);
+    };
+  }, []);
 
   // 🎲 6 అంకెల ఆల్ఫాన్యూమరిక్ క్యాప్చా జనరేట్ చేసే ఫంక్షన్
   const generateCaptcha = () => {
@@ -71,7 +112,12 @@ function App() {
   ];
 
   // స్క్రోలింగ్ బార్ లో కేవలం టెక్స్ట్ మాత్రమే చూపించడానికి
-  const tickerTextList = publicNoticesList.map(item => item.text.replace('• ', ''));
+    const tickerTextList = [
+    "Application form for JEE(Main)-2027 [Session-I] (B.E. / B.Tech)",
+    "City Intimation Slip is now on live [Session-I] (B.E. / B.Tech)",
+    "Admit Card for JEE(Main)-2027 [Session-I] (B.E. / B.Tech)",
+    "Score Card for JEE(Main)-2027 [Session-I] (B.E. / B.Tech)"
+  ];
 
   const examThemes = {
     'JEE Main': 'linear-gradient(135deg, #0d47a1, #1976d2)',        
@@ -209,7 +255,7 @@ function App() {
               {/* 📝 ఫామ్ ఏరియా ప్రారంభం */}
               <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', width: '100%', padding: '30px 40px 35px 40px', boxSizing: 'border-box' }}>
                 
-                {/* 1. Application Number ఫీల్డ్ */}
+                {/* 1. Admission Number: ఫీల్డ్ */}
                 <div style={{ marginBottom: '24px', width: '100%', display: 'flex', flexDirection: 'column' }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color: '#000000', fontSize: '15px', textAlign: 'left', fontFamily: 'sans-serif' }}>
                     Admission Number:
