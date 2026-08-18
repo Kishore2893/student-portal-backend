@@ -95,7 +95,7 @@ function App() {
   });
   
   const [activeExam, setActiveExam] = useState('JEE Main');
-
+  const [showTimeoutModal, setShowTimeoutModal] = useState(false);
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [showYearModal, setShowYearModal] = useState(false);
   const [selectedDocType, setSelectedDocType] = useState('');
