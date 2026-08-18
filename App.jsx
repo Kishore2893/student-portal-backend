@@ -114,7 +114,7 @@ function App() {
   // స్క్రోలింగ్ బార్ లో కేవలం టెక్స్ట్ మాత్రమే చూపించడానికి
       const tickerTextList = [
     "📝 Application form for JEE(Main)-2027 [Session-I] (B.E. / B.Tech)",
-    "🗺️ City Intimation Slip is now on live [Session-I] (B.E. / B.Tech)",
+    "⚪ City Intimation Slip is now on live [Session-I] (B.E. / B.Tech)",
     "📌 Admit Card for JEE(Main)-2027 [Session-I] (B.E. / B.Tech)",
     "🎓 Score Card for JEE(Main)-2027 [Session-I] (B.E. / B.Tech)"
   ];
