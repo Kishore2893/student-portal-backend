@@ -218,9 +218,9 @@ function App() {
         <div style={{ backgroundColor: '#d32f2f', color: '#ffffff', padding: '4px 20px', fontSize: '13px', fontWeight: 'bold', marginLeft: '20px', zIndex: 10, whiteSpace: 'nowrap', borderRight: '1px solid rgba(255, 255, 255, 0.4)', height: '100%', display: 'flex', alignItems: 'center' }}>
           LATEST NEWS 
         </div>
-        <marquee scrollamount="5" style={{ fontSize: '13px', fontWeight: '600', color: '#ffffff', cursor: 'pointer' }} onMouseOver={(e) => e.target.stop()} onMouseOut={(e) => e.target.start()}>
-            Score Card for JEE(Main)-2026 [Session-II] Paper-2(B.Arch. / B.Planning) &nbsp;&nbsp;|&nbsp;&nbsp; {tickerTextList.join('  |  ')}
-        </marquee>
+                  <marquee scrollamount="5" style={{ fontSize: '13px', fontWeight: '600', color: '#ffffff', cursor: 'pointer' }} onMouseOver={(e) => e.target.stop()} onMouseOut={(e) => e.target.start()}>
+            {tickerTextList.join('   |   ')}
+          </marquee>
       </div>
 
       <div style={{ flex: '1', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
