@@ -49,18 +49,23 @@ function App() {
 
     // 3. కరెక్ట్‌గా 2 నిమిషాలు అవ్వగానే రన్ అయ్యే మన కొత్త కస్టమ్ ఫంక్షన్
     const triggerTimeout = () => {
-      // రియాక్ట్ స్టేట్స్ మార్చకుండా డైరెక్ట్‌గా HTML ద్వారా పాపప్ చూపిస్తాము
-      const modal = document.getElementById("sessionTimeoutModalElement");
-      if (modal) {
-        modal.style.display = "flex";
-      } else {
-        setShowTimeoutModal(true);
-        setShowSessionModal(true);
-      }
+  // 🌟 వెనకాల ఉన్న JEE Main సెషన్ విండోలను పూర్తిగా క్లోజ్ (false) చేస్తున్నాము
+  if (typeof setShowSessionModal === 'function') setShowSessionModal(false);
+  if (typeof setShowYearModal === 'function') setShowYearModal(false);
+  if (typeof setActiveExam === 'function') setActiveExam('');
 
-      // పాపప్ వచ్చాక 5 సెకన్ల తర్వాత మాత్రమే డేటా క్లియర్ అయి లాగిన్ పేజీకి వెళ్తుంది
-      fallbackRedirectId = setTimeout(handleFinalLogout, 10000);
-    };
+  // రియాక్ట్ స్టేట్స్ మార్చకుండా డైరెక్ట్‌గా HTML ద్వారా పాపప్ చూపిస్తాము
+  const modal = document.getElementById("sessionTimeoutModalElement");
+  if (modal) {
+    modal.style.display = "flex";
+  } else {
+    // 🌟 ఇక్కడ పాత సెషన్ మోడల్ ని (setShowSessionModal) అస్సలు true చేయకూడదు
+    setShowTimeoutModal(true);
+  }
+
+  // పాపప్ వచ్చాక మీ కోడ్ లో ఉన్నట్లే 10 సెకన్ల తర్వాత డేటా క్లియర్ అయి లాగిన్ పేజీకి వెళ్తుంది
+  fallbackRedirectId = setTimeout(handleFinalLogout, 10000);
+};
 
     // 4. కరెక్ట్‌గా 2 నిమిషాల (60000ms) సరికొత్త ఏకైక టైమర్
     mainTimerId = setTimeout(triggerTimeout, 60000); 
@@ -415,7 +420,7 @@ function App() {
 
               {/* 🚨 కస్టమ్ సెషన్ టైమ్-అవుట్ పాప్-అప్ బాక్స్ (మీరు పంపిన ఇమేజ్ డిజైన్ స్టైల్ లో) */}
       {(showSessionModal || showTimeoutModal) && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 99999 }}>
+        <div id="sessionTimeoutModalElement" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 99999 }}>
           <div style={{ backgroundColor: '#fff', padding: '30px 40px', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.2)', textAlign: 'center', width: '420px', maxWidth: '90%' }}>
             
             {/* 1. హెడింగ్ టెక్స్ట్ */}
