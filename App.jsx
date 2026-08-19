@@ -18,7 +18,11 @@ function App() {
     return new Date().toLocaleDateString('en-US', options); // ఇది ఎప్పుడూ ఆ రోజు కరెంట్ డేట్ (Live Date) నే చూపిస్తుంది
   });
     // 🛡️ 2 నిమిషాల ఇన్‌యాక్టివిటీ ఆటో-లాగౌట్ మరియు వెబ్‌సైట్ సెక్యూరిటీ లాజిక్
-      useEffect(() => {
+      // 1. మొదట మీ `useEffect` పైన (లేదా ఫైల్ లోపల స్టేట్స్ కి పైన) useRef వేరియబుల్స్ ఇలా డిక్లేర్ చేయండి
+  const sessionTimeoutRef = React.useRef(null);
+  const redirectTimeoutRef = React.useRef(null);
+
+  useEffect(() => {
     // బ్రౌజర్ పాత తెలుగు అలర్ట్ బాక్సులను పూర్తిగా బ్లాక్ చేయడం
     const originalAlert = window.alert;
     window.alert = function(msg) {
@@ -28,36 +32,32 @@ function App() {
       return originalAlert(msg);
     };
 
-    let timeoutId;
-    let autoRedirectTimeoutId;
-
     // ఆటోమేటిక్ లాగౌట్ ఫంక్షన్ (డైరెక్ట్‌గా 2 నిమిషాల వద్ద రన్ అవుతుంది)
     const triggerTimeout = () => {
-      // 1. బ్రౌజర్ డేటా క్లియర్ చేయడం (బ్యాక్‌గ్రౌండ్‌లో లాగౌట్ అవుతుంది)
+      // 1. బ్రౌజర్ డేటా మొత్తం క్లియర్ చేయడం (బ్యాక్‌గ్రౌండ్‌లో లాగౌట్ అవుతుంది)
       localStorage.clear();
       sessionStorage.clear();
       
-      // 2. కస్టమ్ పాప్-అప్ ఆన్ చేయడం (ఇప్పుడు పాపప్ స్క్రీన్ పై నిలిచి ఉంటుంది)
+      // 2. మీ రెండు స్టేట్స్ ని ఒకేసారి ట్రూ (true) చేస్తున్నాము, దీనివల్ల పాపప్ పక్కాగా వస్తుంది
       setShowTimeoutModal(true); 
+      setShowSessionModal(true); 
 
-      // 3. పాపప్ వచ్చాక యూజర్ క్లోజ్ బటన్ నొక్కినా, నొక్కకపోయినా 5 సెకన్లలో లాగిన్ పేజీకి వెళ్ళిపోతుంది
-      // (ఒకవేళ ఇంకా వేగంగా పేజీ మారాలి అనుకుంటే 5000 స్థానంలో 2000 లేదా 3000 పెట్టుకోవచ్చు)
-      autoRedirectTimeoutId = setTimeout(() => {
+      // 3. పాపప్ వచ్చాక 5 సెకన్లలో లాగిన్ పేజీకి వెళ్ళిపోతుంది
+      redirectTimeoutRef.current = setTimeout(() => {
         window.location.replace(window.location.origin);
       }, 5000);
     };
 
-    const savedUser = localStorage.getItem('examUser');
-    if (savedUser) {
-      // డైరెక్ట్‌గా 2 నిమిషాల వద్ద (120000ms) మాత్రమే ఈ టైమర్ రన్ అవుతుంది
-      timeoutId = setTimeout(triggerTimeout, 120000); 
+    // పేజీ లోడ్ అవ్వగానే కేవలం ఒకే ఒక్కసారి మాత్రమే 2 మినిట్స్ టైమర్ స్టార్ట్ అవుతుంది (ఆటో రీఫ్రెష్ లూప్ ఆగుతుంది)
+    if (!sessionTimeoutRef.current) {
+      sessionTimeoutRef.current = setTimeout(triggerTimeout, 120000); 
     }
 
-    // 1. రైట్ క్లిక్ (Right Click) పూర్తిగా బ్లాక్ చేయడం
+    // 1. | రైట్ క్లిక్ (Right Click) పూర్తిగా బ్లాక్ చేయడం
     const handleContextMenu = (e) => e.preventDefault();
     document.addEventListener('contextmenu', handleContextMenu);
 
-    // 2. F12, Ctrl+Shift+I షార్ట్‌కట్స్ బ్లాక్ చేయడం
+    // 2. | F12, Ctrl+Shift+I షార్ట్‌కట్స్ బ్లాక్ చేయడం
     const handleKeyDown = (e) => {
       if (
         e.key === 'F12' ||
@@ -70,18 +70,12 @@ function App() {
     };
     document.addEventListener('keydown', handleKeyDown);
 
-    // 3. కన్సోల్ నిరంతరం క్లియర్ చేయడం
-    const clearConsoleInterval = setInterval(() => {
-      console.clear();
-    }, 1000);
-
     // క్లీనప్ ఫంక్షన్
     return () => {
-      if (timeoutId) clearTimeout(timeoutId);
-      if (autoRedirectTimeoutId) clearTimeout(autoRedirectTimeoutId);
+      if (sessionTimeoutRef.current) clearTimeout(sessionTimeoutRef.current);
+      if (redirectTimeoutRef.current) clearTimeout(redirectTimeoutRef.current);
       document.removeEventListener('contextmenu', handleContextMenu);
       document.removeEventListener('keydown', handleKeyDown);
-      clearInterval(clearConsoleInterval);
     };
   }, []);
 
