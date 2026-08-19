@@ -47,27 +47,27 @@ function App() {
     // 🌟 Close బటన్ కి కనెక్ట్ చేయడానికి గ్లోబల్ విండో ఆబ్జెక్ట్‌లోకి పంపిస్తున్నాము
     window.closeSessionModalAndLogout = handleFinalLogout;
 
-    // 3. కరెక్ట్‌గా 2 నిమిషాలు అవ్వగానే రన్ అయ్యే మన కొత్త కస్టమ్ ఫంక్షన్
+        // 3. కరెక్ట్‌గా 2 నిమిషాలు అవ్వగానే రన్ అయ్యే మన కొత్త కస్టమ్ ఫంక్షన్
     const triggerTimeout = () => {
-  // 🌟 వెనకాల ఉన్న JEE Main సెషన్ విండోలను పూర్తిగా క్లోజ్ (false) చేస్తున్నాము
-  if (typeof setShowSessionModal === 'function') setShowSessionModal(false);
-  if (typeof setShowYearModal === 'function') setShowYearModal(false);
-  if (typeof setActiveExam === 'function') setActiveExam('');
+      // 🌟 వెనకాల ఉన్న JEE Main సెషన్ విండోలను పూర్తిగా క్లోజ్ (false) చేస్తున్నాము
+      if (typeof setShowSessionModal === 'function') setShowSessionModal(false);
+      if (typeof setShowYearModal === 'function') setShowYearModal(false);
+      if (typeof setActiveExam === 'function') setActiveExam('');
 
-  // రియాక్ట్ స్టేట్స్ మార్చకుండా డైరెక్ట్‌గా HTML ద్వారా పాపప్ చూపిస్తాము
-  const modal = document.getElementById("sessionTimeoutModalElement");
-  if (modal) {
-    modal.style.display = "flex";
-  } else {
-    // 🌟 ఇక్కడ పాత సెషన్ మోడల్ ని (setShowSessionModal) అస్సలు true చేయకూడదు
-    setShowTimeoutModal(true);
-  }
+      // రియాక్ట్ స్టేట్స్ మార్చకుండా డైరెక్ట్‌గా HTML ద్వారా పాపప్ చూపిస్తాము
+      const modal = document.getElementById("sessionTimeoutModalElement");
+      if (modal) {
+        modal.style.display = "flex";
+      } else {
+        // 🌟 ఇక్కడ పాత సెషన్ మోడల్ ని (setShowSessionModal) అస్సలు true చేయకూడదు, కేవలం టైమర్ మోడల్ మాత్రమే true చేయాలి
+        setShowTimeoutModal(true);
+      }
 
-  // పాపప్ వచ్చాక మీ కోడ్ లో ఉన్నట్లే 10 సెకన్ల తర్వాత డేటా క్లియర్ అయి లాగిన్ పేజీకి వెళ్తుంది
-  fallbackRedirectId = setTimeout(handleFinalLogout, 10000);
-};
+      // పాపప్ వచ్చాక 10 సెకన్ల తర్వాత మాత్రమే డేటా క్లియర్ అయి లాగిన్ పేజీకి వెళ్తుంది
+      fallbackRedirectId = setTimeout(handleFinalLogout, 10000);
+    };
 
-    // 4. కరెక్ట్‌గా 2 నిమిషాల (60000ms) సరికొత్త ఏకైక టైమర్
+// 4. కరెక్ట్‌గా 2 నిమిషాల (60000ms) సరికొత్త ఏకైక టైమర్
     mainTimerId = setTimeout(triggerTimeout, 60000); 
 
     // Right Click పూర్తిగా బ్లాక్ చేయడం
@@ -419,7 +419,7 @@ function App() {
         </div>
 
               {/* 🚨 కస్టమ్ సెషన్ టైమ్-అవుట్ పాప్-అప్ బాక్స్ (మీరు పంపిన ఇమేజ్ డిజైన్ స్టైల్ లో) */}
-      {(showSessionModal || showTimeoutModal) && (
+      {(showTimeoutModal) && (
         <div id="sessionTimeoutModalElement" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 99999 }}>
           <div style={{ backgroundColor: '#fff', padding: '30px 40px', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.2)', textAlign: 'center', width: '420px', maxWidth: '90%' }}>
             
