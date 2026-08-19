@@ -19,42 +19,43 @@ function App() {
   });
     // 🛡️ 2 నిమిషాల ఇన్‌యాక్టివిటీ ఆటో-లాగౌట్ మరియు వెబ్‌సైట్ సెక్యూరిటీ లాజిక్
       useEffect(() => {
-    // 🚨 బ్రౌజర్ పాత డిఫాల్ట్ అలర్ట్ బాక్స్‌లను పూర్తిగా హైజాక్ చేసి బ్లాక్ చేయడం (లూప్ ఆపేస్తుంది)
+    // బ్రౌజర్ పాత తెల్ల అలర్ట్ బాక్స్‌ను పూర్తిగా బ్లాక్ చేయడం
+    const originalAlert = window.alert;
     window.alert = function(msg) {
-      console.log("Blocked browser alert: ", msg);
+      console.log("Blocked alert: ", msg);
       return true; 
     };
 
-    // రియాక్ట్ లూపింగ్ కి దొరక్కుండా బ్రౌజర్ విండో లెవెల్ లో రన్ అయ్యే స్టేబుల్ టైమర్
-    if (!window.sessionTimeoutLocked) {
-      window.sessionTimeoutLocked = true;
+    let mainTimerId;
+    let fallbackRedirectId;
 
-      window.globalTimeoutId = setTimeout(() => {
-        // 1. బ్యాక్‌గ్రౌండ్ లో సెషన్ డేటా మొత్తం తుడిచేయడం
-        localStorage.clear();
-        sessionStorage.clear();
-        
-        // 2. రియాక్ట్ రెండరింగ్ స్టేట్స్ మార్చకుండా నేరుగా HTML ద్వారా పాపప్ ఆన్ చేయడం (దీనివల్ల రీఫ్రెష్ అవ్వదు)
-        const modal = document.getElementById("sessionTimeoutModalElement");
-        if (modal) {
-          modal.style.display = "flex";
-        } else {
-          setShowTimeoutModal(true);
-          setShowSessionModal(true);
-        }
+    // ఆటోమేటిక్ సెషన్ టైమ్ అవుట్ ఫంక్షన్ (నిన్నటి పక్కా లాజిక్)
+    const triggerTimeout = () => {
+      // 1. మొదట బ్రౌజర్ డేటా క్లియర్ చేయడం (బ్యాక్‌గ్రౌండ్‌లో లాగౌట్ అవుతుంది)
+      localStorage.clear();
+      sessionStorage.clear();
+      
+      // 2. మీ స్టేట్స్ ని ఆన్ చేయడం వల్ల స్క్రీన్ మధ్యలో పాపప్ విండో వస్తుంది
+      setShowTimeoutModal(true);
+      setShowSessionModal(true);
 
-        // 3. కరెక్ట్‌గా 5 సెకన్ల తర్వాత మాత్రమే హోమ్ పేజీకి రీడైరెక్ట్ చేయడం
-        window.globalRedirectId = setTimeout(() => {
-          window.location.replace(window.location.origin);
-        }, 5000);
-      }, 120000); // కరెక్ట్ గా 2 నిమిషాలు (120000ms)
+      // 3. కరెక్ట్‌గా 5 సెకన్ల తర్వాత ఆటోమేటిక్‌గా లాగిన్ పేజీకి రీడైరెక్ట్ చేయడం
+      fallbackRedirectId = setTimeout(() => {
+        window.location.replace(window.location.origin);
+      }, 5000);
+    };
+
+    // వెబ్‌సైట్ లోపల యూజర్ డేటా ఉంటేనే కరెక్ట్‌గా 2 నిమిషాల (120000ms) టైమర్ స్టార్ట్ అవుతుంది
+    const currentUser = localStorage.getItem('examUser');
+    if (currentUser) {
+      mainTimerId = setTimeout(triggerTimeout, 120000); 
     }
 
-    // | రైట్ క్లిక్ (Right Click) పూర్తిగా బ్లాక్ చేయడం
+    // Right Click పూర్తిగా బ్లాక్ చేయడం
     const handleContextMenu = (e) => e.preventDefault();
     document.addEventListener('contextmenu', handleContextMenu);
 
-    // | F12, Ctrl+Shift+I షార్ట్‌కట్స్ బ్లాక్ చేయడం
+    // F12, Ctrl+Shift+I షార్ట్‌కట్స్ బ్లాక్ చేయడం
     const handleKeyDown = (e) => {
       if (
         e.key === 'F12' ||
@@ -67,18 +68,15 @@ function App() {
     };
     document.addEventListener('keydown', handleKeyDown);
 
-    // క్లీనప్ ఫంక్షన్
     return () => {
-      // పేజీ అన్‌మౌంట్ అయినప్పుడు లాక్‌లను మరియు టైమర్లను క్లియర్ చేయడం
-      window.sessionTimeoutLocked = false;
-      if (window.globalTimeoutId) clearTimeout(window.globalTimeoutId);
-      if (window.globalRedirectId) clearTimeout(window.globalRedirectId);
+      if (mainTimerId) clearTimeout(mainTimerId);
+      if (fallbackRedirectId) clearTimeout(fallbackRedirectId);
       document.removeEventListener('contextmenu', handleContextMenu);
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
 
-  // 🎲 6 అంకెల ఆల్ఫాన్యూమరిక్ క్యాప్చా జనరేట్ చేసే ఫంక్షన్ (దీన్ని అస్సలు మార్చలేదు)
+  // 🎲 6 అంకెల ఆల్ఫాన్యూమరిక్ క్యాప్చా జనరేట్ చేసే ఫంక్షన్ (మార్చలేదు)
   const generateCaptcha = () => {
     const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     let result = '';
@@ -89,7 +87,7 @@ function App() {
     setUserCaptchaInput(''); 
   };
 
-  // 🌟 ఆటో-లాగిన్ చెక్ చేసే సింపుల్ లూప్-ఫ్రీ లాజిక్
+  // 🌟 ఆటో-లాగిన్ చెక్ చేసే కోడ్ (మార్చలేదు)
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('examUser');
     try {
@@ -98,6 +96,7 @@ function App() {
       return null;
     }
   });
+
   
   const [activeExam, setActiveExam] = useState('JEE Main');
   const [showTimeoutModal, setShowTimeoutModal] = useState(false);
@@ -404,32 +403,27 @@ function App() {
           </div>
         </div>
 
-            {/* 🚨 కస్టమ్ సెషన్ టైమ్-అవుట్ పాప్-అప్ బాక్స్ */}
-      <div 
-        id="sessionTimeoutModalElement"
-        style={{ 
-          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', 
-          backgroundColor: 'rgba(0, 0, 0, 0.6)', display: (showSessionModal || showTimeoutModal) ? 'flex' : 'none', 
-          justifyContent: 'center', alignItems: 'center', zIndex: 99999 
-        }}
-      >
-        <div style={{ backgroundColor: '#fff', padding: '30px', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.2)', textAlign: 'center', width: '350px' }}>
-          <h3 style={{ color: '#d32f2f', marginTop: 0, fontSize: '22px' }}>Session time out.</h3>
-          <p style={{ color: '#555', marginBottom: '25px', fontSize: '15px' }}>Your session has expired due to inactivity.</p>
-          <button
-            onClick={() => {
-              localStorage.clear();
-              sessionStorage.clear();
-              window.location.replace(window.location.origin);
-            }}
-            style={{ backgroundColor: '#0043a4', color: '#fff', border: 'none', padding: '10px 30px', borderRadius: '4px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer', transition: 'background 0.2s', width: '100%' }}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#002f75'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#0043a4'}
-          >
-            Close
-          </button>
+                  {/* 🚨 కస్టమ్ సెషన్ టైమ్-అవుట్ పాప్-అప్ బాక్స్ */}
+      {(showSessionModal || showTimeoutModal) && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 99999 }}>
+          <div style={{ backgroundColor: '#fff', padding: '30px', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.2)', textAlign: 'center', width: '350px' }}>
+            <h3 style={{ color: '#d32f2f', marginTop: 0, fontSize: '22px' }}>Session time out.</h3>
+            <p style={{ color: '#555', marginBottom: '25px', fontSize: '15px' }}>Your session has expired due to inactivity.</p>
+            <button
+              onClick={() => {
+                localStorage.clear();
+                sessionStorage.clear();
+                window.location.replace(window.location.origin);
+              }}
+              style={{ backgroundColor: '#0043a4', color: '#fff', border: 'none', padding: '10px 30px', borderRadius: '4px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer', transition: 'background 0.2s', width: '100%' }}
+              onMouseOver={(e) => e.target.style.backgroundColor = '#002f75'}
+              onMouseOut={(e) => e.target.style.backgroundColor = '#0043a4'}
+            >
+              Close
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
     </footer>
   </div>
