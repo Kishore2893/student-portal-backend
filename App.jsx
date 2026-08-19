@@ -19,7 +19,7 @@ function App() {
   });
     // 🛡️ 2 నిమిషాల ఇన్‌యాక్టివిటీ ఆటో-లాగౌట్ మరియు వెబ్‌సైట్ సెక్యూరిటీ లాజిక్
       useEffect(() => {
-    // బ్రౌజర్ పాత తెలుగు అలర్ట్ బాక్సులను పూర్తిగా బ్లాక్ చేయడం (లైన్ 22-29 అలాగే ఉంది)
+    // బ్రౌజర్ పాత తెలుగు అలర్ట్ బాక్సులను పూర్తిగా బ్లాక్ చేయడం
     const originalAlert = window.alert;
     window.alert = function(msg) {
       if (msg && msg.includes("మీ సెషన్ ముగిసింది")) {
@@ -28,43 +28,36 @@ function App() {
       return originalAlert(msg);
     };
 
-    // మీ పాత వేరియబుల్ పేరు 'timeoutId' ని అలాగే ఉంచాము
     let timeoutId;
-    let popupTimeoutId;
+    let autoRedirectTimeoutId;
 
-    // ఆటోమేటిక్ లాగౌట్ ఫంక్షన్ (మీ పాత బాడీ లాజిక్ వంద శాతం అలాగే ఉంచబడింది)
+    // ఆటోమేటిక్ లాగౌట్ ఫంక్షన్ (డైరెక్ట్‌గా 2 నిమిషాల వద్ద రన్ అవుతుంది)
     const triggerTimeout = () => {
-      // 1. బ్రౌజర్ డేటా క్లియర్ చేయడం
+      // 1. బ్రౌజర్ డేటా క్లియర్ చేయడం (బ్యాక్‌గ్రౌండ్‌లో లాగౌట్ అవుతుంది)
       localStorage.clear();
       sessionStorage.clear();
       
-      // 2. కస్టమ్ పాప్-అప్ ఆన్ చేయడం
+      // 2. కస్టమ్ పాప్-అప్ ఆన్ చేయడం (ఇప్పుడు పాపప్ స్క్రీన్ పై నిలిచి ఉంటుంది)
       setShowTimeoutModal(true); 
 
-      // 3. కరెక్ట్‌గా 1 సెకన్ తర్వాత ఆటోమేటిక్‌గా లాగిన్ పేజీకి రీడైరెక్ట్ చేయడం
-      setTimeout(() => {
+      // 3. పాపప్ వచ్చాక యూజర్ క్లోజ్ బటన్ నొక్కినా, నొక్కకపోయినా 5 సెకన్లలో లాగిన్ పేజీకి వెళ్ళిపోతుంది
+      // (ఒకవేళ ఇంకా వేగంగా పేజీ మారాలి అనుకుంటే 5000 స్థానంలో 2000 లేదా 3000 పెట్టుకోవచ్చు)
+      autoRedirectTimeoutId = setTimeout(() => {
         window.location.replace(window.location.origin);
-      }, 1000);
+      }, 5000);
     };
 
     const savedUser = localStorage.getItem('examUser');
     if (savedUser) {
-      // కీబోర్డ్, మౌస్ లిజనర్స్ తీసేసి, ఫిక్స్డ్ టైమర్లు పెట్టాము
-      
-      // 1 నిమిషం 45 సెకన్ల వద్ద (105000ms) పాపప్ చూపించడానికి
-      popupTimeoutId = setTimeout(() => {
-        setShowTimeoutModal(true); 
-      }, 105000);
-
-      // కరెక్ట్‌గా 2 నిమిషాల వద్ద (120000ms) ఆటోమేటిక్‌గా లాగిన్ పేజీకి విసిరేయడానికి
+      // డైరెక్ట్‌గా 2 నిమిషాల వద్ద (120000ms) మాత్రమే ఈ టైమర్ రన్ అవుతుంది
       timeoutId = setTimeout(triggerTimeout, 120000); 
     }
 
-    // 1. రైట్ క్లిక్ (Right Click) పూర్తిగా బ్లాక్ చేయడం (లైన్ 64-66 అలాగే ఉంది)
+    // 1. రైట్ క్లిక్ (Right Click) పూర్తిగా బ్లాక్ చేయడం
     const handleContextMenu = (e) => e.preventDefault();
     document.addEventListener('contextmenu', handleContextMenu);
 
-    // 2. F12, Ctrl+Shift+I షార్ట్‌కట్స్ బ్లాక్ చేయడం (లైన్ 68-79 అలాగే ఉంది)
+    // 2. F12, Ctrl+Shift+I షార్ట్‌కట్స్ బ్లాక్ చేయడం
     const handleKeyDown = (e) => {
       if (
         e.key === 'F12' ||
@@ -77,15 +70,15 @@ function App() {
     };
     document.addEventListener('keydown', handleKeyDown);
 
-    // 3. కన్సోల్ నిరంతరం క్లియర్ చేయడం (లైన్ 81-84 అలాగే ఉంది)
+    // 3. కన్సోల్ నిరంతరం క్లియర్ చేయడం
     const clearConsoleInterval = setInterval(() => {
       console.clear();
     }, 1000);
 
-    // క్లీనప్ ఫంక్షన్ (లైన్ 86-95 అలాగే ఉంది, కేవలం పాత మౌస్ ఈవెంట్స్ రిమూవర్స్ తీసేశాము)
+    // క్లీనప్ ఫంక్షన్
     return () => {
       if (timeoutId) clearTimeout(timeoutId);
-      if (popupTimeoutId) clearTimeout(popupTimeoutId);
+      if (autoRedirectTimeoutId) clearTimeout(autoRedirectTimeoutId);
       document.removeEventListener('contextmenu', handleContextMenu);
       document.removeEventListener('keydown', handleKeyDown);
       clearInterval(clearConsoleInterval);
