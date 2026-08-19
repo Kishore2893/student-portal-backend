@@ -33,13 +33,11 @@ function App() {
 
     // ఆటోమేటిక్ లాగౌట్ ఫంక్షన్ (డైరెక్ట్‌గా 2 నిమిషాల వద్ద రన్ అవుతుంది)
     const triggerTimeout = () => {
-      // 1. 🚨 టైమ్ అవుట్ ఫ్లాగ్ సెట్ చేసి, బ్రౌజర్ లోని సమస్త డేటాను పూర్తిగా తుడిచేయడం
-      localStorage.setItem('isTimedOut', 'true');
-      localStorage.removeItem('examUser');
+      // 1. 🚨 బ్రౌజర్ మెమరీని పూర్తిగా ఖాళీ చేయడం (సమస్త డేటా డిలీట్ అవుతుంది)
       localStorage.clear();
       sessionStorage.clear();
       
-      // 2. డైరెక్ట్‌గా HTML ఎలిమెంట్ ద్వారా పాపప్ చూపిస్తాము (రీ-రెండరింగ్ లూప్ రాదు)
+      // 2. డైరెక్ట్‌గా HTML ఎలిమెంట్ ద్వారా పాపప్ చూపిస్తాము
       const modal = document.getElementById("sessionTimeoutModalElement");
       if (modal) {
         modal.style.display = "flex";
@@ -48,17 +46,18 @@ function App() {
         setShowSessionModal(true);
       }
 
-      // 3. పాపప్ వచ్చాక యూజర్ ఏమీ చేయకపోతే 5 సెకన్లలో లాగిన్ స్క్రీన్ కి వెళ్ళిపోతుంది
+      // 3. పాపప్ వచ్చాక 5 సెకన్లలో లాగిన్ స్క్రీన్ కి రీడైరెక్ట్ చేయడం
       fallbackRedirectId = setTimeout(() => {
+        // బ్రౌజర్ హిస్టరీని క్లియర్ చేస్తూ రూట్ పేజీకి పంపుతుంది (దీనివల్ల పాత పేజీ అస్సలు రాదు)
         window.location.replace(window.location.origin);
       }, 5000);
     };
 
-    // ఫ్రెష్ గా లాగిన్ అయి ఉన్నప్పుడు టైమ్ అవుట్ ఫ్లాగ్ ని ముందే క్లియర్ చేసి ఉంచుతాము
-    localStorage.removeItem('isTimedOut');
-    
-    // కరెక్ట్‌గా 2 నిమిషాల (120000ms) ఫిక్స్డ్ టైమర్
-    mainTimerId = setTimeout(triggerTimeout, 120000);
+    // ఒకవేళ ఆల్రెడీ లాగిన్ అయి ఉంటేనే టైమర్ స్టార్ట్ అవుతుంది
+    const hasUser = localStorage.getItem('examUser');
+    if (hasUser) {
+      mainTimerId = setTimeout(triggerTimeout, 120000); // కరెక్ట్‌గా 2 నిమిషాలు
+    }
 
     // | రైట్ క్లిక్ (Right Click) పూర్తిగా బ్లాక్ చేయడం
     const handleContextMenu = (e) => e.preventDefault();
@@ -77,7 +76,6 @@ function App() {
     };
     document.addEventListener('keydown', handleKeyDown);
 
-    // క్లీనప్ ఫంక్షన్
     return () => {
       if (mainTimerId) clearTimeout(mainTimerId);
       if (fallbackRedirectId) clearTimeout(fallbackRedirectId);
@@ -86,7 +84,7 @@ function App() {
     };
   }, []);
 
-  // 🎲 6 అంకెల ఆల్ఫాన్యూమరిక్ క్యాప్చా జనరేట్ చేసే ఫంక్షన్ (దీన్ని అస్సలు మార్చలేదు)
+  // 🎲 6 అంకెల ఆల్ఫాన్యూమరిక్ క్యాప్చా జనరేట్ చేసే ఫంక్షన్ (డిస్టర్బ్ చేయలేదు)
   const generateCaptcha = () => {
     const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     let result = '';
@@ -97,16 +95,14 @@ function App() {
     setUserCaptchaInput(''); 
   };
 
-  // 🌟 ఆటో-లాగిన్ లూప్ కంట్రోల్ చేసే సరికొత్త పక్కా స్టేట్ లాజిక్
+  // 🌟 ఆటో-లాగిన్ చెక్ చేసే సింపుల్ కరెక్ట్ లాజిక్
   const [user, setUser] = useState(() => {
-    // 1. ఒకవేళ ఆల్రెడీ టైమ్ అవుట్ అయి ఉంటే పాత యూజర్ ని అస్సలు లోడ్ చేయదు (లూప్ బ్రేక్ అవుతుంది)
-    if (localStorage.getItem('isTimedOut') === 'true') {
+    const savedUser = localStorage.getItem('examUser');
+    try {
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch (e) {
       return null;
     }
-    
-    // 2. నార్మల్ లాగిన్ చెక్
-    const savedUser = localStorage.getItem('examUser');
-    return savedUser ? JSON.parse(savedUser) : null;
   });
   
   const [activeExam, setActiveExam] = useState('JEE Main');
