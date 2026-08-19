@@ -47,23 +47,28 @@ function App() {
     // 🌟 Close బటన్ కి కనెక్ట్ చేయడానికి గ్లోబల్ విండో ఆబ్జెక్ట్‌లోకి పంపిస్తున్నాము
     window.closeSessionModalAndLogout = handleFinalLogout;
 
-        // 3. కరెక్ట్‌గా 2 నిమిషాలు అవ్వగానే రన్ అయ్యే మన కొత్త కస్టమ్ ఫంక్షన్
+            // 3. కరెక్ట్‌గా 2 నిమిషాలు అవ్వగానే రన్ అయ్యే మన కొత్త కస్టమ్ ఫంక్షన్
     const triggerTimeout = () => {
-      // 🌟 వెనకాల ఉన్న JEE Main సెషన్ విండోలను పూర్తిగా క్లోజ్ (false) చేస్తున్నాము
       if (typeof setShowSessionModal === 'function') setShowSessionModal(false);
       if (typeof setShowYearModal === 'function') setShowYearModal(false);
       if (typeof setActiveExam === 'function') setActiveExam('');
+
+      // 🌟 శాశ్వత పరిస్కారం: వెనకాల ఉన్న పాత విండోలను CSS ద్వారా బలవంతంగా దాచేస్తున్నాము
+      const allModals = document.querySelectorAll('.modal, [class*="modal"], [id*="modal"]');
+      allModals.forEach(m => {
+        if (m.id !== "sessionTimeoutModalElement") {
+          m.style.setProperty('display', 'none', 'important');
+        }
+      });
 
       // రియాక్ట్ స్టేట్స్ మార్చకుండా డైరెక్ట్‌గా HTML ద్వారా పాపప్ చూపిస్తాము
       const modal = document.getElementById("sessionTimeoutModalElement");
       if (modal) {
         modal.style.display = "flex";
       } else {
-        // 🌟 ఇక్కడ పాత సెషన్ మోడల్ ని (setShowSessionModal) అస్సలు true చేయకూడదు, కేవలం టైమర్ మోడల్ మాత్రమే true చేయాలి
         setShowTimeoutModal(true);
       }
 
-      // పాపప్ వచ్చాక 10 సెకన్ల తర్వాత మాత్రమే డేటా క్లియర్ అయి లాగిన్ పేజీకి వెళ్తుంది
       fallbackRedirectId = setTimeout(handleFinalLogout, 10000);
     };
 
