@@ -59,11 +59,11 @@ function App() {
       }
 
       // పాపప్ వచ్చాక 5 సెకన్ల తర్వాత మాత్రమే డేటా క్లియర్ అయి లాగిన్ పేజీకి వెళ్తుంది
-      fallbackRedirectId = setTimeout(handleFinalLogout, 5000);
+      fallbackRedirectId = setTimeout(handleFinalLogout, 10000);
     };
 
-    // 4. కరెక్ట్‌గా 2 నిమిషాల (120000ms) సరికొత్త ఏకైక టైమర్
-    mainTimerId = setTimeout(triggerTimeout, 120000); 
+    // 4. కరెక్ట్‌గా 2 నిమిషాల (60000ms) సరికొత్త ఏకైక టైమర్
+    mainTimerId = setTimeout(triggerTimeout, 60000); 
 
     // Right Click పూర్తిగా బ్లాక్ చేయడం
     const handleContextMenu = (e) => e.preventDefault();
