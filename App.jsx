@@ -17,10 +17,9 @@ function App() {
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return new Date().toLocaleDateString('en-US', options); // ఇది ఎప్పుడూ ఆ రోజు కరెంట్ డేట్ (Live Date) నే చూపిస్తుంది
   });
-    // 🛡️ 2 నిమిషాల ఇన్‌యాక్టివిటీ ఆటో-లాగౌట్ మరియు వెబ్‌సైట్ సెక్యూరిటీ లాజిక్
-        useEffect(() => {
+      // 🛡️ 2 నిమిషాల ఇన్‌యాక్టివిటీ ఆటో-లాగౌట్ మరియు వెబ్‌సైట్ సెక్యూరిటీ లాజిక్
+  useEffect(() => {
     // 1. 🚨 బ్రౌజర్ లోని సమస్త పాత టైమర్లను (1 నిమిషం లూప్స్ ని) పూర్తిగా డిసేబుల్ చేయడం
-    // ఇది వేరే ఫైల్స్ లేదా node_modules లో ఉన్న పాత 60000ms టైమర్లను కూడా రన్ అవ్వకుండా ఆపేస్తుంది
     let highestTimeoutId = setTimeout(() => {});
     for (let i = 0 ; i < highestTimeoutId ; i++) {
         clearTimeout(i);
@@ -35,6 +34,19 @@ function App() {
     let mainTimerId;
     let fallbackRedirectId;
 
+    // 🌟 కొత్తగా యాడ్ చేసిన ఫంక్షన్: Close బటన్ నొక్కినప్పుడు లేదా 5 సెకన్లు అయిపోయాక లాగౌట్ చేయడానికి
+    const handleFinalLogout = () => {
+      if (mainTimerId) clearTimeout(mainTimerId);
+      if (fallbackRedirectId) clearTimeout(fallbackRedirectId);
+      
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.replace(window.location.origin);
+    };
+
+    // 🌟 Close బటన్ కి కనెక్ట్ చేయడానికి గ్లోబల్ విండో ఆబ్జెక్ట్‌లోకి పంపిస్తున్నాము
+    window.closeSessionModalAndLogout = handleFinalLogout;
+
     // 3. కరెక్ట్‌గా 2 నిమిషాలు అవ్వగానే రన్ అయ్యే మన కొత్త కస్టమ్ ఫంక్షన్
     const triggerTimeout = () => {
       // రియాక్ట్ స్టేట్స్ మార్చకుండా డైరెక్ట్‌గా HTML ద్వారా పాపప్ చూపిస్తాము
@@ -47,11 +59,7 @@ function App() {
       }
 
       // పాపప్ వచ్చాక 5 సెకన్ల తర్వాత మాత్రమే డేటా క్లియర్ అయి లాగిన్ పేజీకి వెళ్తుంది
-      fallbackRedirectId = setTimeout(() => {
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.replace(window.location.origin);
-      }, 5000);
+      fallbackRedirectId = setTimeout(handleFinalLogout, 5000);
     };
 
     // 4. కరెక్ట్‌గా 2 నిమిషాల (120000ms) సరికొత్త ఏకైక టైమర్
@@ -77,7 +85,6 @@ function App() {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
-
 
   // 🎲 6 అంకెల ఆల్ఫాన్యూమరిక్ క్యాప్చా జనరేట్ చేసే ఫంక్షన్ (మార్చలేదు)
   const generateCaptcha = () => {
@@ -441,7 +448,7 @@ function App() {
 
     </footer>
   </div>
- );
+ );	
 }
 
 export default App;
