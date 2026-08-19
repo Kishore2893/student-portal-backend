@@ -18,9 +18,15 @@ function App() {
     return new Date().toLocaleDateString('en-US', options); // ఇది ఎప్పుడూ ఆ రోజు కరెంట్ డేట్ (Live Date) నే చూపిస్తుంది
   });
     // 🛡️ 2 నిమిషాల ఇన్‌యాక్టివిటీ ఆటో-లాగౌట్ మరియు వెబ్‌సైట్ సెక్యూరిటీ లాజిక్
-      useEffect(() => {
-    // బ్రౌజర్ పాత తెల్ల అలర్ట్ బాక్స్‌ను పూర్తిగా బ్లాక్ చేయడం
-    const originalAlert = window.alert;
+        useEffect(() => {
+    // 1. 🚨 బ్రౌజర్ లోని సమస్త పాత టైమర్లను (1 నిమిషం లూప్స్ ని) పూర్తిగా డిసేబుల్ చేయడం
+    // ఇది వేరే ఫైల్స్ లేదా node_modules లో ఉన్న పాత 60000ms టైమర్లను కూడా రన్ అవ్వకుండా ఆపేస్తుంది
+    let highestTimeoutId = setTimeout(() => {});
+    for (let i = 0 ; i < highestTimeoutId ; i++) {
+        clearTimeout(i);
+    }
+
+    // 2. బ్రౌజర్ తెల్ల అలర్ట్ బాక్స్‌లను పూర్తిగా బ్లాక్ చేయడం
     window.alert = function(msg) {
       console.log("Blocked alert: ", msg);
       return true; 
@@ -29,27 +35,27 @@ function App() {
     let mainTimerId;
     let fallbackRedirectId;
 
-    // ఆటోమేటిక్ సెషన్ టైమ్ అవుట్ ఫంక్షన్ (నిన్నటి పక్కా లాజిక్)
+    // 3. కరెక్ట్‌గా 2 నిమిషాలు అవ్వగానే రన్ అయ్యే మన కొత్త కస్టమ్ ఫంక్షన్
     const triggerTimeout = () => {
-      // 1. మొదట బ్రౌజర్ డేటా క్లియర్ చేయడం (బ్యాక్‌గ్రౌండ్‌లో లాగౌట్ అవుతుంది)
-      localStorage.clear();
-      sessionStorage.clear();
-      
-      // 2. మీ స్టేట్స్ ని ఆన్ చేయడం వల్ల స్క్రీన్ మధ్యలో పాపప్ విండో వస్తుంది
-      setShowTimeoutModal(true);
-      setShowSessionModal(true);
+      // రియాక్ట్ స్టేట్స్ మార్చకుండా డైరెక్ట్‌గా HTML ద్వారా పాపప్ చూపిస్తాము
+      const modal = document.getElementById("sessionTimeoutModalElement");
+      if (modal) {
+        modal.style.display = "flex";
+      } else {
+        setShowTimeoutModal(true);
+        setShowSessionModal(true);
+      }
 
-      // 3. కరెక్ట్‌గా 5 సెకన్ల తర్వాత ఆటోమేటిక్‌గా లాగిన్ పేజీకి రీడైరెక్ట్ చేయడం
+      // పాపప్ వచ్చాక 5 సెకన్ల తర్వాత మాత్రమే డేటా క్లియర్ అయి లాగిన్ పేజీకి వెళ్తుంది
       fallbackRedirectId = setTimeout(() => {
+        localStorage.clear();
+        sessionStorage.clear();
         window.location.replace(window.location.origin);
       }, 5000);
     };
 
-    // వెబ్‌సైట్ లోపల యూజర్ డేటా ఉంటేనే కరెక్ట్‌గా 2 నిమిషాల (120000ms) టైమర్ స్టార్ట్ అవుతుంది
-    const currentUser = localStorage.getItem('examUser');
-    if (currentUser) {
-      mainTimerId = setTimeout(triggerTimeout, 120000); 
-    }
+    // 4. కరెక్ట్‌గా 2 నిమిషాల (120000ms) సరికొత్త ఏకైక టైమర్
+    mainTimerId = setTimeout(triggerTimeout, 120000); 
 
     // Right Click పూర్తిగా బ్లాక్ చేయడం
     const handleContextMenu = (e) => e.preventDefault();
@@ -57,11 +63,7 @@ function App() {
 
     // F12, Ctrl+Shift+I షార్ట్‌కట్స్ బ్లాక్ చేయడం
     const handleKeyDown = (e) => {
-      if (
-        e.key === 'F12' ||
-        (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'i' || e.key === 'j')) ||
-        (e.ctrlKey && (e.key === 'U' || e.key === 'u'))
-      ) {
+      if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || (e.ctrlKey && e.key === 'U')) {
         e.preventDefault();
         return false;
       }
@@ -75,6 +77,7 @@ function App() {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
+
 
   // 🎲 6 అంకెల ఆల్ఫాన్యూమరిక్ క్యాప్చా జనరేట్ చేసే ఫంక్షన్ (మార్చలేదు)
   const generateCaptcha = () => {
@@ -403,24 +406,35 @@ function App() {
           </div>
         </div>
 
-                  {/* 🚨 కస్టమ్ సెషన్ టైమ్-అవుట్ పాప్-అప్ బాక్స్ */}
+              {/* 🚨 కస్టమ్ సెషన్ టైమ్-అవుట్ పాప్-అప్ బాక్స్ (మీరు పంపిన ఇమేజ్ డిజైన్ స్టైల్ లో) */}
       {(showSessionModal || showTimeoutModal) && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 99999 }}>
-          <div style={{ backgroundColor: '#fff', padding: '30px', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.2)', textAlign: 'center', width: '350px' }}>
-            <h3 style={{ color: '#d32f2f', marginTop: 0, fontSize: '22px' }}>Session time out.</h3>
-            <p style={{ color: '#555', marginBottom: '25px', fontSize: '15px' }}>Your session has expired due to inactivity.</p>
+          <div style={{ backgroundColor: '#fff', padding: '30px 40px', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.2)', textAlign: 'center', width: '420px', maxWidth: '90%' }}>
+            
+            {/* 1. హెడింగ్ టెక్స్ట్ */}
+            <h2 style={{ color: '#000', margin: '0 0 10px 0', fontSize: '24px', fontWeight: 'bold' }}>
+              Session Timeout
+            </h2>
+            
+            {/* 2. సబ్-టెక్స్ట్ (మిడిల్ లో వచ్చే మెసేజ్) */}
+            <p style={{ color: '#555', marginBottom: '25px', fontSize: '15px' }}>
+              Please login again
+            </p>
+            
+            {/* 3. కింద వచ్చే క్లోజ్ బటన్ */}
             <button
               onClick={() => {
                 localStorage.clear();
                 sessionStorage.clear();
                 window.location.replace(window.location.origin);
               }}
-              style={{ backgroundColor: '#0043a4', color: '#fff', border: 'none', padding: '10px 30px', borderRadius: '4px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer', transition: 'background 0.2s', width: '100%' }}
-              onMouseOver={(e) => e.target.style.backgroundColor = '#002f75'}
-              onMouseOut={(e) => e.target.style.backgroundColor = '#0043a4'}
+              style={{ backgroundColor: '#c84313', color: '#fff', border: 'none', padding: '12px 0', borderRadius: '6px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', transition: 'background 0.2s', width: '100%' }}
+              onMouseOver={(e) => e.target.style.backgroundColor = '#b03a10'}
+              onMouseOut={(e) => e.target.style.backgroundColor = '#c84313'}
             >
               Close
             </button>
+            
           </div>
         </div>
       )}
