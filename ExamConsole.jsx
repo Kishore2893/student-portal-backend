@@ -1,9 +1,27 @@
 import React, { useState, useEffect } from 'react';
 
 export default function ExamConsole({ activeExam, currentThemeColor, handleDocClick }) {
-  
-  // 🌟 పాపప్ ఓపెన్/క్లోజ్ కంట్రోల్ చేయడం కోసం స్టేట్
-  const [showJeePopup, setShowJeePopup] = useState(false);
+        // 👇 1 నిమిషం పాత టైమర్ తీసేసి.. 2 నిమిషాలకు కస్టమ్ పాపప్ చూపించేలా మార్చిన లాజిక్
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            // 1. బ్యాక్‌గ్రౌండ్ లో బ్రౌజర్ డేటా మొత్తం క్లియర్ (లాగౌట్)
+            localStorage.clear();
+            sessionStorage.clear();
+            
+            // 2. మనం కొత్తగా క్రియేట్ చేసిన జేఈఈ స్టైల్ టైమ్-అవుట్ పాపప్ ని ఆన్ చేస్తుంది
+            setShowJeePopup(true);
+
+            // 3. పాపప్ వచ్చాక యూజర్ క్లోజ్ నొక్కినా, నొక్కకపోయినా 5 సెకన్లలో ఆటోమేటిక్‌గా లాగిన్ కి వెళ్తుంది
+            setTimeout(() => {
+                window.location.replace(window.location.origin);
+            }, 5000);
+        }, 120000); // కరెక్ట్ గా 2 నిమిషాలు (120000ms)
+
+        return () => clearTimeout(timer);
+    }, []);
+
+    // 🌟 పాపప్ ఓపెన్/క్లోజ్ కంట్రోల్ చేయడం కోసం స్టేట్ (అలాగే ఉంచబడింది)
+    const [showJeePopup, setShowJeePopup] = useState(false);
   
   // 🌟 యూజర్ ఏ కార్డ్ క్లిక్ చేశారో ట్రాక్ చేయడానికి స్టేట్
   const [pendingDocType, setPendingDocType] = useState('');
