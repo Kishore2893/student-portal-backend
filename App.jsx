@@ -19,44 +19,35 @@ function App() {
   });
     // 🛡️ 2 నిమిషాల ఇన్‌యాక్టివిటీ ఆటో-లాగౌట్ మరియు వెబ్‌సైట్ సెక్యూరిటీ లాజిక్
       useEffect(() => {
-    // బ్రౌజర్ పాత తెలుగు అలర్ట్ బాక్సులను పూర్తిగా బ్లాక్ చేయడం
-    const originalAlert = window.alert;
+    // 🚨 బ్రౌజర్ పాత డిఫాల్ట్ అలర్ట్ బాక్స్‌లను పూర్తిగా హైజాక్ చేసి బ్లాక్ చేయడం (లూప్ ఆపేస్తుంది)
     window.alert = function(msg) {
-      if (msg && msg.includes("మీ సెషన్ ముగిసింది")) {
-        return true; 
-      }
-      return originalAlert(msg);
+      console.log("Blocked browser alert: ", msg);
+      return true; 
     };
 
-    let mainTimerId;
-    let fallbackRedirectId;
+    // రియాక్ట్ లూపింగ్ కి దొరక్కుండా బ్రౌజర్ విండో లెవెల్ లో రన్ అయ్యే స్టేబుల్ టైమర్
+    if (!window.sessionTimeoutLocked) {
+      window.sessionTimeoutLocked = true;
 
-    // ఆటోమేటిక్ లాగౌట్ ఫంక్షన్ (డైరెక్ట్‌గా 2 నిమిషాల వద్ద రన్ అవుతుంది)
-    const triggerTimeout = () => {
-      // 1. 🚨 బ్రౌజర్ మెమరీని పూర్తిగా ఖాళీ చేయడం (సమస్త డేటా డిలీట్ అవుతుంది)
-      localStorage.clear();
-      sessionStorage.clear();
-      
-      // 2. డైరెక్ట్‌గా HTML ఎలిమెంట్ ద్వారా పాపప్ చూపిస్తాము
-      const modal = document.getElementById("sessionTimeoutModalElement");
-      if (modal) {
-        modal.style.display = "flex";
-      } else {
-        setShowTimeoutModal(true);
-        setShowSessionModal(true);
-      }
+      window.globalTimeoutId = setTimeout(() => {
+        // 1. బ్యాక్‌గ్రౌండ్ లో సెషన్ డేటా మొత్తం తుడిచేయడం
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        // 2. రియాక్ట్ రెండరింగ్ స్టేట్స్ మార్చకుండా నేరుగా HTML ద్వారా పాపప్ ఆన్ చేయడం (దీనివల్ల రీఫ్రెష్ అవ్వదు)
+        const modal = document.getElementById("sessionTimeoutModalElement");
+        if (modal) {
+          modal.style.display = "flex";
+        } else {
+          setShowTimeoutModal(true);
+          setShowSessionModal(true);
+        }
 
-      // 3. పాపప్ వచ్చాక 5 సెకన్లలో లాగిన్ స్క్రీన్ కి రీడైరెక్ట్ చేయడం
-      fallbackRedirectId = setTimeout(() => {
-        // బ్రౌజర్ హిస్టరీని క్లియర్ చేస్తూ రూట్ పేజీకి పంపుతుంది (దీనివల్ల పాత పేజీ అస్సలు రాదు)
-        window.location.replace(window.location.origin);
-      }, 5000);
-    };
-
-    // ఒకవేళ ఆల్రెడీ లాగిన్ అయి ఉంటేనే టైమర్ స్టార్ట్ అవుతుంది
-    const hasUser = localStorage.getItem('examUser');
-    if (hasUser) {
-      mainTimerId = setTimeout(triggerTimeout, 120000); // కరెక్ట్‌గా 2 నిమిషాలు
+        // 3. కరెక్ట్‌గా 5 సెకన్ల తర్వాత మాత్రమే హోమ్ పేజీకి రీడైరెక్ట్ చేయడం
+        window.globalRedirectId = setTimeout(() => {
+          window.location.replace(window.location.origin);
+        }, 5000);
+      }, 120000); // కరెక్ట్ గా 2 నిమిషాలు (120000ms)
     }
 
     // | రైట్ క్లిక్ (Right Click) పూర్తిగా బ్లాక్ చేయడం
@@ -76,15 +67,18 @@ function App() {
     };
     document.addEventListener('keydown', handleKeyDown);
 
+    // క్లీనప్ ఫంక్షన్
     return () => {
-      if (mainTimerId) clearTimeout(mainTimerId);
-      if (fallbackRedirectId) clearTimeout(fallbackRedirectId);
+      // పేజీ అన్‌మౌంట్ అయినప్పుడు లాక్‌లను మరియు టైమర్లను క్లియర్ చేయడం
+      window.sessionTimeoutLocked = false;
+      if (window.globalTimeoutId) clearTimeout(window.globalTimeoutId);
+      if (window.globalRedirectId) clearTimeout(window.globalRedirectId);
       document.removeEventListener('contextmenu', handleContextMenu);
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
 
-  // 🎲 6 అంకెల ఆల్ఫాన్యూమరిక్ క్యాప్చా జనరేట్ చేసే ఫంక్షన్ (డిస్టర్బ్ చేయలేదు)
+  // 🎲 6 అంకెల ఆల్ఫాన్యూమరిక్ క్యాప్చా జనరేట్ చేసే ఫంక్షన్ (దీన్ని అస్సలు మార్చలేదు)
   const generateCaptcha = () => {
     const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     let result = '';
@@ -95,7 +89,7 @@ function App() {
     setUserCaptchaInput(''); 
   };
 
-  // 🌟 ఆటో-లాగిన్ చెక్ చేసే సింపుల్ కరెక్ట్ లాజిక్
+  // 🌟 ఆటో-లాగిన్ చెక్ చేసే సింపుల్ లూప్-ఫ్రీ లాజిక్
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('examUser');
     try {
@@ -410,7 +404,7 @@ function App() {
           </div>
         </div>
 
-                    {/* 🚨 కస్టమ్ సెషన్ టైమ్-అవుట్ పాప్-అప్ బాక్స్ */}
+            {/* 🚨 కస్టమ్ సెషన్ టైమ్-అవుట్ పాప్-అప్ బాక్స్ */}
       <div 
         id="sessionTimeoutModalElement"
         style={{ 
@@ -443,5 +437,3 @@ function App() {
 }
 
 export default App;
-
-
