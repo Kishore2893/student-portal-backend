@@ -456,9 +456,9 @@ function App() {
         </div>
       )}
 
-    </footer>
+        </footer>
   </div>
- );	
+  );
 }
 
 export default App;
