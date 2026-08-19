@@ -18,37 +18,47 @@ function App() {
     return new Date().toLocaleDateString('en-US', options); // ఇది ఎప్పుడూ ఆ రోజు కరెంట్ డేట్ (Live Date) నే చూపిస్తుంది
   });
     // 🛡️ 2 నిమిషాల ఇన్‌యాక్టివిటీ ఆటో-లాగౌట్ మరియు వెబ్‌సైట్ సెక్యూరిటీ లాజిక్
-     useEffect(() => {
+      useEffect(() => {
     // బ్రౌజర్ పాత తెలుగు అలర్ట్ బాక్సులను పూర్తిగా బ్లాక్ చేయడం
     const originalAlert = window.alert;
     window.alert = function(msg) {
-      if (msg && msg.includes("మీ సెชั่น ముగిసింది")) {
+      if (msg && msg.includes("మీ సెషన్ ముగిసింది")) {
         return true; 
       }
       return originalAlert(msg);
     };
 
-    // రియాక్ట్ లూప్‌తో సంబంధం లేకుండా బ్రౌజర్ గ్లోబల్ విండో ద్వారా రన్ అయ్యే ఫిక్స్డ్ టైమర్
-    window.globalTimeoutId = setTimeout(() => {
-      // 1. బ్యాక్‌గ్రౌండ్ లో డేటా క్లియర్ (లాగౌట్)
+    let mainTimerId;
+    let fallbackRedirectId;
+
+    // ఆటోమేటిక్ లాగౌట్ ఫంక్షన్ (డైరెక్ట్‌గా 2 నిమిషాల వద్ద రన్ అవుతుంది)
+    const triggerTimeout = () => {
+      // 1. 🚨 టైమ్ అవుట్ ఫ్లాగ్ సెట్ చేసి, బ్రౌజర్ లోని సమస్త డేటాను పూర్తిగా తుడిచేయడం
+      localStorage.setItem('isTimedOut', 'true');
+      localStorage.removeItem('examUser');
       localStorage.clear();
       sessionStorage.clear();
       
-      // 2. రియాక్ట్ స్టేట్ మార్చకుండా డైరెక్ట్‌గా HTML ఎలిమెంట్ ద్వారా పాపప్ చూపిస్తాము
+      // 2. డైరెక్ట్‌గా HTML ఎలిమెంట్ ద్వారా పాపప్ చూపిస్తాము (రీ-రెండరింగ్ లూప్ రాదు)
       const modal = document.getElementById("sessionTimeoutModalElement");
       if (modal) {
         modal.style.display = "flex";
       } else {
-        // ఒకవేళ ఐడీ దొరక్కపోతే మీ పాత స్టేట్స్ ని బ్యాకప్ గా ఆన్ చేస్తుంది
         setShowTimeoutModal(true);
         setShowSessionModal(true);
       }
 
-      // 3. కరెక్ట్‌గా 5 సెకన్ల తర్వాత లాగిన్ పేజీకి వెళ్ళిపోతుంది
-      window.globalRedirectId = setTimeout(() => {
+      // 3. పాపప్ వచ్చాక యూజర్ ఏమీ చేయకపోతే 5 సెకన్లలో లాగిన్ స్క్రీన్ కి వెళ్ళిపోతుంది
+      fallbackRedirectId = setTimeout(() => {
         window.location.replace(window.location.origin);
       }, 5000);
-    }, 120000); // కరెక్ట్ గా 2 నిమిషాలు (120000ms)
+    };
+
+    // ఫ్రెష్ గా లాగిన్ అయి ఉన్నప్పుడు టైమ్ అవుట్ ఫ్లాగ్ ని ముందే క్లియర్ చేసి ఉంచుతాము
+    localStorage.removeItem('isTimedOut');
+    
+    // కరెక్ట్‌గా 2 నిమిషాల (120000ms) ఫిక్స్డ్ టైమర్
+    mainTimerId = setTimeout(triggerTimeout, 120000);
 
     // | రైట్ క్లిక్ (Right Click) పూర్తిగా బ్లాక్ చేయడం
     const handleContextMenu = (e) => e.preventDefault();
@@ -69,14 +79,14 @@ function App() {
 
     // క్లీనప్ ఫంక్షన్
     return () => {
-      if (window.globalTimeoutId) clearTimeout(window.globalTimeoutId);
-      if (window.globalRedirectId) clearTimeout(window.globalRedirectId);
+      if (mainTimerId) clearTimeout(mainTimerId);
+      if (fallbackRedirectId) clearTimeout(fallbackRedirectId);
       document.removeEventListener('contextmenu', handleContextMenu);
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
 
-  // 🎲 6 అంకెల ఆల్ఫాన్యూమరిక్ క్యాప్చా జనరేట్ చేసే ఫంక్షన్
+  // 🎲 6 అంకెల ఆల్ఫాన్యూమరిక్ క్యాప్చా జనరేట్ చేసే ఫంక్షన్ (దీన్ని అస్సలు మార్చలేదు)
   const generateCaptcha = () => {
     const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     let result = '';
@@ -87,8 +97,14 @@ function App() {
     setUserCaptchaInput(''); 
   };
 
-  // 🌟 మీ పాత ఆటో-లాగిన్ కోడ్‌ను ఇక్కడ అలాగే ఉంచేశాను!
+  // 🌟 ఆటో-లాగిన్ లూప్ కంట్రోల్ చేసే సరికొత్త పక్కా స్టేట్ లాజిక్
   const [user, setUser] = useState(() => {
+    // 1. ఒకవేళ ఆల్రెడీ టైమ్ అవుట్ అయి ఉంటే పాత యూజర్ ని అస్సలు లోడ్ చేయదు (లూప్ బ్రేక్ అవుతుంది)
+    if (localStorage.getItem('isTimedOut') === 'true') {
+      return null;
+    }
+    
+    // 2. నార్మల్ లాగిన్ చెక్
     const savedUser = localStorage.getItem('examUser');
     return savedUser ? JSON.parse(savedUser) : null;
   });
