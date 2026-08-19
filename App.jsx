@@ -18,46 +18,43 @@ function App() {
     return new Date().toLocaleDateString('en-US', options); // ఇది ఎప్పుడూ ఆ రోజు కరెంట్ డేట్ (Live Date) నే చూపిస్తుంది
   });
     // 🛡️ 2 నిమిషాల ఇన్‌యాక్టివిటీ ఆటో-లాగౌట్ మరియు వెబ్‌సైట్ సెక్యూరిటీ లాజిక్
-      // 1. మొదట మీ `useEffect` పైన (లేదా ఫైల్ లోపల స్టేట్స్ కి పైన) useRef వేరియబుల్స్ ఇలా డిక్లేర్ చేయండి
-  const sessionTimeoutRef = React.useRef(null);
-  const redirectTimeoutRef = React.useRef(null);
-
-  useEffect(() => {
+     useEffect(() => {
     // బ్రౌజర్ పాత తెలుగు అలర్ట్ బాక్సులను పూర్తిగా బ్లాక్ చేయడం
     const originalAlert = window.alert;
     window.alert = function(msg) {
-      if (msg && msg.includes("మీ సెషన్ ముగిసింది")) {
+      if (msg && msg.includes("మీ సెชั่น ముగిసింది")) {
         return true; 
       }
       return originalAlert(msg);
     };
 
-    // ఆటోమేటిక్ లాగౌట్ ఫంక్షన్ (డైరెక్ట్‌గా 2 నిమిషాల వద్ద రన్ అవుతుంది)
-    const triggerTimeout = () => {
-      // 1. బ్రౌజర్ డేటా మొత్తం క్లియర్ చేయడం (బ్యాక్‌గ్రౌండ్‌లో లాగౌట్ అవుతుంది)
+    // రియాక్ట్ లూప్‌తో సంబంధం లేకుండా బ్రౌజర్ గ్లోబల్ విండో ద్వారా రన్ అయ్యే ఫిక్స్డ్ టైమర్
+    window.globalTimeoutId = setTimeout(() => {
+      // 1. బ్యాక్‌గ్రౌండ్ లో డేటా క్లియర్ (లాగౌట్)
       localStorage.clear();
       sessionStorage.clear();
       
-      // 2. మీ రెండు స్టేట్స్ ని ఒకేసారి ట్రూ (true) చేస్తున్నాము, దీనివల్ల పాపప్ పక్కాగా వస్తుంది
-      setShowTimeoutModal(true); 
-      setShowSessionModal(true); 
+      // 2. రియాక్ట్ స్టేట్ మార్చకుండా డైరెక్ట్‌గా HTML ఎలిమెంట్ ద్వారా పాపప్ చూపిస్తాము
+      const modal = document.getElementById("sessionTimeoutModalElement");
+      if (modal) {
+        modal.style.display = "flex";
+      } else {
+        // ఒకవేళ ఐడీ దొరక్కపోతే మీ పాత స్టేట్స్ ని బ్యాకప్ గా ఆన్ చేస్తుంది
+        setShowTimeoutModal(true);
+        setShowSessionModal(true);
+      }
 
-      // 3. పాపప్ వచ్చాక 5 సెకన్లలో లాగిన్ పేజీకి వెళ్ళిపోతుంది
-      redirectTimeoutRef.current = setTimeout(() => {
+      // 3. కరెక్ట్‌గా 5 సెకన్ల తర్వాత లాగిన్ పేజీకి వెళ్ళిపోతుంది
+      window.globalRedirectId = setTimeout(() => {
         window.location.replace(window.location.origin);
       }, 5000);
-    };
+    }, 120000); // కరెక్ట్ గా 2 నిమిషాలు (120000ms)
 
-    // పేజీ లోడ్ అవ్వగానే కేవలం ఒకే ఒక్కసారి మాత్రమే 2 మినిట్స్ టైమర్ స్టార్ట్ అవుతుంది (ఆటో రీఫ్రెష్ లూప్ ఆగుతుంది)
-    if (!sessionTimeoutRef.current) {
-      sessionTimeoutRef.current = setTimeout(triggerTimeout, 120000); 
-    }
-
-    // 1. | రైట్ క్లిక్ (Right Click) పూర్తిగా బ్లాక్ చేయడం
+    // | రైట్ క్లిక్ (Right Click) పూర్తిగా బ్లాక్ చేయడం
     const handleContextMenu = (e) => e.preventDefault();
     document.addEventListener('contextmenu', handleContextMenu);
 
-    // 2. | F12, Ctrl+Shift+I షార్ట్‌కట్స్ బ్లాక్ చేయడం
+    // | F12, Ctrl+Shift+I షార్ట్‌కట్స్ బ్లాక్ చేయడం
     const handleKeyDown = (e) => {
       if (
         e.key === 'F12' ||
@@ -72,8 +69,8 @@ function App() {
 
     // క్లీనప్ ఫంక్షన్
     return () => {
-      if (sessionTimeoutRef.current) clearTimeout(sessionTimeoutRef.current);
-      if (redirectTimeoutRef.current) clearTimeout(redirectTimeoutRef.current);
+      if (window.globalTimeoutId) clearTimeout(window.globalTimeoutId);
+      if (window.globalRedirectId) clearTimeout(window.globalRedirectId);
       document.removeEventListener('contextmenu', handleContextMenu);
       document.removeEventListener('keydown', handleKeyDown);
     };
@@ -401,23 +398,32 @@ function App() {
           </div>
         </div>
 
-              {/* 🚨 కస్టమ్ సెషన్ టైమ్-అవుట్ పాప్-అప్ బాక్స్ */}
-      {showTimeoutModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
-          <div style={{ backgroundColor: '#fff', padding: '30px', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.2)', textAlign: 'center', width: '350px' }}>
-            <h3 style={{ color: '#d32f2f', marginTop: 0, fontSize: '22px' }}>Session time out.</h3>
-            <p style={{ color: '#555', marginBottom: '25px', fontSize: '15px' }}>Your session has expired due to inactivity.</p>
-            <button
-              onClick={() => window.location.replace(window.location.origin)}
-              style={{ backgroundColor: '#0043a4', color: '#fff', border: 'none', padding: '10px 30px', borderRadius: '4px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer', transition: 'background 0.2s', width: '100%' }}
-              onMouseOver={(e) => e.target.style.backgroundColor = '#002f75'}
-              onMouseOut={(e) => e.target.style.backgroundColor = '#0043a4'}
-            >
-              Close
-            </button>
-          </div>
+                    {/* 🚨 కస్టమ్ సెషన్ టైమ్-అవుట్ పాప్-అప్ బాక్స్ */}
+      <div 
+        id="sessionTimeoutModalElement"
+        style={{ 
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', 
+          backgroundColor: 'rgba(0, 0, 0, 0.6)', display: (showSessionModal || showTimeoutModal) ? 'flex' : 'none', 
+          justifyContent: 'center', alignItems: 'center', zIndex: 99999 
+        }}
+      >
+        <div style={{ backgroundColor: '#fff', padding: '30px', borderRadius: '8px', boxShadow: '0 4px 15px rgba(0,0,0,0.2)', textAlign: 'center', width: '350px' }}>
+          <h3 style={{ color: '#d32f2f', marginTop: 0, fontSize: '22px' }}>Session time out.</h3>
+          <p style={{ color: '#555', marginBottom: '25px', fontSize: '15px' }}>Your session has expired due to inactivity.</p>
+          <button
+            onClick={() => {
+              localStorage.clear();
+              sessionStorage.clear();
+              window.location.replace(window.location.origin);
+            }}
+            style={{ backgroundColor: '#0043a4', color: '#fff', border: 'none', padding: '10px 30px', borderRadius: '4px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer', transition: 'background 0.2s', width: '100%' }}
+            onMouseOver={(e) => e.target.style.backgroundColor = '#002f75'}
+            onMouseOut={(e) => e.target.style.backgroundColor = '#0043a4'}
+          >
+            Close
+          </button>
         </div>
-      )}
+      </div>
 
     </footer>
   </div>
@@ -425,4 +431,5 @@ function App() {
 }
 
 export default App;
+
 
