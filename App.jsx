@@ -72,8 +72,8 @@ function App() {
       fallbackRedirectId = setTimeout(handleFinalLogout, 10000);
     };
 
-// 4. కరెక్ట్‌గా 2 నిమిషాల (60000ms) సరికొత్త ఏకైక టైమర్
-    mainTimerId = setTimeout(triggerTimeout, 60000); 
+// 4. కరెక్ట్‌గా 2 నిమిషాల (300000ms) సరికొత్త ఏకైక టైమర్
+    mainTimerId = setTimeout(triggerTimeout, 300000); 
 
     // Right Click పూర్తిగా బ్లాక్ చేయడం
     const handleContextMenu = (e) => e.preventDefault();
