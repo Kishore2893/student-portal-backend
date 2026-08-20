@@ -241,7 +241,7 @@ function App() {
     setShowYearModal(false);
   
     try {
-        const fileUrl = `https://onrender.com{user.admissionNumber}.pdf`;
+        const fileUrl = `https://student-portal-backend-vo2b.onrender.com/public-docs/${user.admissionNumber}.pdf`;
         window.location.href = fileUrl;
     } catch (err) {
         console.error("డౌన్‌లోడ్ లోపం వచ్చింది:", err);
