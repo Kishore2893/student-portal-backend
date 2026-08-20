@@ -26,12 +26,12 @@ function App() {
       setScoreData(null);
 
       try {
-          const response = await fetch('https://student-portal-backend-vo2b.onrender.com'/api/student-login, {
+          const response = await fetch('https://student-portal-backend-vo2b.onrender.com/api/evaluate', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ url: responseUrl }),
           });
-          const data = await response.json();
+          const data = await response.json(); 
           if (data.success) {
               setScoreData(data);
               // ఒకవేళ అలర్ట్ బాక్స్ కనిపించాలనుకుంటే (పాత విండో అలెర్ట్ బ్లాకర్ ఉన్నందున ఇది కన్సోల్‌లో లేదా టోస్ట్‌లో వాడుకోవచ్చు)
@@ -187,7 +187,7 @@ function App() {
 
     setLoading(true);
     try {
-      const response = await fetch('https://student-portal-backend-vo2b.onrender.com'/api/student-login, {
+      const response = await fetch('https://student-portal-backend-vo2b.onrender.com/api/student-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ admissionNumber, mobileNumber })
