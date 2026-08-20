@@ -125,12 +125,6 @@ function App() {
   const [selectedDocType, setSelectedDocType] = useState('');
   const [selectedDocLabel, setSelectedDocLabel] = useState('');
 
-  const publicNoticesList = [
-    { id: 1, text: "• Declaration of Final NTA Scores for Joint Entrance Examination (Main) - 2026 for Paper 2A (B. Arch) and Paper 2B (B. Planning) - Reg.", pdfUrl: "https://student-portal-backend-vo2b.onrender.com/public-docs/notice1.pdf" },
-    { id: 2, text: "• Final Answer Keys for JEE(Main) - 2026 Paper-II [B.Arch / B.Planning]", pdfUrl: "https://student-portal-backend-vo2b.onrender.com/public-docs/notice2.pdf" },
-    { id: 3, text: "• Display of Provisional Answer Keys and Recorded Response Sheet for Answer Key Challenge of Joint Entrance Examination (Main) - 2026 Session 2, Paper 2A (B. Arch) & 2B (B. Planning) (April 2026) -", pdfUrl: "https://student-portal-backend-vo2b.onrender.com/public-docs/notice3.pdf" }
-  ];
-
   // స్క్రోలింగ్ బార్ లో కేవలం టెక్స్ట్ మాత్రమే చూపించడానికి
       const tickerTextList = [
     "📝 Application form for JEE(Main)-2027 [Session-I] (B.E. / B.Tech)",
@@ -247,23 +241,6 @@ function App() {
         {!user ? (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '40px 4% 60px 4%', width: '100%', maxWidth: '1350px', boxSizing: 'border-box', flexWrap: 'wrap', gap: '50px' }}>
             
-            {/* 👈 పబ్లిక్ నోటీసుల బోర్డు */}
-            <div style={{ flex: '1', minWidth: '450px', background: '#ffffff', borderRadius: '4px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0', boxSizing: 'border-box', position: 'relative' }}>
-              <div style={{ display: 'flex', backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                <div style={{ padding: '12px 25px', backgroundColor: '#0043a4', color: '#ffffff', fontWeight: '700', fontSize: '14px', borderTop: '3px solid #0043a4', letterSpacing: '0.3px' }}>
-                  Public Notices
-                </div>
-              </div>
-              <ul style={{ listStyleType: 'disc', padding: '25px 25px 25px 40px', margin: 0, display: 'flex', flexDirection: 'column', gap: '18px', textAlign: 'left', color: '#1e293b' }}>
-                {publicNoticesList.map((notice) => (
-                  <li key={notice.id} style={{ color: '#334155', fontSize: '14px', lineHeight: '1.6' }}>
-                    <a href={notice.pdfUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none', color: '#334155', fontWeight: '500', cursor: 'pointer', display: 'inline', transition: 'color 0.2s' }} onMouseOver={(e) => { e.target.style.color = '#0043a4'; e.target.style.textDecoration = 'underline'; }} onMouseOut={(e) => { e.target.style.color = '#334155'; e.target.style.textDecoration = 'none'; }}>
-                      {notice.text.replace('• ', '')}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
             {/* 👉 1st Image డిజైన్ లాంటి సరికొత్త లాగిన్ బాక్స్ స్ట్రక్చర్ */}
             <div style={{ background: '#ffffff', maxWidth: '450px', width: '100%', borderRadius: '4px', border: '1px solid #dcdcdc', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', boxSizing: 'border-box', overflow: 'hidden' }}>
               
@@ -462,3 +439,4 @@ function App() {
 }
 
 export default App;
+  
