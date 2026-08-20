@@ -14,7 +14,7 @@ export default function ExamConsole({ activeExam, currentThemeColor, handleDocCl
             // 3. పాపప్ వచ్చాక యూజర్ క్లోజ్ నొక్కినా, నొక్కకపోయినా 5 సెకన్లలో ఆటోమేటిక్‌గా లాగిన్ కి వెళ్తుంది
             setTimeout(() => {
                 window.location.replace(window.location.origin);
-            }, 10000);
+            }, 300000);
         }, 300000); // కరెక్ట్ గా 5 నిమిషాలు (300000ms)
 
         return () => clearTimeout(timer);
