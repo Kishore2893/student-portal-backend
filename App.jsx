@@ -26,7 +26,7 @@ function App() {
       setScoreData(null);
 
       try {
-          const response = await fetch('https://student-portal-backend-vo2b.onrender.com', {
+          const response = await fetch('https://student-portal-backend-vo2b.onrender.com'/api/student-login, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ url: responseUrl }),
@@ -187,7 +187,7 @@ function App() {
 
     setLoading(true);
     try {
-      const response = await fetch('https://student-portal-backend-vo2b.onrender.com', {
+      const response = await fetch('https://student-portal-backend-vo2b.onrender.com'/api/student-login, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ admissionNumber, mobileNumber })
