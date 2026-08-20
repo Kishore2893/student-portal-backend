@@ -69,10 +69,10 @@ function App() {
         setShowTimeoutModal(true);
       }
 
-      fallbackRedirectId = setTimeout(handleFinalLogout, 300000);
+      fallbackRedirectId = setTimeout(handleFinalLogout, 30000);
     };
 
-// 4. కరెక్ట్‌గా 5 నిమిషాల (300000ms) సరికొత్త ఏకైక టైమర్
+// 4. కరెక్ట్‌గా 2 నిమిషాల (300000ms) సరికొత్త ఏకైక టైమర్
     mainTimerId = setTimeout(triggerTimeout, 300000); 
 
     // Right Click పూర్తిగా బ్లాక్ చేయడం
@@ -239,13 +239,49 @@ function App() {
 
       <div style={{ flex: '1', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         {!user ? (
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '40px 4% 60px 4%', width: '100%', maxWidth: '1350px', boxSizing: 'border-box', flexWrap: 'wrap', gap: '50px' }}>
-            
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'stretch', padding: '15px 4% 60px 4%', width: '100%', gap: '100px' }}>
+    
+    {/* ─── ఎడమ వైపు కొత్త JEE Evaluator బాక్స్ (పెద్ద సైజు మరియు క్లిక్ చేసినప్పుడు బ్లూ కలర్ వచ్చేలా మార్పులు) ─── */}
+<>
+    {/* క్లిక్ చేసినప్పుడు బ్లూ కలర్ రావడానికి ఈ స్టైల్స్ సహాయపడతాయి */}
+    <style>{`
+        .evaluator-input {
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .evaluator-input:focus {
+            border-color: #1a73e8 !important;
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2) !important;
+        }
+    `}</style>
+
+    <div style={{ background: '#ffffff', width: '470px', flexShrink: 0, borderRadius: '4px', border: '1px solid #ced4da', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ backgroundColor: '#0c3d7c', color: 'white', fontSize: '24px', fontWeight: 'bold', padding: '16px 24px', textAlign: 'center', borderTopLeftRadius: '3px', borderTopRightRadius: '3px' }}>
+            JEE Main-27 Evaluator
+        </div>
+        <div style={{ padding: '40px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div style={{ marginBottom: '30px' }}>
+                <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '12px', color: '#333333', textAlign: 'left', fontSize: '16px' }}>Response sheet URL:</label>
+                {/* ఇక్కడ className జోడించబడింది */}
+                <input 
+                    type="text" 
+                    className="evaluator-input"
+                    placeholder="Paste Response Sheet URL" 
+                    style={{ width: '100%', padding: '25px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '15px', boxSizing: 'border-box' }} 
+                />
+            </div>
+            <button style={{ width: '100%', padding: '14px', backgroundColor: '#1a73e8', color: 'white', border: 'none', borderRadius: '4px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', marginTop: 'auto' }}>
+                Evaluate
+            </button>
+        </div>
+    </div>
+</>
+           
             {/* 👉 1st Image డిజైన్ లాంటి సరికొత్త లాగిన్ బాక్స్ స్ట్రక్చర్ */}
             <div style={{ background: '#ffffff', maxWidth: '450px', width: '100%', borderRadius: '4px', border: '1px solid #dcdcdc', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', boxSizing: 'border-box', overflow: 'hidden' }}>
               
               {/* 🟦 మొదటి ఇమేజ్ లోని డార్క్ బ్లూ ஹெడర్ */}
-              <div style={{ backgroundColor: '#0c3d7c', color: 'white', fontSize: '24px', fontWeight: 'bold', padding: '16px 24px', textAlign: 'left', fontFamily: 'sans-serif' }}>
+              <div style={{ backgroundColor: '#0c3d7c', color: 'white', fontSize: '24px', fontWeight: 'bold', padding: '16px 24px', textAlign: 'center', fontFamily: 'sans-serif' }}>
                 Candidate Login
               </div>
 
@@ -439,4 +475,3 @@ function App() {
 }
 
 export default App;
-  
