@@ -8,20 +8,21 @@ const cheerio = require('cheerio'); // HTML డేటా స్క్రాప�
 
 const app = express();
 
+// 1. ఎక్స్‌ప్రెస్ బాడీ పార్సర్ మరియు CORS సెట్టింగ్స్ అన్నింటికంటే ముందే ఉండాలి
+app.use(express.json());
+
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Accept']
+}));
+
+// 2. ఆ తర్వాతే మిగిలిన స్టాటిక్ ఫోల్డర్ రూట్స్ ఉండాలి
 app.use('/jee-main', express.static(path.join(__dirname, 'jee-main')));
 app.use('/jee-advanced', express.static(path.join(__dirname, 'jee-advanced')));
 app.use('/tg-eapcet', express.static(path.join(__dirname, 'tg-eapcet')));
 app.use('/ap-eapcet', express.static(path.join(__dirname, 'ap-eapcet')));
 app.use('/ipe-2027', express.static(path.join(__dirname, 'ipe-2027')));
-
-app.use(express.json());
-
-// Enable CORS for frontend connectivity
-app.use(cors({
-    origin: '*',
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type', 'Accept']
-}));
 
 // Render Disk లో ఉన్న ఫైల్స్‌ను లింక్ చేయడం
 app.use('/public-docs', express.static(path.join(__dirname)));
@@ -29,6 +30,7 @@ app.use('/public-docs', express.static(path.join(__dirname)));
 // డైనమిక్ పిడిఎఫ్ డౌన్‌లోడ్ రూట్
 app.get('/:filename', (req, res, next) => {
     if (!req.params.filename.endsWith('.pdf')) return next();
+
 
     const pdfName = req.params.filename;
     const categories = ['jee-main', 'jee-advanced', 'tg-eapcet', 'ap-eapcet', 'ipe-2027'];
