@@ -31,21 +31,39 @@ app.use('/public-docs', express.static(path.join(__dirname)));
 app.get('/:filename', (req, res, next) => {
     if (!req.params.filename.endsWith('.pdf')) return next();
 
-
     const pdfName = req.params.filename;
+    
+    // 1. మీ మెయిన్ కేటగిరీ ఫోల్డర్లు అన్నింటినీ ఇక్కడ యాడ్ చేసాం
     const categories = ['jee-main', 'jee-advanced', 'tg-eapcet', 'ap-eapcet', 'ipe-2027'];
-    const subFolders = ['', 'admit-cards', 'application-forms'];
+    
+    // 2. అప్లికేషన్ ఫామ్స్, హాల్ టికెట్లు, 1st year, 2nd year తో సహా అన్ని సబ్-పాత్‌లు
+    const subPaths = [
+        '',
+        'admit-cards',
+        'application-forms',
+        path.join('application-forms', 'session-1'),
+        path.join('application-forms', 'session-2'),
+        'city-intimations',
+        'rank-cards',
+        '1st-year',                    // IPE 1st Year కోసం
+        '2nd-year',                    // IPE 2nd Year కోసం
+        path.join('1st-year', 'application-forms'),
+        path.join('2nd-year', 'application-forms')
+    ];
 
+    // అన్ని ఫోల్డర్లలో ఒకదాని తర్వాత ఒకటి వెతికే లూప్
     for (let category of categories) {
-        for (let subFolder of subFolders) {
-            const filePath = path.join(__dirname, category, subFolder, pdfName);
+        for (let subPath of subPaths) {
+            const filePath = path.join(__dirname, category, subPath, pdfName);
 
+            // ఏదైనా ఒక ఫోల్డర్ లోపల ఫైల్ దొరికితే వెంటనే డౌన్‌లోడ్ అవుతుంది
             if (fs.existsSync(filePath)) {
                 return res.download(filePath);
             }
         }
     }
 
+    // ఏ ఫోల్డర్ లోనూ ఫైల్ దొరక్కపోతే ఇది రన్ అవుతుంది
     res.status(404).send(`Cannot find file ${pdfName} in any folder or subfolder.`);
 });
 
