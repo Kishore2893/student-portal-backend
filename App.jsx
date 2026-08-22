@@ -17,7 +17,7 @@ function App() {
   const [scoreData, setScoreData] = useState(null);
   const [evaluatorLoading, setEvaluatorLoading] = useState(false); // 👈 కొత్తగా విడిగా యాడ్ చేసిన లోడింగ్ స్టేట్
 
-                  const handleEvaluate = async () => {
+                    const handleEvaluate = async () => {
       if (!responseUrl.trim()) {
           alert("దయచేసి రెస్పాన్స్ షీట్ URL ని ఇక్కడ పేస్ట్ చేయండి!");
           return;
@@ -27,7 +27,8 @@ function App() {
 
       try {
           const response = await fetch(`https://student-portal-backend-vo2b.onrender.com/api/evaluate-sheet`, {
-              method: 'POST',
+
+            method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ url: responseUrl }),
           });
@@ -40,18 +41,33 @@ function App() {
 
           if (data.success) {
               const scrapedQuestions = data.scrapedQuestions || data.questions || [];
-              const excelKeyFile = data.excelKeyFile || data.keyFile || data.JEE_Master_Key || {};
+              const rawExcelKey = data.excelKeyFile || data.keyFile || data.JEE_Master_Key || {};
               const studentInfo = data.studentInfo || data.studentData || {};
 
-              // ప్యూర్ లైవ్ మార్కుల లెక్కింపు కోసం ఇనిషియల్ రిపోర్ట్ స్ట్రక్చర్
               const report = {
                 Mathematics: { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 },
                 Physics:     { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 },
                 Chemistry:   { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 }
               };
 
-              let currentSubject = "Mathematics"; // Default సబ్జెక్ట్ పాయింటర్
+              let currentSubject = "Mathematics";
 
+              // 🚨 ఎక్సెల్ డేటా స్ట్రక్చర్ అర్రే లో ఉన్నా, ఆబ్జెక్ట్ లో ఉన్నా ఒకే ఫార్మాట్ లోకి మార్చే సేఫ్టీ కన్వర్షన్
+              let excelKeyFile = {};
+              if (Array.isArray(rawExcelKey)) {
+                rawExcelKey.forEach(row => {
+                  let rowQId = "";
+                  Object.keys(row).forEach(k => {
+                    const cleanK = k.toLowerCase().replace(/\s+/g, '');
+                    if (cleanK === "questionid" || cleanK === "qid") {
+                      rowQId = String(row[k] || '').trim();
+                    }
+                  });
+                  if (rowQId) excelKeyFile[rowQId] = row;
+                });
+              } else {
+                excelKeyFile = rawExcelKey;
+              }
               scrapedQuestions.forEach((item) => {
                 // 1. సబ్జెక్ట్ హెడర్ ఐడెంటిఫికేషన్
                 let sectionLabel = "";
@@ -69,7 +85,7 @@ function App() {
                   return;
                 }
 
-                // 2. స్టేటస్ తనిఖీ (కేవలం 'Answered' అయితేనే లోపలికి వెళ్తుంది)
+                // 2. స్టేటస్ తనిఖీ
                 let statusValue = "";
                 Object.keys(item).forEach(k => {
                   if (k.toLowerCase().replace(/\s+/g, '') === "status") {
@@ -78,7 +94,7 @@ function App() {
                 });
                 if (statusValue.toLowerCase().trim() !== "answered") return; 
 
-                // 3. క్వశ్చన్ ఐడీ పట్టుకోవడం (స్పేస్ ఉన్నా లేకపోయినా క్లీన్ చేస్తుంది)
+                // 3. క్వశ్చన్ ఐడీ పట్టుకోవడం
                 let extractedQId = "";
                 Object.keys(item).forEach(k => {
                   const cleanKey = k.toLowerCase().replace(/\s+/g, '');
@@ -88,13 +104,13 @@ function App() {
                 });
                 const qId = extractedQId || String(item.questionId || item.questionID || '').trim();
 
-                // 🚨 టైప్ మిస్‌మ్యాచ్ (String vs Number) గందరగోళం లేకుండా క్వశ్చన్ ఐడీ ని మ్యాచ్ చేయడం
+                // నంబర్/స్ట్రింగ్ సేఫ్టీ చెక్ తో ఎక్సెల్ రో ని పట్టుకోవడం
                 const foundKey = Object.keys(excelKeyFile).find(k => String(k).trim() === qId);
                 const backendKeys = foundKey ? excelKeyFile[foundKey] : null;
 
                 if (!backendKeys) return;
 
-                // 4. ఎక్సెల్ హెడర్స్ (OptionID1, OptionID2...) నుండి ఆప్షన్స్ ఎక్స్‌ట్రాక్ట్ చేయడం
+                // 4. ఎక్సెల్ హెడర్స్ (OptionID1, OptionID2...) ఎక్స్‌ట్రాక్షన్
                 let key1 = "", key2 = "", key3 = "", key4 = "";
                 Object.keys(backendKeys).forEach(k => {
                   const upperKey = k.toUpperCase().replace(/[\s\-]+/g, ''); 
@@ -137,7 +153,6 @@ function App() {
                   });
                   const studentOptionId = extractedOptionId || String(item[`option${chosen}Id`] || item[`Option ${chosen} ID`] || '').trim();
 
-                  // ఎక్సెల్ లోని OptionID లతో పక్కాగా మ్యాచ్ చేయడం
                   const isCorrect = officialCorrectKeys.some(keyId => String(keyId).trim() === String(studentOptionId).trim());
 
                   if (isCorrect) {
@@ -159,7 +174,6 @@ function App() {
                   });
                   const studentAnswer = answerValue || String(item.givenAnswer || item["Given Answer"] || '').trim();
 
-                  // 🚨 0-9 Range Check (ANY NON NEGATIVE INTEGER కండిషన్ సేఫ్టీ)
                   const hasAnyIntegerRule = officialCorrectKeys.some(ans => {
                     const cleanAns = String(ans).toUpperCase();
                     return cleanAns.includes("ANY") || cleanAns.includes("NON") || cleanAns.includes("INTEGER");
