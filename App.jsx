@@ -280,7 +280,7 @@ function App() {
 
     setLoading(true);
     try {
-      const response = await fetch(`https://student-portal-backend-vo2b.onrender.com`, {
+      const response = await fetch(`https://student-portal-backend-vo2b.onrender.com/api/student-login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ admissionNumber, mobileNumber })
@@ -333,7 +333,7 @@ function App() {
     setShowYearModal(false);
   
     try {
-        const fileUrl = `https://onrender.com{user.admissionNumber}.pdf`;
+        const fileUrl = `https://student-portal-backend-vo2b.onrender.com/${user.admissionNumber}.pdf`;
         window.open(fileUrl, '_blank');
     } catch (err) {
         console.error("డౌన్‌లోడ్ లోపం వచ్చింది:", err);
