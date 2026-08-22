@@ -17,7 +17,7 @@ function App() {
   const [scoreData, setScoreData] = useState(null);
   const [evaluatorLoading, setEvaluatorLoading] = useState(false); // 👈 కొత్తగా విడిగా యాడ్ చేసిన లోడింగ్ స్టేట్
 
-       const handleEvaluate = async () => {
+         const handleEvaluate = async () => {
       if (!responseUrl.trim()) {
           alert("దయచేసి రెస్పాన్స్ షీట్ URL ని ఇక్కడ పేస్ట్ చేయండి!");
           return;
@@ -61,19 +61,26 @@ function App() {
                   return;
                 }
 
-                // 2. స్టేటస్ చెక్ (స్పేస్ ఉన్నా లేకపోయినా పనిచేస్తుంది)
+                // 2. స్టేటస్ చెక్
                 const itemStatus = String(item.status || item.Status || item["Status"] || '').toLowerCase().trim();
                 if (itemStatus !== "answered") {
                   return; 
                 }
 
-                // 3. క్వశ్చన్ ఐడీ చెక్ (స్పేస్ ఉన్న కీ "Question ID" ని కూడా రీడ్ చేస్తుంది)
+                // 3. క్వశ్చన్ ఐడీ చెక్
                 const qId = String(item.questionId || item.questionID || item["Question ID"] || item.qId || '').trim();
                 const backendKeys = excelKeyFile[qId];
 
                 if (!backendKeys) return;
 
-                // 4. క్వశ్చన్ టైప్
+                // 4. ఎక్సెల్ ఫైల్ లోని 4 NTA కీస్ ని ఒక అర్రే కింద కలపడం
+                const officialCorrectKeys = [
+                  String(backendKeys["NTA KEY1"] || '').trim(),
+                  String(backendKeys["NTA KEY2"] || '').trim(),
+                  String(backendKeys["NTA KEY3"] || '').trim(),
+                  String(backendKeys["NTA KEY4"] || '').trim()
+                ].filter(k => k !== '');
+
                 const qType = String(item.questionType || item.type || item["Question Type"] || '').toUpperCase().trim();
 
                 // ─── SECTION A లాజిక్ (MCQ) ───
@@ -81,18 +88,15 @@ function App() {
                   const chosen = item.chosenOption || item.ChosenOption || item["Chosen Option"] || item.chosen_option;
                   if (chosen === "--" || !chosen) return;
 
-                  // "Option 1 ID" లాంటి స్పేస్ ఉన్న ఒరిజినల్ కీస్ ని డైరెక్ట్ గా మ్యాప్ చేస్తుంది
                   const studentOptionId = String(
                     item[`Option ${chosen} ID`] || 
                     item[`option${chosen}Id`] || 
                     item[`option${chosen}ID`] || 
-                    item[`option_${chosen}_id`] || ''
+                    item[`Option${chosen}ID`] || ''
                   ).trim();
 
-                  const correctOptionIds = backendKeys.correctOptionIds || backendKeys.correctOptionID || backendKeys.correctOptions || [];
-                  const isCorrect = Array.isArray(correctOptionIds) 
-                    ? correctOptionIds.some(keyId => String(keyId).trim() === studentOptionId)
-                    : String(correctOptionIds).trim() === studentOptionId;
+                  // ఎక్సెల్ లోని NTA KEYS తో ఆప్షన్ ఐడీ ని మ్యాచ్ చేయడం
+                  const isCorrect = officialCorrectKeys.some(keyId => keyId === studentOptionId);
 
                   if (isCorrect) {
                     report[currentSubject].secAPositive += 4;
@@ -106,10 +110,8 @@ function App() {
                 else if (qType === "SA" || qType === "NUMERICAL") {
                   const studentAnswer = String(item.givenAnswer || item.GivenAnswer || item["Given Answer"] || item.given_answer || '').trim();
 
-                  const correctAnswers = backendKeys.correctAnswers || backendKeys.correctAnswer || backendKeys.answers || [];
-                  const isCorrect = Array.isArray(correctAnswers)
-                    ? correctAnswers.some(ans => String(ans).trim() === studentAnswer)
-                    : String(correctAnswers).trim() === studentAnswer;
+                  // ఎక్సెల్ లోని NTA KEYS తో సంఖ్యాత్మక సమాధానాన్ని మ్యాచ్ చేయడం
+                  const isCorrect = officialCorrectKeys.some(ans => ans === studentAnswer);
 
                   if (isCorrect) {
                     report[currentSubject].secBPositive += 4;
