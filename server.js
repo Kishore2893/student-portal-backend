@@ -345,29 +345,32 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                 $(el).find("tr").each((rIdx, rowEl) => {
                     const rowText = $(rowEl).text() || "";
                     
-                    if (rowText.includes("Question ID")) {
-                        const match = rowText.match(/Question\s*ID\s*:\s*(\d+)/i);
-                        if (match && match[1]) qId = match[1].trim();
-                    }
-                    if (rowText.includes("Status")) {
-                        const match = rowText.match(/Status\s*:\s*([^\n\r]+)/i);
-                        if (match && match[1]) statusStr = match[1].trim();
-                    }
-                    if (rowText.includes("Chosen Option")) {
-                        const match = rowText.match(/Chosen\s*Option\s*:\s*(\d+)/i);
-                        if (match && match[1]) chosenOptionNum = match[1].trim();
-                    }
-                    if (rowText.includes("Given Answer")) {
-                        const match = rowText.match(/Given\s*Answer\s*:\s*([^\n\r]+)/i);
-                        if (match && match[1]) givenAnswerVal = match[1].trim();
-                    }
-                    for (let i = 1; i <= 4; i++) {
-                        if (rowText.includes(`Option ${i} ID`)) {
-                            const regex = new RegExp(`Option\\s*${i}\\s*ID\\s*:\\s*(\\d+)`, 'i');
-                            const match = rowText.match(regex);
-                            if (match && match[1]) optionIdMap[i.toString()] = match[1].trim();
-                        }
-                    }
+                    // 🚨 మీ server.js లో ఉన్న ఈ లైన్లని ఇలా మార్చండి:
+
+if (rowText.includes("Question ID")) {
+    const match = rowText.match(/Question\s*ID\s*:?\s*(\d+)/i); // 👈 : పక్కన ? పెట్టాము (కాలన్ ఉన్నా లేకున్నా రీడ్ చేస్తుంది)
+    if (match && match[1]) qId = match[1].trim();
+}
+if (rowText.includes("Status")) {
+    const match = rowText.match(/Status\s*:?\s*([^\n\r]+)/i); // 👈 :? పెట్టాము
+    if (match && match[1]) statusStr = match[1].trim();
+}
+if (rowText.includes("Chosen Option")) {
+    const match = rowText.match(/Chosen\s*Option\s*:?\s*(\d+)/i); // 👈 :? పెట్టాము
+    if (match && match[1]) chosenOptionNum = match[1].trim();
+}
+if (rowText.includes("Given Answer")) {
+    const match = rowText.match(/Given\s*Answer\s*:?\s*([^\n\r]+)/i); // 👈 :? పెట్టాము
+    if (match && match[1]) givenAnswerVal = match[1].trim();
+}
+for (let i = 1; i <= 4; i++) {
+    if (rowText.includes(`Option ${i} ID`)) {
+        const regex = new RegExp(`Option\\s*${i}\\s*ID\\s*:?\\s*(\\d+)`, 'i'); // 👈 :? పెట్టాము
+        const match = rowText.match(regex);
+        if (match && match[1]) optionIdMap[i.toString()] = match[1].trim();
+    }
+}
+
                 });
 
                 if (!qId) return;
