@@ -277,13 +277,15 @@ app.post('/api/evaluate-sheet', async (req, res) => {
         
         const MASTER_KEY_MAP = {};
         sheetData.forEach(row => {
+            // మీ ఎక్సెల్ హెడర్ 'Question ID' ని పక్కాగా రీడ్ చేస్తుంది
             const rawQId = row['Question ID']?.toString().trim();
             if (rawQId) {
+                // 🚨 మీ కొత్త ఎక్సెల్ హెడర్స్ (OptionID1, OptionID2...) లోపలి వాల్యూస్ ని పక్కాగా బైండ్ చేస్తుంది
                 const uniqueKeys = [
-                    row['NTA KEY1']?.toString().trim(),
-                    row['NTA KEY2']?.toString().trim(),
-                    row['NTA KEY3']?.toString().trim(),
-                    row['NTA KEY4']?.toString().trim()
+                    row['OptionID1']?.toString().trim(),
+                    row['OptionID2']?.toString().trim(),
+                    row['OptionID3']?.toString().trim(),
+                    row['OptionID4']?.toString().trim()
                 ].filter(Boolean);
 
                 MASTER_KEY_MAP[rawQId] = {
@@ -305,14 +307,12 @@ app.post('/api/evaluate-sheet', async (req, res) => {
             Chemistry: { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 }
         };
 
-        // 🌟 [మీరు చెప్పిన పక్కా ఐడియా]: రెస్పాన్స్ షీట్ లోని ప్రతి ఎలిమెంట్ ని వరుస క్రమంలో స్కాన్ చేసే గ్లోబల్ ట్రాకర్స్
         let currentSub = "Mathematics";
         let isSectionB = false;
 
         // HTML లోపల ఉండే ప్రతి క్వశ్చన్ బాక్స్ లేదా హెడర్ టెక్స్ట్ బ్లాక్ ని లూప్ చేస్తాము
         $(".main-info-pnl, .section-start, .section-cnt, table, div").each((idx, el) => {
             const blockText = $(el).text() || "";
-
             // 🔍 రెస్పాన్స్ షీట్ టెక్స్ట్ ప్రవాహంలో సెక్షన్ హెడర్లు మారినప్పుడల్లా మన గ్లోబల్ స్టేట్ మారుతుంది!
             if (/Mathematics\s*Section\s*A/i.test(blockText)) {
                 currentSub = "Mathematics";
@@ -376,7 +376,8 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                 let studentChosenNum = '--';
                 let studentOptionId = '--';
 
-                if (/Answered/i.test(statusStr) || /Marked\s*For\s*Review/i.test(statusStr)) {
+                // 🚨 పక్కా రూల్: కేవలం 'Answered' స్టేటస్ ఉన్న ప్రశ్నలనే లెక్కించాలి, Marked For Review ని పూర్తిగా వదిలేయాలి!
+                if (/^Answered$/i.test(statusStr)) {
                     if (isSectionB) {
                         chosenAnswer = givenAnswerVal;
                     } else if (chosenOptionNum) {
@@ -386,6 +387,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                         }
                     }
                 }
+
                 // 4. ఎక్సెల్ మాస్టర్ కీ లోని ఐడీలతో డైనమిక్ స్ట్రింగ్ మ్యాచింగ్
                 let keyInfo = null;
                 for (const excelQId in MASTER_KEY_MAP) {
@@ -426,30 +428,27 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                 }
 
                 let isCorrect = false;
-                const excelKeysString = keyInfo.keys.join(',');
 
-                // రూల్ C: Numerical ప్రశ్నల కోసం ఇంటిజర్ రేంజ్ లేదా డైరెక్ట్ మ్యాచ్ చెక్
+                // రూల్ C: Numerical ప్రశ్నల కోసం ANY NON NEGATIVE INTEGER (0-9 range) లేదా డైరెక్ట్ మ్యాచ్ చెక్
                 if (isSectionB) {
-                    if (excelKeysString && excelKeysString.includes(',')) {
-                        const rangeParts = excelKeysString.split(',');
-                        const min = Number(rangeParts[0]);
-                        const max = Number(rangeParts[1]);
-                        const studentNum = Number(chosenAnswer);
-                        if (!isNaN(studentNum) && studentNum >= min && studentNum <= max) isCorrect = true;
-                    } else {
-                        if (keyInfo.keys.includes(chosenAnswer)) isCorrect = true;
-                    }
-                } 
-                // రూల్ D: MCQ ప్రశ్నల కోసం Option ID లేదా Option Number వెరిఫికేషన్
-                else {
-                    const hasMatchingKey = keyInfo.keys.some(key => {
-                        const cleanKey = key.toString().trim();
-                        return cleanKey === studentOptionId || cleanKey === studentChosenNum || studentOptionId.includes(cleanKey);
+                    const hasAnyIntegerRule = keyInfo.keys.some(ans => {
+                        const cleanAns = ans.toString().toUpperCase();
+                        return cleanAns.includes("ANY") || cleanAns.includes("NON") || cleanAns.includes("INTEGER");
                     });
 
-                    if (hasMatchingKey) {
-                        isCorrect = true;
+                    if (hasAnyIntegerRule) {
+                        const parsedAns = parseInt(chosenAnswer, 10);
+                        isCorrect = !isNaN(parsedAns) && parsedAns >= 0 && parsedAns <= 9;
+                    } else {
+                        isCorrect = keyInfo.keys.some(ans => ans.toString().trim() === chosenAnswer.toString().trim());
                     }
+                } 
+                // రూల్ D: MCQ ప్రశ్నల కోసం Option ID వెరిఫికేషన్
+                else {
+                    isCorrect = keyInfo.keys.some(key => {
+                        const cleanKey = key.toString().trim();
+                        return cleanKey === studentOptionId || studentOptionId.includes(cleanKey);
+                    });
                 }
 
                 // 5. మార్కింగ్ స్కీమ్ వర్తింపజేయడం (+4 లేదా -1)
