@@ -26,7 +26,7 @@ function App() {
       setScoreData(null);
 
       try {
-          const response = await fetch(`https://onrender.com`, {
+          const response = await fetch(`https://student-portal-backend-vo2b.onrender.com`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ url: responseUrl }),
