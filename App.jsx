@@ -12,7 +12,7 @@ function App() {
   const [captchaText, setCaptchaText] = useState('');
   const [userCaptchaInput, setUserCaptchaInput] = useState('');
 
-    // ─── కొత్తగా జేఈఈ ఎవాల్యుయేటర్ కోసం యాడ్ చేసిన స్టేట్స్ ───
+  // ─── కొత్తగా జేఈఈ ఎవాల్యుయేటర్ కోసం యాడ్ చేసిన స్టేట్స్ ───
   const [responseUrl, setResponseUrl] = useState('');
   const [scoreData, setScoreData] = useState(null);
   const [evaluatorLoading, setEvaluatorLoading] = useState(false); // 👈 కొత్తగా విడిగా యాడ్ చేసిన లోడింగ్ స్టేట్
@@ -26,26 +26,102 @@ function App() {
       setScoreData(null);
 
       try {
-          const response = await fetch(`https://student-portal-backend-vo2b.onrender.com/api/evaluate-sheet`, {
+          const response = await fetch(`https://onrender.com`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ url: responseUrl }),
           });
           const data = await response.json(); 
           if (data.success) {
-              setScoreData(data);
-              // ఒకవేళ అలర్ట్ బాక్స్ కనిపించాలనుకుంటే (పాత విండో అలెర్ట్ బ్లాకర్ ఉన్నందున ఇది కన్సోల్‌లో లేదా టోస్ట్‌లో వాడుకోవచ్చు)
-              console.log(`ఎవాల్యుయేషన్ పూర్తయింది! మొత్తం మార్కులు: ${data.totalMarks}`);
+              // ─── మీ పాత కోడ్ డిస్టర్బ్ అవ్వకుండా మనం మాట్లాడుకున్న పక్కా ఎవాల్యుయేషన్ లాజిక్ ఇక్కడ రన్ అవుతుంది ───
+              const scrapedQuestions = data.scrapedQuestions || [];
+              const excelKeyFile = data.excelKeyFile || {};
+              const studentInfo = data.studentInfo || {};
+
+              const report = {
+                Mathematics: { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 },
+                Physics:     { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 },
+                Chemistry:   { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 }
+              };
+
+              let currentSubject = "Mathematics";
+
+              scrapedQuestions.forEach((item) => {
+                if (item.type === "SECTION_HEADER") {
+                  if (item.label.includes("Mathematics")) currentSubject = "Mathematics";
+                  else if (item.label.includes("Physics")) currentSubject = "Physics";
+                  else if (item.label.includes("Chemistry")) currentSubject = "Chemistry";
+                  return;
+                }
+
+                // ❌ 'Answered' కాకపోతే (ఉదా: Marked For Review) వదిలేయాలి
+                if (item.status !== "Answered") {
+                  return; 
+                }
+
+                const qId = String(item.questionId).trim();
+                const backendKeys = excelKeyFile[qId];
+
+                if (!backendKeys) return;
+
+                if (item.questionType === "MCQ") {
+                  const chosen = item.chosenOption;
+                  if (chosen === "--" || !chosen) return;
+
+                  const studentOptionId = String(item[`option${chosen}Id`]).trim();
+
+                  const isCorrect = backendKeys.correctOptionIds && backendKeys.correctOptionIds.some(
+                    keyId => keyId && String(keyId).trim() === studentOptionId
+                  );
+
+                  if (isCorrect) {
+                    report[currentSubject].secAPositive += 4;
+                    report[currentSubject].secATotal += 4;
+                  } else {
+                    report[currentSubject].secANegative += 1;
+                    report[currentSubject].secATotal -= 1;
+                  }
+                }
+                else if (item.questionType === "SA") {
+                  const studentAnswer = String(item.givenAnswer).trim();
+
+                  const isCorrect = backendKeys.correctAnswers && backendKeys.correctAnswers.some(
+                    ans => ans && String(ans).trim() === studentAnswer
+                  );
+
+                  if (isCorrect) {
+                    report[currentSubject].secBPositive += 4;
+                    report[currentSubject].secBTotal += 4;
+                  } else {
+                    report[currentSubject].secBNegative += 1;
+                    report[currentSubject].secBTotal -= 1;
+                  }
+                }
+              });
+
+              let calculatedGrandTotal = 0;
+              Object.keys(report).forEach(sub => {
+                report[sub].totalMarks = report[sub].secATotal + report[sub].secBTotal;
+                calculatedGrandTotal += report[sub].totalMarks;
+              });
+
+              setScoreData({
+                success: true,
+                studentInfo: studentInfo,
+                subjects: report,
+                totalMarks: calculatedGrandTotal
+              });
+
+              console.log(`ఎవాల్యుయేషన్ పూర్తయింది! మొత్తం మార్కులు: ${calculatedGrandTotal}`);
           } else {
               console.log(data.message || "డేటా ప్రాసెస్ చేయడంలో లోపం వచ్చింది!");
           }
       } catch (error) {
           console.error("Server Error:", error);
       } finally {
-          setLoading(false);
+          setEvaluatorLoading(false);
       }
   };
-
   // 📆 🌟 వెబ్‌సైట్ మోడిఫికేషన్ లేదా బ్యాకెండ్ డేటా అప్‌డేట్ చేసినప్పుడు ఆటోమేటిక్‌గా ఆ రోజు కరెంట్ డేట్ కింద మారేలా:
   const [footerUpdatedDate, setFooterUpdatedDate] = useState(() => {
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
@@ -59,7 +135,7 @@ function App() {
         clearTimeout(i);
     }
 
-    // బ్రౌజర్ తెల్ల అలర్ట్ బాక్స్‌లను పూర్తిగా బ్లాక్ చేయడం
+    // బ్రౌザー తెల్ల అలర్ట్ బాక్స్‌లను పూర్తిగా బ్లాక్ చేయడం
     window.alert = function(msg) {
       console.log("Blocked alert: ", msg);
       return true; 
@@ -121,6 +197,7 @@ function App() {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
+
   // 🎲 6 అంకెల ఆల్ఫాన్యూమరిక్ క్యాప్చా జనరేట్ చేసే ఫంక్షన్ (మార్చలేదు)
   const generateCaptcha = () => {
     const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
@@ -187,7 +264,7 @@ function App() {
 
     setLoading(true);
     try {
-      const response = await fetch(`https://student-portal-backend-vo2b.onrender.com/api/student-login`, {
+      const response = await fetch(`https://onrender.com`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ admissionNumber, mobileNumber })
@@ -217,7 +294,6 @@ function App() {
     setUserCaptchaInput('');
     setTimeout(() => generateCaptcha(), 100);
   };
-
   const handleDocClick = (docType, docLabel, session = null) => {
     setSelectedDocType(docType); 
     setSelectedDocLabel(docLabel);
@@ -241,12 +317,13 @@ function App() {
     setShowYearModal(false);
   
     try {
-        const fileUrl = `https://student-portal-backend-vo2b.onrender.com/${user.admissionNumber}.pdf`;
+        const fileUrl = `https://onrender.com{user.admissionNumber}.pdf`;
         window.open(fileUrl, '_blank');
     } catch (err) {
         console.error("డౌన్‌లోడ్ లోపం వచ్చింది:", err);
     }
   };
+
   return (
     <div style={{ backgroundColor: '#f4f7f6', minHeight: '100vh', width: '100%', fontFamily: '"Segoe UI", sans-serif', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
       
@@ -270,7 +347,7 @@ function App() {
         {!user ? (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'stretch', padding: '15px 4% 60px 4%', width: '100%', gap: '100px' }}>
             
-            {/* క్లిక్ చేసినప్పుడు బ్లూ కలర్ గ్లో రావడానికి సిఎస్ఎస్ స్టైల్స్ జోడించబడ్డాయి */}
+            {/* క్లిక్ చేసినప్పుడు బ్లూ కలర్ గ్లో రావడానికి సిఎస్ెస్ స్టైల్స్ జోడించబడ్డాయి */}
             <style>{`
                 .evaluator-input { outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
                 .evaluator-input:focus { border-color: #1a73e8 !important; box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.2) !important; }
@@ -293,188 +370,185 @@ function App() {
                             style={{ width: '100%', padding: '25px', border: '1px solid #ccc', borderRadius: '4px', fontSize: '15px', boxSizing: 'border-box' }} 
                         />
                     </div>
-                            <button 
-            onClick={handleEvaluate}
-            disabled={evaluatorLoading}
-            style={{ width: '100%', padding: '14px', backgroundColor: evaluatorLoading ? '#cccccc' : '#1a73e8', color: 'white', border: 'none', borderRadius: '4px', fontSize: '16px', fontWeight: 'bold', cursor: evaluatorLoading ? 'not-allowed' : 'pointer', marginTop: 'auto' }}
-        >
-            {loading ? 'Evaluating...' : 'Evaluate'}
-          </button>
-        </div>
+                    <button 
+                        onClick={handleEvaluate}
+                        disabled={evaluatorLoading}
+                        style={{ width: '100%', padding: '14px', backgroundColor: evaluatorLoading ? '#cccccc' : '#1a73e8', color: 'white', border: 'none', borderRadius: '4px', fontSize: '16px', fontWeight: 'bold', cursor: evaluatorLoading ? 'not-allowed' : 'pointer', marginTop: 'auto' }}
+                    >
+                        {evaluatorLoading ? 'Evaluating...' : 'Evaluate'}
+                    </button>
+                </div>
         {scoreData && (
-  <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 99999, padding: '20px', boxSizing: 'border-box' }}>
-    <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '1150px', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '92vh', animation: 'scaleUp 0.3s ease-out' }}>
-      
-      <style>{`
-        @keyframes scaleUp { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
-        .result-table th { background-color: #0c3d7c !important; color: #ffffff !important; font-weight: 700 !important; text-transform: uppercase; letter-spacing: 0.5px; font-size: 12px; padding: 12px 10px !important; border: 1px solid #334155 !important; }
-        .result-table td { padding: 12px 10px !important; border: 1px solid #e2e8f0 !important; font-size: 14px; font-weight: 600; color: #334155; text-align: center; }
-        .sub-header-row { background-color: #1e293b !important; color: #ffffff !important; font-size: 14px !important; font-weight: bold !important; letter-spacing: 1px; }
-      `}</style>
+          <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 99999, padding: '20px', boxSizing: 'border-box' }}>
+            <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '1150px', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '92vh', animation: 'scaleUp 0.3s ease-out' }}>
+              
+              <style>{`
+                @keyframes scaleUp { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+                .result-table th { background-color: #0c3d7c !important; color: #ffffff !important; font-weight: 700 !important; text-transform: uppercase; letter-spacing: 0.5px; font-size: 12px; padding: 12px 10px !important; border: 1px solid #334155 !important; }
+                .result-table td { padding: 12px 10px !important; border: 1px solid #e2e8f0 !important; font-size: 14px; font-weight: 600; color: #334155; text-align: center; }
+                .sub-header-row { background-color: #1e293b !important; color: #ffffff !important; font-size: 14px !important; font-weight: bold !important; letter-spacing: 1px; }
+              `}</style>
 
-      {/* 1. హెడర్ సెక్షన్ */}
-      <div style={{ background: 'linear-gradient(135deg, #0f172a, #1e3a8a)', color: '#ffffff', padding: '20px 35px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '4px solid #3b82f6' }}>
-        <div>
-          <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '800', letterSpacing: '0.5px' }}>🎯 JEE-MAIN Response Report</h2>
-          <small style={{ color: '#93c5fd', fontWeight: '600' }}>Subject Wise Evaluation</small>
-        </div>
-        <button onClick={() => setScoreData(null)} style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: '#ffffff', border: 'none', padding: '10px 22px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', boxShadow: '0 4px 10px rgba(220,38,38,0.3)' }}>
-          Close Report ✕
-        </button>
-      </div>
+              {/* 1. హెడర్ సెక్షన్ */}
+              <div style={{ background: 'linear-gradient(135deg, #0f172a, #1e3a8a)', color: '#ffffff', padding: '20px 35px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '4px solid #3b82f6' }}>
+                <div>
+                  <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '800', letterSpacing: '0.5px' }}>🎯 JEE-MAIN Response Report</h2>
+                  <small style={{ color: '#93c5fd', fontWeight: '600' }}>Subject Wise Evaluation</small>
+                </div>
+                <button onClick={() => setScoreData(null)} style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: '#ffffff', border: 'none', padding: '10px 22px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', boxShadow: '0 4px 10px rgba(220,38,38,0.3)' }}>
+                  Close Report ✕
+                </button>
+              </div>
 
-      {/* 2. మెయిన్ టేబుల్ కంటెంట్ ఏరియా */}
-      <div style={{ padding: '35px', overflowY: 'auto', flex: 1, backgroundColor: '#f8fafc' }}>
-        
-        <table className="result-table" style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: '#ffffff', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', borderRadius: '8px', overflow: 'hidden', marginBottom: '35px' }}>
-          <thead>
-            {/* ROW 1: స్టూడెంట్ వివరాలు */}
-            <tr>
-              <th>Student Name:</th>
-              <td style={{ backgroundColor: '#fff', fontWeight: '700', color: '#1e3a8a', textAlign: 'left', paddingLeft: '15px' }}>{scoreData.studentInfo?.name || "N/A"}</td>
-              <th>Application Number:</th>
-              <td style={{ backgroundColor: '#fff', fontWeight: '700', color: '#0f172a', textAlign: 'left', paddingLeft: '15px' }}>{scoreData.studentInfo?.appNo || "N/A"}</td>
-              <th>Roll Number:</th>
-              <td style={{ backgroundColor: '#fff', fontWeight: '700', color: '#0f172a', textAlign: 'left', paddingLeft: '15px' }}>{scoreData.studentInfo?.rollNo || "N/A"}</td>
-              <th>Test Date:</th>
-              <td style={{ backgroundColor: '#fff', fontWeight: '700', color: '#0f172a', textAlign: 'left', paddingLeft: '15px' }}>{scoreData.studentInfo?.examDate || "N/A"}</td>
-              <th>Test Time:</th>
-              <td style={{ backgroundColor: '#fff', fontWeight: '700', color: '#0f172a', textAlign: 'left', paddingLeft: '15px' }}>{scoreData.studentInfo?.examShift === 'Shift2' ? '3:00 PM - 6:00 PM' : '9:00 AM - 12:00 PM'}</td>
-            </tr>
+              {/* 2. మెయిన్ టేబుల్ కంటెంట్ ఏరియా */}
+              <div style={{ padding: '35px', overflowY: 'auto', flex: 1, backgroundColor: '#f8fafc' }}>
+                
+                <table className="result-table" style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: '#ffffff', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', borderRadius: '8px', overflow: 'hidden', marginBottom: '35px' }}>
+                  <thead>
+                    {/* ROW 1: స్టూడెంట్ వివరాలు */}
+                    <tr>
+                      <th>Student Name:</th>
+                      <td style={{ backgroundColor: '#fff', fontWeight: '700', color: '#1e3a8a', textAlign: 'left', paddingLeft: '15px' }}>{scoreData.studentInfo?.name || "N/A"}</td>
+                      <th>Application Number:</th>
+                      <td style={{ backgroundColor: '#fff', fontWeight: '700', color: '#0f172a', textAlign: 'left', paddingLeft: '15px' }}>{scoreData.studentInfo?.appNo || "N/A"}</td>
+                      <th>Roll Number:</th>
+                      <td style={{ backgroundColor: '#fff', fontWeight: '700', color: '#0f172a', textAlign: 'left', paddingLeft: '15px' }}>{scoreData.studentInfo?.rollNo || "N/A"}</td>
+                      <th>Test Date:</th>
+                      <td style={{ backgroundColor: '#fff', fontWeight: '700', color: '#0f172a', textAlign: 'left', paddingLeft: '15px' }}>{scoreData.studentInfo?.examDate || "N/A"}</td>
+                      <th>Test Time:</th>
+                      <td style={{ backgroundColor: '#fff', fontWeight: '700', color: '#0f172a', textAlign: 'left', paddingLeft: '15px' }}>{scoreData.studentInfo?.examShift === 'Shift2' ? '3:00 PM - 6:00 PM' : '9:00 AM - 12:00 PM'}</td>
+                    </tr>
+                    {/* ROW 2: సబ్జెక్ట్ హెడర్స్ */}
+                    <tr>
+                      <th style={{ background: '#f1f5f9', border: 'none' }}></th>
+                      <th colSpan="3" className="sub-header-row" style={{ background: '#2563eb' }}>Mathematics</th>
+                      <th colSpan="3" className="sub-header-row" style={{ background: '#059669' }}>Physics</th>
+                      <th colSpan="3" className="sub-header-row" style={{ background: '#d97706' }}>Chemistry</th>
+                    </tr>
 
-            {/* ROW 2: సబ్జెక్ట్ హెడర్స్ */}
-            <tr>
-              <th style={{ background: '#f1f5f9', border: 'none' }}></th>
-              <th colSpan="3" className="sub-header-row" style={{ background: '#2563eb' }}>Mathematics</th>
-              <th colSpan="3" className="sub-header-row" style={{ background: '#059669' }}>Physics</th>
-              <th colSpan="3" className="sub-header-row" style={{ background: '#d97706' }}>Chemistry</th>
-            </tr>
+                    {/* ROW 3: సబ్-కాలమ్స్ */}
+                    <tr>
+                      <th style={{ backgroundColor: '#475569' }}>Section</th>
+                      <th style={{ backgroundColor: '#1e3a8a' }}>Positive</th>
+                      <th style={{ backgroundColor: '#1e3a8a' }}>Negative</th>
+                      <th style={{ backgroundColor: '#1d4ed8', color: '#fff' }}>Total</th>
+                      <th style={{ backgroundColor: '#065f46' }}>Positive</th>
+                      <th style={{ backgroundColor: '#065f46' }}>Negative</th>
+                      <th style={{ backgroundColor: '#047857', color: '#fff' }}>Total</th>
+                      <th style={{ backgroundColor: '#92400e' }}>Positive</th>
+                      <th style={{ backgroundColor: '#92400e' }}>Negative</th>
+                      <th style={{ backgroundColor: '#b45309', color: '#fff' }}>Total</th>
+                    </tr>
+                  </thead>
+                  
+                  <tbody>
+                    {/* ROW 4: Section A మార్కులు */}
+                    <tr>
+                      <td style={{ backgroundColor: '#f1f5f9', fontWeight: 'bold', color: '#1e293b' }}>A</td>
+                      <td>{scoreData.subjects?.Mathematics?.secAPositive ?? 0}</td>
+                      <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Mathematics?.secANegative ?? 0}</td>
+                      <td style={{ backgroundColor: '#eff6ff', color: '#1e40af', fontWeight: '700' }}>{scoreData.subjects?.Mathematics?.secATotal ?? 0}</td>
+                      <td>{scoreData.subjects?.Physics?.secAPositive ?? 0}</td>
+                      <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Physics?.secANegative ?? 0}</td>
+                      <td style={{ backgroundColor: '#ecfdf5', color: '#065f46', fontWeight: '700' }}>{scoreData.subjects?.Physics?.secATotal ?? 0}</td>
+                      <td>{scoreData.subjects?.Chemistry?.secAPositive ?? 0}</td>
+                      <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Chemistry?.secANegative ?? 0}</td>
+                      <td style={{ backgroundColor: '#fff7ed', color: '#92400e', fontWeight: '700' }}>{scoreData.subjects?.Chemistry?.secATotal ?? 0}</td>
+                    </tr>
 
-            {/* ROW 3: సబ్-కాలమ్స్ */}
-            <tr>
-              <th style={{ backgroundColor: '#475569' }}>Section</th>
-              <th style={{ backgroundColor: '#1e3a8a' }}>Positive</th>
-              <th style={{ backgroundColor: '#1e3a8a' }}>Negative</th>
-              <th style={{ backgroundColor: '#1d4ed8', color: '#fff' }}>Total</th>
-              <th style={{ backgroundColor: '#065f46' }}>Positive</th>
-              <th style={{ backgroundColor: '#065f46' }}>Negative</th>
-              <th style={{ backgroundColor: '#047857', color: '#fff' }}>Total</th>
-              <th style={{ backgroundColor: '#92400e' }}>Positive</th>
-              <th style={{ backgroundColor: '#92400e' }}>Negative</th>
-              <th style={{ backgroundColor: '#b45309', color: '#fff' }}>Total</th>
-            </tr>
-          </thead>
-          
-          <tbody>
-            {/* ROW 4: Session I మార్కులు */}
-            <tr>
-              <td style={{ backgroundColor: '#f1f5f9', fontWeight: 'bold', color: '#1e293b' }}>A</td>
-              <td>{scoreData.subjects?.Mathematics?.secAPositive ?? 0}</td>
-              <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Mathematics?.secANegative ?? 0}</td>
-              <td style={{ backgroundColor: '#eff6ff', color: '#1e40af', fontWeight: '700' }}>{scoreData.subjects?.Mathematics?.secATotal ?? 0}</td>
-              <td>{scoreData.subjects?.Physics?.secAPositive ?? 0}</td>
-              <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Physics?.secANegative ?? 0}</td>
-              <td style={{ backgroundColor: '#ecfdf5', color: '#065f46', fontWeight: '700' }}>{scoreData.subjects?.Physics?.secATotal ?? 0}</td>
-              <td>{scoreData.subjects?.Chemistry?.secAPositive ?? 0}</td>
-              <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Chemistry?.secANegative ?? 0}</td>
-              <td style={{ backgroundColor: '#fff7ed', color: '#92400e', fontWeight: '700' }}>{scoreData.subjects?.Chemistry?.secATotal ?? 0}</td>
-            </tr>
+                    {/* ROW 5: Section B మార్కులు */}
+                    <tr>
+                      <td style={{ backgroundColor: '#f1f5f9', fontWeight: 'bold', color: '#1e293b' }}>B</td>
+                      <td>{scoreData.subjects?.Mathematics?.secBPositive ?? 0}</td>
+                      <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Mathematics?.secBNegative ?? 0}</td>
+                      <td style={{ backgroundColor: '#eff6ff', color: '#1e40af', fontWeight: '700' }}>{scoreData.subjects?.Mathematics?.secBTotal ?? 0}</td>
+                      <td>{scoreData.subjects?.Physics?.secBPositive ?? 0}</td>
+                      <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Physics?.secBNegative ?? 0}</td>
+                      <td style={{ backgroundColor: '#ecfdf5', color: '#065f46', fontWeight: '700' }}>{scoreData.subjects?.Physics?.secBTotal ?? 0}</td>
+                      <td>{scoreData.subjects?.Chemistry?.secBPositive ?? 0}</td>
+                      <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Chemistry?.secBNegative ?? 0}</td>
+                      <td style={{ backgroundColor: '#fff7ed', color: '#92400e', fontWeight: '700' }}>{scoreData.subjects?.Chemistry?.secBTotal ?? 0}</td>
+                    </tr>
+                  </tbody>
+                </table>
+                {/* కింద వచ్చే రెండు సమ్మరీ టేబుల్స్ (Subject Wise & Total Marks) */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '50px' }}>
+                  
+                  {/* ఎడమ వైపు: Subject Wise Table */}
+                  <div>
+                    <table className="result-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr>
+                          <th colSpan="4" style={{ background: '#1e293b', fontSize: '13px' }}>Subject Wise</th>
+                        </tr>
+                        <tr>
+                          <th style={{ backgroundColor: '#475569' }}>Subject</th>
+                          <th style={{ backgroundColor: '#10b981' }}>Positive</th>
+                          <th style={{ backgroundColor: '#ef4444' }}>Negative</th>
+                          <th style={{ backgroundColor: '#3b82f6' }}>Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td style={{ fontWeight: 'bold', backgroundColor: '#fff', textAlign: 'left', paddingLeft: '20px' }}>Maths</td>
+                          <td>{(scoreData.subjects?.Mathematics?.secAPositive ?? 0) + (scoreData.subjects?.Mathematics?.secBPositive ?? 0)}</td>
+                          <td style={{ color: '#ef4444' }}>{(scoreData.subjects?.Mathematics?.secANegative ?? 0) + (scoreData.subjects?.Mathematics?.secBNegative ?? 0)}</td>
+                          <td style={{ backgroundColor: '#eff6ff', color: '#1d4ed8', fontWeight: 'bold' }}>{scoreData.subjects?.Mathematics?.totalMarks ?? 0}</td>
+                        </tr>
+                        <tr>
+                          <td style={{ fontWeight: 'bold', backgroundColor: '#fff', textAlign: 'left', paddingLeft: '20px' }}>Physics</td>
+                          <td>{(scoreData.subjects?.Physics?.secAPositive ?? 0) + (scoreData.subjects?.Physics?.secBPositive ?? 0)}</td>
+                          <td style={{ color: '#ef4444' }}>{(scoreData.subjects?.Physics?.secANegative ?? 0) + (scoreData.subjects?.Physics?.secBNegative ?? 0)}</td>
+                          <td style={{ backgroundColor: '#ecfdf5', color: '#047857', fontWeight: 'bold' }}>{scoreData.subjects?.Physics?.totalMarks ?? 0}</td>
+                        </tr>
+                        <tr>
+                          <td style={{ fontWeight: 'bold', backgroundColor: '#fff', textAlign: 'left', paddingLeft: '20px' }}>Chemistry</td>
+                          <td>{(scoreData.subjects?.Chemistry?.secAPositive ?? 0) + (scoreData.subjects?.Chemistry?.secBPositive ?? 0)}</td>
+                          <td style={{ color: '#ef4444' }}>{(scoreData.subjects?.Chemistry?.secANegative ?? 0) + (scoreData.subjects?.Chemistry?.secBNegative ?? 0)}</td>
+                          <td style={{ backgroundColor: '#fff7ed', color: '#b45309', fontWeight: 'bold' }}>{scoreData.subjects?.Chemistry?.totalMarks ?? 0}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
 
-            {/* ROW 5: Session II మార్కులు */}
-            <tr>
-              <td style={{ backgroundColor: '#f1f5f9', fontWeight: 'bold', color: '#1e293b' }}>B</td>
-              <td>{scoreData.subjects?.Mathematics?.secBPositive ?? 0}</td>
-              <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Mathematics?.secBNegative ?? 0}</td>
-              <td style={{ backgroundColor: '#eff6ff', color: '#1e40af', fontWeight: '700' }}>{scoreData.subjects?.Mathematics?.secBTotal ?? 0}</td>
-              <td>{scoreData.subjects?.Physics?.secBPositive ?? 0}</td>
-              <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Physics?.secBNegative ?? 0}</td>
-              <td style={{ backgroundColor: '#ecfdf5', color: '#065f46', fontWeight: '700' }}>{scoreData.subjects?.Physics?.secBTotal ?? 0}</td>
-              <td>{scoreData.subjects?.Chemistry?.secBPositive ?? 0}</td>
-              <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Chemistry?.secBNegative ?? 0}</td>
-              <td style={{ backgroundColor: '#fff7ed', color: '#92400e', fontWeight: '700' }}>{scoreData.subjects?.Chemistry?.secBTotal ?? 0}</td>
-            </tr>
-          </tbody>
-        </table>
-        {/* కింద వచ్చే రెండు సమ్మరీ టేబుల్స్ (Subject Wise & Total Marks) */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '50px' }}>
-          
-          {/* ఎడమ వైపు: Subject Wise Table */}
-          <div>
-            <table className="result-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr>
-                  <th colSpan="4" style={{ background: '#1e293b', fontSize: '13px' }}>Subject Wise</th>
-                </tr>
-                <tr>
-                  <th style={{ backgroundColor: '#475569' }}>Subject</th>
-                  <th style={{ backgroundColor: '#10b981' }}>Positive</th>
-                  <th style={{ backgroundColor: '#ef4444' }}>Negative</th>
-                  <th style={{ backgroundColor: '#3b82f6' }}>Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style={{ fontWeight: 'bold', backgroundColor: '#fff', textAlign: 'left', paddingLeft: '20px' }}>Maths</td>
-                  <td>{(scoreData.subjects?.Mathematics?.secAPositive ?? 0) + (scoreData.subjects?.Mathematics?.secBPositive ?? 0)}</td>
-                  <td style={{ color: '#ef4444' }}>{(scoreData.subjects?.Mathematics?.secANegative ?? 0) + (scoreData.subjects?.Mathematics?.secBNegative ?? 0)}</td>
-                  <td style={{ backgroundColor: '#eff6ff', color: '#1d4ed8', fontWeight: 'bold' }}>{scoreData.subjects?.Mathematics?.totalMarks ?? 0}</td>
-                </tr>
-                <tr>
-                  <td style={{ fontWeight: 'bold', backgroundColor: '#fff', textAlign: 'left', paddingLeft: '20px' }}>Physics</td>
-                  <td>{(scoreData.subjects?.Physics?.secAPositive ?? 0) + (scoreData.subjects?.Physics?.secBPositive ?? 0)}</td>
-                  <td style={{ color: '#ef4444' }}>{(scoreData.subjects?.Physics?.secANegative ?? 0) + (scoreData.subjects?.Physics?.secBNegative ?? 0)}</td>
-                  <td style={{ backgroundColor: '#ecfdf5', color: '#047857', fontWeight: 'bold' }}>{scoreData.subjects?.Physics?.totalMarks ?? 0}</td>
-                </tr>
-                <tr>
-                  <td style={{ fontWeight: 'bold', backgroundColor: '#fff', textAlign: 'left', paddingLeft: '20px' }}>Chemistry</td>
-                  <td>{(scoreData.subjects?.Chemistry?.secAPositive ?? 0) + (scoreData.subjects?.Chemistry?.secBPositive ?? 0)}</td>
-                  <td style={{ color: '#ef4444' }}>{(scoreData.subjects?.Chemistry?.secANegative ?? 0) + (scoreData.subjects?.Chemistry?.secBNegative ?? 0)}</td>
-                  <td style={{ backgroundColor: '#fff7ed', color: '#b45309', fontWeight: 'bold' }}>{scoreData.subjects?.Chemistry?.totalMarks ?? 0}</td>
-                </tr>
-              </tbody>
-            </table>
+                  {/* కుడి వైపు: Total Marks Table */}
+                  <div>
+                    <table className="result-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                      <thead>
+                        <tr>
+                          <th colSpan="2" style={{ background: '#0f172a', fontSize: '13px' }}>Total Marks</th>
+                        </tr>
+                        <tr>
+                          <th style={{ backgroundColor: '#475569' }}>Subject</th>
+                          <th style={{ backgroundColor: '#2563eb' }}>Total</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td style={{ fontWeight: 'bold', backgroundColor: '#fff', textAlign: 'left', paddingLeft: '20px' }}>Maths</td>
+                          <td style={{ fontWeight: 'bold', color: '#1e3a8a' }}>{scoreData.subjects?.Mathematics?.totalMarks ?? 0}</td>
+                        </tr>
+                        <tr>
+                          <td style={{ fontWeight: 'bold', backgroundColor: '#fff', textAlign: 'left', paddingLeft: '20px' }}>Physics</td>
+                          <td style={{ fontWeight: 'bold', color: '#047857' }}>{scoreData.subjects?.Physics?.totalMarks ?? 0}</td>
+                        </tr>
+                        <tr>
+                          <td style={{ fontWeight: 'bold', backgroundColor: '#fff', textAlign: 'left', paddingLeft: '20px' }}>Chemistry</td>
+                          <td style={{ fontWeight: 'bold', color: '#b45309' }}>{scoreData.subjects?.Chemistry?.totalMarks ?? 0}</td>
+                        </tr>
+                        <tr style={{ backgroundColor: '#f1f5f9' }}>
+                          <td style={{ fontWeight: '800', color: '#0f172a', textAlign: 'left', paddingLeft: '20px', fontSize: '15px' }}>GRAND TOTAL</td>
+                          <td style={{ fontWeight: '800', color: '#ffffff', backgroundColor: '#1e3a8a', fontSize: '18px' }}>{scoreData.totalMarks ?? 0} / 300</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-
-          {/* Куди వైపు: Total Marks Table */}
-          <div>
-            <table className="result-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-              <thead>
-                <tr>
-                  <th colSpan="2" style={{ background: '#0f172a', fontSize: '13px' }}>Total Marks</th>
-                </tr>
-                <tr>
-                  <th style={{ backgroundColor: '#475569' }}>Subject</th>
-                  <th style={{ backgroundColor: '#2563eb' }}>Total</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style={{ fontWeight: 'bold', backgroundColor: '#fff', textAlign: 'left', paddingLeft: '20px' }}>Maths</td>
-                  <td style={{ fontWeight: 'bold', color: '#1e3a8a' }}>{scoreData.subjects?.Mathematics?.totalMarks ?? 0}</td>
-                </tr>
-                <tr>
-                  <td style={{ fontWeight: 'bold', backgroundColor: '#fff', textAlign: 'left', paddingLeft: '20px' }}>Physics</td>
-                  <td style={{ fontWeight: 'bold', color: '#047857' }}>{scoreData.subjects?.Physics?.totalMarks ?? 0}</td>
-                </tr>
-                <tr>
-                  <td style={{ fontWeight: 'bold', backgroundColor: '#fff', textAlign: 'left', paddingLeft: '20px' }}>Chemistry</td>
-                  <td style={{ fontWeight: 'bold', color: '#b45309' }}>{scoreData.subjects?.Chemistry?.totalMarks ?? 0}</td>
-                </tr>
-                <tr style={{ backgroundColor: '#f1f5f9' }}>
-                  <td style={{ fontWeight: '800', color: '#0f172a', textAlign: 'left', paddingLeft: '20px', fontSize: '15px' }}>GRAND TOTAL</td>
-                  <td style={{ fontWeight: '800', color: '#ffffff', backgroundColor: '#1e3a8a', fontSize: '18px' }}>{scoreData.totalMarks ?? 0} / 300</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        )}
       </div>
-    </div>
-  </div>
-)}
-
-      </div>
-
             {/* 👉 కుడి వైపు సరికొత్త లాగిన్ బాక్స్ స్ట్రక్చర్ */}
             <div style={{ background: '#ffffff', maxWidth: '450px', width: '100%', borderRadius: '4px', border: '1px solid #dcdcdc', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', boxSizing: 'border-box', overflow: 'hidden' }}>
               
@@ -533,7 +607,8 @@ function App() {
                     maxLength={6} 
                   />
                 </div>
-                {/* 🔒 క్యాప్చా విభాగం - అడ్డంగా లైన్ మరియు పక్కపక్కనే వచ్చేలా */}
+
+                {/* 🔒 キャప్చా విభాగం - అడ్డంగా లైన్ మరియు పక్కపక్కనే వచ్చేలా */}
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '30px', gap: '20px', width: '100%', justifyContent: 'flex-start', paddingLeft: '2px', boxSizing: 'border-box' }}>
                   <span style={{ fontSize: '15px', color: '#000000', fontFamily: 'sans-serif', fontWeight: 'bold', whiteSpace: 'nowrap' }}>
                     Security Pin
@@ -561,7 +636,7 @@ function App() {
         ) : (
           <div style={{ maxWidth: '950px', width: '100%', margin: '30px auto', padding: '0 20px', boxSizing: 'border-box' }}>
             
-            {/* வெல்క profile banner */}
+            {/* వెల్క profile banner */}
             <div style={{ background: `linear-gradient(135deg, #1e88e5, ${currentThemeColor})`, color: 'white', padding: '25px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', transition: 'all 0.3s ease' }}>
               <div>
                 <h2 style={{ margin: 0 }}>Welcome, {user.studentName}! 👋</h2>
