@@ -17,7 +17,7 @@ function App() {
   const [scoreData, setScoreData] = useState(null);
   const [evaluatorLoading, setEvaluatorLoading] = useState(false); // 👈 కొత్తగా విడిగా యాడ్ చేసిన లోడింగ్ స్టేట్
 
-            const handleEvaluate = async () => {
+             const handleEvaluate = async () => {
       if (!responseUrl.trim()) {
           alert("దయచేసి రెస్పాన్స్ షీట్ URL ని ఇక్కడ పేస్ట్ చేయండి!");
           return;
@@ -39,6 +39,14 @@ function App() {
           const data = await response.json(); 
 
           if (data.success) {
+              // 1. సేఫ్టీ బ్యాకప్: ఒకవేళ బ్యాకెండ్ లోనే ఆల్రెడీ మార్కులు కాలిక్యులేట్ అయి వస్తే (మీ పాత కోడ్ లాగా) నేరుగా దాన్ని వాడేస్తుంది!
+              if (data.subjects && Object.keys(data.subjects).length > 0 && (data.totalMarks !== undefined && data.totalMarks !== 0)) {
+                  setScoreData(data);
+                  console.log("Loaded pre-calculated marks from backend successfully!");
+                  return;
+                }
+
+              // 2. ఒకవేళ బ్యాకెండ్ నుండి రా డేటా (Raw Data) వస్తే లైవ్ కాలిక్యులేషన్ చేస్తుంది
               const scrapedQuestions = data.scrapedQuestions || data.questions || [];
               const excelKeyFile = data.excelKeyFile || data.keyFile || {};
               const studentInfo = data.studentInfo || data.studentData || {};
@@ -52,7 +60,7 @@ function App() {
               let currentSubject = "Mathematics";
 
               scrapedQuestions.forEach((item) => {
-                // 1. సబ్జెక్ట్ హెడర్ ఐడెంటిఫికేషన్
+                // సబ్జెక్ట్ హెడర్ చెక్
                 let sectionLabel = "";
                 Object.keys(item).forEach(k => {
                   if (k.toLowerCase().includes("section") || k.toLowerCase().includes("subject")) {
@@ -68,20 +76,19 @@ function App() {
                   return;
                 }
 
-                // 2. స్టేటస్ తనిఖీ
-                let statusValue = "";
+                // 🚨 స్పేసెస్ ని పూర్తిగా రిమూవ్ చేసి స్టేటస్ వెతికే సూపర్ కండిషన్ (బగ్ ఫిక్స్)
+                let itemStatus = "";
                 Object.keys(item).forEach(k => {
-                  if (k.toLowerCase().trim() === "status") {
-                    statusValue = String(item[k] || '');
+                  if (k.toLowerCase().replace(/\s+/g, '') === "status") {
+                    itemStatus = String(item[k] || '').toLowerCase().replace(/\s+/g, '');
                   }
                 });
-                const itemStatus = statusValue.toLowerCase().trim() || String(item.status || item.Status || '').toLowerCase().trim();
-                
+
                 if (itemStatus !== "answered") {
                   return; 
                 }
 
-                // 3. క్వశ్చన్ ఐడీ పట్టుకోవడం
+                // క్వశ్చన్ ఐడీ పట్టుకోవడం
                 let extractedQId = "";
                 Object.keys(item).forEach(k => {
                   const cleanKey = k.toLowerCase().replace(/\s+/g, '');
@@ -99,7 +106,7 @@ function App() {
 
                 if (!backendKeys) return;
 
-                // 4. ఎక్సెల్ హెడర్స్ (OptionID1, OptionID2...) నుండి కీస్ ఎక్స్‌ట్రాక్ట్ చేయడం
+                // ఎక్సెల్ హెడర్స్ ఎక్స్‌ట్రాక్షన్
                 let key1 = "", key2 = "", key3 = "", key4 = "";
                 Object.keys(backendKeys).forEach(k => {
                   const upperKey = k.toUpperCase().replace(/[\s\-]+/g, ''); 
@@ -111,7 +118,7 @@ function App() {
 
                 const officialCorrectKeys = [key1, key2, key3, key4].filter(k => k !== '');
 
-                // 5. క్వశ్చన్ టైప్ కనుక్కోవడం
+                // క్వశ్చన్ టైప్
                 let extractedQType = "";
                 Object.keys(item).forEach(k => {
                   const cleanKey = k.toLowerCase().replace(/\s+/g, '');
@@ -152,7 +159,7 @@ function App() {
                     report[currentSubject].secATotal -= 1;
                   }
                 }
-                // ─── SECTION B లాజిక్ (SA / NUMERICAL) ───
+                // ─── SECTION B లాజిక్ (SA) ───
                 else if (qType === "SA" || qType === "NUMERICAL") {
                   let answerValue = "";
                   Object.keys(item).forEach(k => {
@@ -163,8 +170,6 @@ function App() {
                   });
                   const studentAnswer = answerValue || String(item.givenAnswer || item["Given Answer"] || '').trim();
 
-                  // 🚨 0-9 Range Check (ANY NON NEGATIVE INTEGER కండిషన్ సేఫ్టీ)
-                  // ఎక్సెల్ కీస్ లో ఎక్కడైనా "ANY" లేదా "NON NEGATIVE" అని టైప్ చేసి ఉంటే, స్టూడెంట్ నంబర్ 0-9 లోపు ఉంటే ట్రూ అవుతుంది
                   const hasAnyIntegerRule = officialCorrectKeys.some(ans => {
                     const cleanAns = ans.toUpperCase();
                     return cleanAns.includes("ANY") || cleanAns.includes("NON") || cleanAns.includes("INTEGER");
@@ -173,10 +178,8 @@ function App() {
                   let isCorrect = false;
                   if (hasAnyIntegerRule) {
                     const parsedAns = parseInt(studentAnswer, 10);
-                    // సమాధానం ఒక నంబర్ అయి ఉండి, అది 0 నుండి 9 లోపు ఉంటే మార్కులు యాడ్ అవుతాయి
                     isCorrect = !isNaN(parsedAns) && parsedAns >= 0 && parsedAns <= 9;
                   } else {
-                    // ఒకవేళ నార్మల్ క్వశ్చన్ అయితే ఎక్సెల్ లోని డైరెక్ట్ నంబర్ కీ తో మ్యాచ్ చేస్తుంది
                     isCorrect = officialCorrectKeys.some(ans => ans === studentAnswer);
                   }
 
@@ -218,8 +221,6 @@ function App() {
           setEvaluatorLoading(false); 
       }
   };
-
-
 
   // 📆 🌟 వెబ్‌సైట్ మోడిఫికేషన్ లేదా బ్యాకెండ్ డేటా అప్‌డేట్ చేసినప్పుడు ఆటోమేటిక్‌గా ఆ రోజు కరెంట్ డేట్ కింద మారేలా:
   const [footerUpdatedDate, setFooterUpdatedDate] = useState(() => {
