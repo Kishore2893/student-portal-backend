@@ -271,9 +271,17 @@ app.post('/api/evaluate-sheet', async (req, res) => {
             return res.status(500).json({ success: false, message: "సర్వర్‌లో JEE_Master_Key.xlsx ఫైల్ లభించలేదు!" });
         }
         
+                // 🔄 [ఎక్సెల్ షీట్ నేమ్ బగ్ ఫిక్స్] - మీ పాత 3 లైన్ల స్థానంలో దీన్ని రీప్లేస్ చేయండి:
         const workbook = xlsx.readFile(excelPath);
-        const sheetName = workbook.SheetNames[0]; // మొదటి షీట్ లోడ్
-        const sheetData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+        
+        // ఎక్సెల్ లో ఏ పేరుతో ట్యాబ్ ఉన్నా (Sheet1 లేదా JEE Main), డేటా ఉన్న మొదటి షీట్ ని కరెక్ట్ గా పిక్ చేస్తుంది
+        const targetSheetName = workbook.SheetNames.find(name => {
+            const rows = xlsx.utils.sheet_to_json(workbook.Sheets[name]);
+            return rows.length > 0; // డేటా ఖాళీగా లేని షీట్ ని వెతుకుతుంది
+        }) || workbook.SheetNames[0];
+
+        const sheetData = xlsx.utils.sheet_to_json(workbook.Sheets[targetSheetName]);
+
         
         const MASTER_KEY_MAP = {};
         sheetData.forEach(row => {
