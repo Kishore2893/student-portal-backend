@@ -17,12 +17,12 @@ function App() {
   const [scoreData, setScoreData] = useState(null);
   const [evaluatorLoading, setEvaluatorLoading] = useState(false); // 👈 కొత్తగా విడిగా యాడ్ చేసిన లోడింగ్ స్టేట్
 
-  const handleEvaluate = async () => {
+    const handleEvaluate = async () => {
       if (!responseUrl.trim()) {
           alert("దయచేసి రెస్పాన్స్ షీట్ URL ని ఇక్కడ పేస్ట్ చేయండి!");
           return;
       }
-      setEvaluatorLoading(true); // 👈 ఇక్కడ evaluatorLoading ని true చేస్తున్నాము
+      setEvaluatorLoading(true); // 👈 లోడింగ్ ని ట్రూ చేస్తున్నాము
       setScoreData(null);
 
       try {
@@ -32,12 +32,12 @@ function App() {
               body: JSON.stringify({ url: responseUrl }),
           });
           const data = await response.json(); 
+          
           if (data.success) {
-              // ─── మీ పాత కోడ్ డిస్టర్బ్ అవ్వకుండా మనం మాట్లాడుకున్న పక్కా ఎవాల్యుయేషన్ లాజిక్ ఇక్కడ రన్ అవుతుంది ───
+              // మీ ఒరిజినల్ బ్యాకెండ్ ప్రాపర్టీస్ ని ఇక్కడే సేఫ్‌గా హోల్డ్ చేస్తున్నాము
               const scrapedQuestions = data.scrapedQuestions || [];
               const excelKeyFile = data.excelKeyFile || {};
-              const studentInfo = data.studentInfo || {};
-
+              const studentInfo = data.studentInfo || data.studentData || {};
               const report = {
                 Mathematics: { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 },
                 Physics:     { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 },
@@ -47,28 +47,29 @@ function App() {
               let currentSubject = "Mathematics";
 
               scrapedQuestions.forEach((item) => {
-                if (item.type === "SECTION_HEADER") {
-                  if (item.label.includes("Mathematics")) currentSubject = "Mathematics";
-                  else if (item.label.includes("Physics")) currentSubject = "Physics";
-                  else if (item.label.includes("Chemistry")) currentSubject = "Chemistry";
+                if (item.type === "SECTION_HEADER" || item.questionType === "SECTION_HEADER") {
+                  if (item.label && item.label.includes("Mathematics")) currentSubject = "Mathematics";
+                  else if (item.label && item.label.includes("Physics")) currentSubject = "Physics";
+                  else if (item.label && item.label.includes("Chemistry")) currentSubject = "Chemistry";
                   return;
                 }
 
-                // ❌ 'Answered' కాకపోతే (ఉదా: Marked For Review) వదిలేయాలి
+                // ❌ 'Answered' కాకపోతే (ఉదా: Marked For Review ని) కచ్చితంగా వదిలేయాలి
                 if (item.status !== "Answered") {
                   return; 
                 }
 
-                const qId = String(item.questionId).trim();
+                const qId = String(item.questionId || item.questionID).trim();
                 const backendKeys = excelKeyFile[qId];
 
                 if (!backendKeys) return;
 
+                // ─── SECTION A లాజిక్ ───
                 if (item.questionType === "MCQ") {
                   const chosen = item.chosenOption;
                   if (chosen === "--" || !chosen) return;
 
-                  const studentOptionId = String(item[`option${chosen}Id`]).trim();
+                  const studentOptionId = String(item[`option${chosen}Id`] || item[`option${chosen}ID`]).trim();
 
                   const isCorrect = backendKeys.correctOptionIds && backendKeys.correctOptionIds.some(
                     keyId => keyId && String(keyId).trim() === studentOptionId
@@ -82,6 +83,7 @@ function App() {
                     report[currentSubject].secATotal -= 1;
                   }
                 }
+                // ─── SECTION B లాజిక్ ───
                 else if (item.questionType === "SA") {
                   const studentAnswer = String(item.givenAnswer).trim();
 
@@ -98,16 +100,22 @@ function App() {
                   }
                 }
               });
-
               let calculatedGrandTotal = 0;
               Object.keys(report).forEach(sub => {
                 report[sub].totalMarks = report[sub].secATotal + report[sub].secBTotal;
                 calculatedGrandTotal += report[sub].totalMarks;
               });
 
+              // మీ పాత UI టేబుల్స్ (భాగం 4 & 5) లో ఉన్న వేరియబుల్స్ కి తగ్గట్టు 100% పక్కాగా డేటాని సెట్ చేస్తున్నాము
               setScoreData({
                 success: true,
-                studentInfo: studentInfo,
+                studentInfo: {
+                  name: studentInfo.name || data.studentInfo?.name || data.studentData?.name || "N/A",
+                  appNo: studentInfo.appNo || data.studentInfo?.appNo || data.studentData?.appNo || "N/A",
+                  rollNo: studentInfo.rollNo || data.studentInfo?.rollNo || data.studentData?.rollNo || "N/A",
+                  examDate: studentInfo.examDate || data.studentInfo?.examDate || data.studentData?.examDate || "N/A",
+                  examShift: studentInfo.examShift || data.studentInfo?.examShift || data.studentData?.examShift || "Shift1"
+                },
                 subjects: report,
                 totalMarks: calculatedGrandTotal
               });
@@ -115,13 +123,16 @@ function App() {
               console.log(`ఎవాల్యుయేషన్ పూర్తయింది! మొత్తం మార్కులు: ${calculatedGrandTotal}`);
           } else {
               console.log(data.message || "డేటా ప్రాసెస్ చేయడంలో లోపం వచ్చింది!");
+              alert(data.message || "డేటా ప్రాసెస్ చేయడంలో లోపం వచ్చింది!");
           }
       } catch (error) {
           console.error("Server Error:", error);
+          alert("సర్వర్ కనెక్షన్ లో లోపం వచ్చింది. దయచేసి మళ్లీ ప్రయత్నించండి!");
       } finally {
-          setEvaluatorLoading(false);
+          setEvaluatorLoading(false); // 👈 ఇక్కడ పాత బగ్‌ను క్లియర్ చేసి కరెక్ట్ స్టేట్ ని ఫాల్స్ చేసాము! బటన్ అన్‌లాక్ అవుతుంది.
       }
   };
+
   // 📆 🌟 వెబ్‌సైట్ మోడిఫికేషన్ లేదా బ్యాకెండ్ డేటా అప్‌డేట్ చేసినప్పుడు ఆటోమేటిక్‌గా ఆ రోజు కరెంట్ డేట్ కింద మారేలా:
   const [footerUpdatedDate, setFooterUpdatedDate] = useState(() => {
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
