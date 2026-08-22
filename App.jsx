@@ -26,7 +26,7 @@ function App() {
       setScoreData(null);
 
       try {
-          const response = await fetch(`https://student-portal-backend-vo2b.onrender.com/api/evaluate`, {
+          const response = await fetch(`https://student-portal-backend-vo2b.onrender.com/api/evaluate-sheet`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ url: responseUrl }),
@@ -201,7 +201,7 @@ function App() {
         generateCaptcha();
       }
     } catch (err) { 
-      setError("Unable to connect to the backend server!"); 
+      setError("Invalid Admission Number or Mobile Number!"); 
       generateCaptcha();
     } finally { 
       setLoading(false); 
@@ -242,7 +242,7 @@ function App() {
   
     try {
         const fileUrl = `https://student-portal-backend-vo2b.onrender.com/${user.admissionNumber}.pdf`;
-        window.location.href = fileUrl;
+        window.open(fileUrl, '_blank');
     } catch (err) {
         console.error("డౌన్‌లోడ్ లోపం వచ్చింది:", err);
     }
@@ -315,8 +315,8 @@ function App() {
       {/* 1. హెడర్ సెక్షన్ */}
       <div style={{ background: 'linear-gradient(135deg, #0f172a, #1e3a8a)', color: '#ffffff', padding: '20px 35px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '4px solid #3b82f6' }}>
         <div>
-          <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '800', letterSpacing: '0.5px' }}>🎯 JEE MAIN PERFORMANCE REPORT</h2>
-          <small style={{ color: '#93c5fd', fontWeight: '600' }}>Detailed Session & Subject Wise Evaluation</small>
+          <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '800', letterSpacing: '0.5px' }}>🎯 JEE-MAIN Response Report</h2>
+          <small style={{ color: '#93c5fd', fontWeight: '600' }}>Subject Wise Evaluation</small>
         </div>
         <button onClick={() => setScoreData(null)} style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: '#ffffff', border: 'none', padding: '10px 22px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', boxShadow: '0 4px 10px rgba(220,38,38,0.3)' }}>
           Close Report ✕
@@ -352,7 +352,7 @@ function App() {
 
             {/* ROW 3: సబ్-కాలమ్స్ */}
             <tr>
-              <th style={{ backgroundColor: '#475569' }}>Session</th>
+              <th style={{ backgroundColor: '#475569' }}>Section</th>
               <th style={{ backgroundColor: '#1e3a8a' }}>Positive</th>
               <th style={{ backgroundColor: '#1e3a8a' }}>Negative</th>
               <th style={{ backgroundColor: '#1d4ed8', color: '#fff' }}>Total</th>
@@ -368,7 +368,7 @@ function App() {
           <tbody>
             {/* ROW 4: Session I మార్కులు */}
             <tr>
-              <td style={{ backgroundColor: '#f1f5f9', fontWeight: 'bold', color: '#1e293b' }}>I</td>
+              <td style={{ backgroundColor: '#f1f5f9', fontWeight: 'bold', color: '#1e293b' }}>A</td>
               <td>{scoreData.subjects?.Mathematics?.secAPositive ?? 0}</td>
               <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Mathematics?.secANegative ?? 0}</td>
               <td style={{ backgroundColor: '#eff6ff', color: '#1e40af', fontWeight: '700' }}>{scoreData.subjects?.Mathematics?.secATotal ?? 0}</td>
@@ -382,7 +382,7 @@ function App() {
 
             {/* ROW 5: Session II మార్కులు */}
             <tr>
-              <td style={{ backgroundColor: '#f1f5f9', fontWeight: 'bold', color: '#1e293b' }}>II</td>
+              <td style={{ backgroundColor: '#f1f5f9', fontWeight: 'bold', color: '#1e293b' }}>B</td>
               <td>{scoreData.subjects?.Mathematics?.secBPositive ?? 0}</td>
               <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Mathematics?.secBNegative ?? 0}</td>
               <td style={{ backgroundColor: '#eff6ff', color: '#1e40af', fontWeight: '700' }}>{scoreData.subjects?.Mathematics?.secBTotal ?? 0}</td>
