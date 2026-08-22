@@ -17,7 +17,7 @@ function App() {
   const [scoreData, setScoreData] = useState(null);
   const [evaluatorLoading, setEvaluatorLoading] = useState(false); // 👈 కొత్తగా విడిగా యాడ్ చేసిన లోడింగ్ స్టేట్
 
-         const handleEvaluate = async () => {
+            const handleEvaluate = async () => {
       if (!responseUrl.trim()) {
           alert("దయచేసి రెస్పాన్స్ షీట్ URL ని ఇక్కడ పేస్ట్ చేయండి!");
           return;
@@ -53,49 +53,95 @@ function App() {
 
               scrapedQuestions.forEach((item) => {
                 // 1. సబ్జెక్ట్ హెడర్ ఐడెంటిఫికేషన్
-                const labelText = String(item.label || item.labelText || item["Section :"] || '').toLowerCase();
-                if (item.type === "SECTION_HEADER" || item.questionType === "SECTION_HEADER" || labelText.includes("section :")) {
+                let sectionLabel = "";
+                Object.keys(item).forEach(k => {
+                  if (k.toLowerCase().includes("section") || k.toLowerCase().includes("subject")) {
+                    sectionLabel = String(item[k] || '');
+                  }
+                });
+                
+                const labelText = sectionLabel.toLowerCase() || String(item.label || item.labelText || '').toLowerCase();
+                if (item.type === "SECTION_HEADER" || item.questionType === "SECTION_HEADER" || labelText.includes("section :") || labelText.includes("section:")) {
                   if (labelText.includes("mathematics")) currentSubject = "Mathematics";
                   else if (labelText.includes("physics")) currentSubject = "Physics";
                   else if (labelText.includes("chemistry")) currentSubject = "Chemistry";
                   return;
                 }
 
-                // 2. స్టేటస్ చెక్
-                const itemStatus = String(item.status || item.Status || item["Status"] || '').toLowerCase().trim();
+                // 2. స్టేటస్ తనిఖీ
+                let statusValue = "";
+                Object.keys(item).forEach(k => {
+                  if (k.toLowerCase().trim() === "status") {
+                    statusValue = String(item[k] || '');
+                  }
+                });
+                const itemStatus = statusValue.toLowerCase().trim() || String(item.status || item.Status || '').toLowerCase().trim();
+                
                 if (itemStatus !== "answered") {
                   return; 
                 }
 
-                // 3. క్వశ్చన్ ఐడీ చెక్
-                const qId = String(item.questionId || item.questionID || item["Question ID"] || item.qId || '').trim();
-                const backendKeys = excelKeyFile[qId];
+                // 3. క్వశ్చన్ ఐడీ పట్టుకోవడం
+                let extractedQId = "";
+                Object.keys(item).forEach(k => {
+                  const cleanKey = k.toLowerCase().replace(/\s+/g, '');
+                  if (cleanKey === "questionid" || cleanKey === "qid") {
+                    extractedQId = String(item[k] || '').trim();
+                  }
+                });
+                const qId = extractedQId || String(item.questionId || item.questionID || '').trim();
+
+                let backendKeys = excelKeyFile[qId];
+                if (!backendKeys) {
+                  const foundKey = Object.keys(excelKeyFile).find(k => k.trim() === qId);
+                  if (foundKey) backendKeys = excelKeyFile[foundKey];
+                }
 
                 if (!backendKeys) return;
 
-                // 4. ఎక్సెల్ ఫైల్ లోని 4 NTA కీస్ ని ఒక అర్రే కింద కలపడం
-                const officialCorrectKeys = [
-                  String(backendKeys["NTA KEY1"] || '').trim(),
-                  String(backendKeys["NTA KEY2"] || '').trim(),
-                  String(backendKeys["NTA KEY3"] || '').trim(),
-                  String(backendKeys["NTA KEY4"] || '').trim()
-                ].filter(k => k !== '');
+                // 4. ఎక్సెల్ హెడర్స్ (OptionID1, OptionID2...) నుండి కీస్ ఎక్స్‌ట్రాక్ట్ చేయడం
+                let key1 = "", key2 = "", key3 = "", key4 = "";
+                Object.keys(backendKeys).forEach(k => {
+                  const upperKey = k.toUpperCase().replace(/[\s\-]+/g, ''); 
+                  if (upperKey === "OPTIONID1") key1 = String(backendKeys[k] || '').trim();
+                  if (upperKey === "OPTIONID2") key2 = String(backendKeys[k] || '').trim();
+                  if (upperKey === "OPTIONID3") key3 = String(backendKeys[k] || '').trim();
+                  if (upperKey === "OPTIONID4") key4 = String(backendKeys[k] || '').trim();
+                });
 
-                const qType = String(item.questionType || item.type || item["Question Type"] || '').toUpperCase().trim();
+                const officialCorrectKeys = [key1, key2, key3, key4].filter(k => k !== '');
+
+                // 5. క్వశ్చన్ టైప్ కనుక్కోవడం
+                let extractedQType = "";
+                Object.keys(item).forEach(k => {
+                  const cleanKey = k.toLowerCase().replace(/\s+/g, '');
+                  if (cleanKey === "questiontype" || cleanKey === "type") {
+                    extractedQType = String(item[k] || '').toUpperCase().trim();
+                  }
+                });
+                const qType = extractedQType || String(item.questionType || '').toUpperCase().trim();
 
                 // ─── SECTION A లాజిక్ (MCQ) ───
                 if (qType === "MCQ") {
-                  const chosen = item.chosenOption || item.ChosenOption || item["Chosen Option"] || item.chosen_option;
+                  let chosenValue = "";
+                  Object.keys(item).forEach(k => {
+                    const cleanKey = k.toLowerCase().replace(/\s+/g, '');
+                    if (cleanKey === "chosenoption" || cleanKey === "chosen") {
+                      chosenValue = String(item[k] || '').trim();
+                    }
+                  });
+                  const chosen = chosenValue || String(item.chosenOption || '').trim();
                   if (chosen === "--" || !chosen) return;
 
-                  const studentOptionId = String(
-                    item[`Option ${chosen} ID`] || 
-                    item[`option${chosen}Id`] || 
-                    item[`option${chosen}ID`] || 
-                    item[`Option${chosen}ID`] || ''
-                  ).trim();
+                  let extractedOptionId = "";
+                  Object.keys(item).forEach(k => {
+                    const cleanKey = k.toLowerCase().replace(/\s+/g, '');
+                    if (cleanKey === `option${chosen}id`) {
+                      extractedOptionId = String(item[k] || '').trim();
+                    }
+                  });
+                  const studentOptionId = extractedOptionId || String(item[`option${chosen}Id`] || item[`Option ${chosen} ID`] || '').trim();
 
-                  // ఎక్సెల్ లోని NTA KEYS తో ఆప్షన్ ఐడీ ని మ్యాచ్ చేయడం
                   const isCorrect = officialCorrectKeys.some(keyId => keyId === studentOptionId);
 
                   if (isCorrect) {
@@ -106,12 +152,33 @@ function App() {
                     report[currentSubject].secATotal -= 1;
                   }
                 }
-                // ─── SECTION B లాజిక్ (SA) ───
+                // ─── SECTION B లాజిక్ (SA / NUMERICAL) ───
                 else if (qType === "SA" || qType === "NUMERICAL") {
-                  const studentAnswer = String(item.givenAnswer || item.GivenAnswer || item["Given Answer"] || item.given_answer || '').trim();
+                  let answerValue = "";
+                  Object.keys(item).forEach(k => {
+                    const cleanKey = k.toLowerCase().replace(/\s+/g, '');
+                    if (cleanKey === "givenanswer" || cleanKey === "answer") {
+                      answerValue = String(item[k] || '').trim();
+                    }
+                  });
+                  const studentAnswer = answerValue || String(item.givenAnswer || item["Given Answer"] || '').trim();
 
-                  // ఎక్సెల్ లోని NTA KEYS తో సంఖ్యాత్మక సమాధానాన్ని మ్యాచ్ చేయడం
-                  const isCorrect = officialCorrectKeys.some(ans => ans === studentAnswer);
+                  // 🚨 0-9 Range Check (ANY NON NEGATIVE INTEGER కండిషన్ సేఫ్టీ)
+                  // ఎక్సెల్ కీస్ లో ఎక్కడైనా "ANY" లేదా "NON NEGATIVE" అని టైప్ చేసి ఉంటే, స్టూడెంట్ నంబర్ 0-9 లోపు ఉంటే ట్రూ అవుతుంది
+                  const hasAnyIntegerRule = officialCorrectKeys.some(ans => {
+                    const cleanAns = ans.toUpperCase();
+                    return cleanAns.includes("ANY") || cleanAns.includes("NON") || cleanAns.includes("INTEGER");
+                  });
+
+                  let isCorrect = false;
+                  if (hasAnyIntegerRule) {
+                    const parsedAns = parseInt(studentAnswer, 10);
+                    // సమాధానం ఒక నంబర్ అయి ఉండి, అది 0 నుండి 9 లోపు ఉంటే మార్కులు యాడ్ అవుతాయి
+                    isCorrect = !isNaN(parsedAns) && parsedAns >= 0 && parsedAns <= 9;
+                  } else {
+                    // ఒకవేళ నార్మల్ క్వశ్చన్ అయితే ఎక్సెల్ లోని డైరెక్ట్ నంబర్ కీ తో మ్యాచ్ చేస్తుంది
+                    isCorrect = officialCorrectKeys.some(ans => ans === studentAnswer);
+                  }
 
                   if (isCorrect) {
                     report[currentSubject].secBPositive += 4;
@@ -132,11 +199,11 @@ function App() {
               setScoreData({
                 success: true,
                 studentInfo: {
-                  name: studentInfo.name || data.studentInfo?.name || data.studentData?.name || "N/A",
-                  appNo: studentInfo.appNo || data.studentInfo?.appNo || data.studentData?.appNo || "N/A",
-                  rollNo: studentInfo.rollNo || data.studentInfo?.rollNo || data.studentData?.rollNo || "N/A",
-                  examDate: studentInfo.examDate || data.studentInfo?.examDate || data.studentData?.examDate || "N/A",
-                  examShift: studentInfo.examShift || data.studentInfo?.examShift || data.studentData?.examShift || "Shift1"
+                  name: studentInfo.name || data.studentInfo?.name || "N/A",
+                  appNo: studentInfo.appNo || data.studentInfo?.appNo || "N/A",
+                  rollNo: studentInfo.rollNo || data.studentInfo?.rollNo || "N/A",
+                  examDate: studentInfo.examDate || data.studentInfo?.examDate || "N/A",
+                  examShift: studentInfo.examShift || data.studentInfo?.examShift || "Shift1"
                 },
                 subjects: report,
                 totalMarks: calculatedGrandTotal
@@ -151,6 +218,8 @@ function App() {
           setEvaluatorLoading(false); 
       }
   };
+
+
 
   // 📆 🌟 వెబ్‌సైట్ మోడిఫికేషన్ లేదా బ్యాకెండ్ డేటా అప్‌డేట్ చేసినప్పుడు ఆటోమేటిక్‌గా ఆ రోజు కరెంట్ డేట్ కింద మారేలా:
   const [footerUpdatedDate, setFooterUpdatedDate] = useState(() => {
