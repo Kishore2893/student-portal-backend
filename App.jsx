@@ -17,7 +17,7 @@ function App() {
   const [scoreData, setScoreData] = useState(null);
   const [evaluatorLoading, setEvaluatorLoading] = useState(false); // 👈 కొత్తగా విడిగా యాడ్ చేసిన లోడింగ్ స్టేట్
 
-                const handleEvaluate = async () => {
+                  const handleEvaluate = async () => {
       if (!responseUrl.trim()) {
           alert("దయచేసి రెస్పాన్స్ షీట్ URL ని ఇక్కడ పేస్ట్ చేయండి!");
           return;
@@ -33,27 +33,27 @@ function App() {
           });
 
           if (!response.ok) {
-              throw new Error("సర్వర్ రూట్ దొరకలేదు లేదా సర్వర్ డౌన్ లో ఉంది!");
+              throw new Error("Server Route Not Found");
           }
 
           const data = await response.json(); 
 
           if (data.success) {
               const scrapedQuestions = data.scrapedQuestions || data.questions || [];
-              const excelKeyFile = data.excelKeyFile || data.keyFile || {};
+              const excelKeyFile = data.excelKeyFile || data.keyFile || data.JEE_Master_Key || {};
               const studentInfo = data.studentInfo || data.studentData || {};
 
-              // ప్యూర్ లైవ్ లెక్కింపు కోసం రిపోర్ట్ స్ట్రక్చర్
+              // ప్యూర్ లైవ్ మార్కుల లెక్కింపు కోసం ఇనిషియల్ రిపోర్ట్ స్ట్రక్చర్
               const report = {
                 Mathematics: { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 },
                 Physics:     { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 },
                 Chemistry:   { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 }
               };
 
-              let currentSubject = "Mathematics";
+              let currentSubject = "Mathematics"; // Default సబ్జెక్ట్ పాయింటర్
 
               scrapedQuestions.forEach((item) => {
-                // 1. సబ్జెక్ట్ మార్పును గుర్తించడం
+                // 1. సబ్జెక్ట్ హెడర్ ఐడెంటిఫికేషన్
                 let sectionLabel = "";
                 Object.keys(item).forEach(k => {
                   if (k.toLowerCase().includes("section") || k.toLowerCase().includes("subject")) {
@@ -69,7 +69,7 @@ function App() {
                   return;
                 }
 
-                // 2. స్టేటస్ తనిఖీ
+                // 2. స్టేటస్ తనిఖీ (కేవలం 'Answered' అయితేనే లోపలికి వెళ్తుంది)
                 let statusValue = "";
                 Object.keys(item).forEach(k => {
                   if (k.toLowerCase().replace(/\s+/g, '') === "status") {
@@ -88,7 +88,7 @@ function App() {
                 });
                 const qId = extractedQId || String(item.questionId || item.questionID || '').trim();
 
-                // 🚨 టైప్ మిస్‌మ్యాచ్ ని ఫిక్స్ చేసే లైన్: నంబర్/స్ట్రింగ్ గందరగోళం లేకుండా క్లీన్ గా వెతుకుతుంది
+                // 🚨 టైప్ మిస్‌మ్యాచ్ (String vs Number) గందరగోళం లేకుండా క్వశ్చన్ ఐడీ ని మ్యాచ్ చేయడం
                 const foundKey = Object.keys(excelKeyFile).find(k => String(k).trim() === qId);
                 const backendKeys = foundKey ? excelKeyFile[foundKey] : null;
 
@@ -159,6 +159,7 @@ function App() {
                   });
                   const studentAnswer = answerValue || String(item.givenAnswer || item["Given Answer"] || '').trim();
 
+                  // 🚨 0-9 Range Check (ANY NON NEGATIVE INTEGER కండిషన్ సేఫ్టీ)
                   const hasAnyIntegerRule = officialCorrectKeys.some(ans => {
                     const cleanAns = String(ans).toUpperCase();
                     return cleanAns.includes("ANY") || cleanAns.includes("NON") || cleanAns.includes("INTEGER");
@@ -188,7 +189,6 @@ function App() {
                 calculatedGrandTotal += report[sub].totalMarks;
               });
 
-              // 📊 కేవలం లైవ్ లెక్కింపు ద్వారా వచ్చిన మార్కులను మాత్రమే ఇక్కడ సెట్ చేస్తున్నాము!
               setScoreData({
                 success: true,
                 studentInfo: {
@@ -204,11 +204,11 @@ function App() {
 
               console.log(`లైవ్ ఎవాల్యుయేషన్ పూర్తయింది! మొత్తం మార్కులు: ${calculatedGrandTotal}`);
           } else {
-              alert(data.message || "డేటా ప్రాసెస్ చేయడంలో బ్యాకెండ్ లోపం వచ్చింది!");
+              console.log(data.message || "డేటా ప్రాసెస్ చేయడంలో లోపం వచ్చింది!");
           }
       } catch (error) {
-          console.error("Evaluation Error:", error);
-          alert("ఎవాల్యుయేషన్ ప్రాసెస్ లో లోపం వచ్చింది! సర్వర్ అందుబాటులో ఉందో లేదో తనిఖీ చేయండి.");
+          console.error("Catch Block Active:", error);
+          alert("ఎవాల్యుయేషన్ ప్రాసెస్ లో లోపం వచ్చింది!");
       } finally {
           setEvaluatorLoading(false); 
       }
