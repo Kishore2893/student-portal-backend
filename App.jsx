@@ -17,7 +17,7 @@ function App() {
   const [scoreData, setScoreData] = useState(null);
   const [evaluatorLoading, setEvaluatorLoading] = useState(false); // 👈 కొత్తగా విడిగా యాడ్ చేసిన లోడింగ్ స్టేట్
 
-                    const handleEvaluate = async () => {
+                      const handleEvaluate = async () => {
       if (!responseUrl.trim()) {
           alert("దయచేసి రెస్పాన్స్ షీట్ URL ని ఇక్కడ పేస్ట్ చేయండి!");
           return;
@@ -27,204 +27,22 @@ function App() {
 
       try {
           const response = await fetch(`https://student-portal-backend-vo2b.onrender.com/api/evaluate-sheet`, {
-
-            method: 'POST',
+              method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ url: responseUrl }),
           });
-
-          if (!response.ok) {
-              throw new Error("Server Route Not Found");
-          }
-
           const data = await response.json(); 
-
           if (data.success) {
-              const scrapedQuestions = data.scrapedQuestions || data.questions || [];
-              const rawExcelKey = data.excelKeyFile || data.keyFile || data.JEE_Master_Key || {};
-              const studentInfo = data.studentInfo || data.studentData || {};
-
-              const report = {
-                Mathematics: { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 },
-                Physics:     { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 },
-                Chemistry:   { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 }
-              };
-
-              let currentSubject = "Mathematics";
-
-              // 🚨 ఎక్సెల్ డేటా స్ట్రక్చర్ అర్రే లో ఉన్నా, ఆబ్జెక్ట్ లో ఉన్నా ఒకే ఫార్మాట్ లోకి మార్చే సేఫ్టీ కన్వర్షన్
-              let excelKeyFile = {};
-              if (Array.isArray(rawExcelKey)) {
-                rawExcelKey.forEach(row => {
-                  let rowQId = "";
-                  Object.keys(row).forEach(k => {
-                    const cleanK = k.toLowerCase().replace(/\s+/g, '');
-                    if (cleanK === "questionid" || cleanK === "qid") {
-                      rowQId = String(row[k] || '').trim();
-                    }
-                  });
-                  if (rowQId) excelKeyFile[rowQId] = row;
-                });
-              } else {
-                excelKeyFile = rawExcelKey;
-              }
-              scrapedQuestions.forEach((item) => {
-                // 1. సబ్జెక్ట్ హెడర్ ఐడెంటిఫికేషన్
-                let sectionLabel = "";
-                Object.keys(item).forEach(k => {
-                  if (k.toLowerCase().includes("section") || k.toLowerCase().includes("subject")) {
-                    sectionLabel = String(item[k] || '');
-                  }
-                });
-                
-                const labelText = sectionLabel.toLowerCase() || String(item.label || item.labelText || '').toLowerCase();
-                if (item.type === "SECTION_HEADER" || item.questionType === "SECTION_HEADER" || labelText.includes("section :") || labelText.includes("section:")) {
-                  if (labelText.includes("mathematics")) currentSubject = "Mathematics";
-                  else if (labelText.includes("physics")) currentSubject = "Physics";
-                  else if (labelText.includes("chemistry")) currentSubject = "Chemistry";
-                  return;
-                }
-
-                // 2. స్టేటస్ తనిఖీ
-                let statusValue = "";
-                Object.keys(item).forEach(k => {
-                  if (k.toLowerCase().replace(/\s+/g, '') === "status") {
-                    statusValue = String(item[k] || '');
-                  }
-                });
-                if (statusValue.toLowerCase().trim() !== "answered") return; 
-
-                // 3. క్వశ్చన్ ఐడీ పట్టుకోవడం
-                let extractedQId = "";
-                Object.keys(item).forEach(k => {
-                  const cleanKey = k.toLowerCase().replace(/\s+/g, '');
-                  if (cleanKey === "questionid" || cleanKey === "qid") {
-                    extractedQId = String(item[k] || '').trim();
-                  }
-                });
-                const qId = extractedQId || String(item.questionId || item.questionID || '').trim();
-
-                // నంబర్/స్ట్రింగ్ సేఫ్టీ చెక్ తో ఎక్సెల్ రో ని పట్టుకోవడం
-                const foundKey = Object.keys(excelKeyFile).find(k => String(k).trim() === qId);
-                const backendKeys = foundKey ? excelKeyFile[foundKey] : null;
-
-                if (!backendKeys) return;
-
-                // 4. ఎక్సెల్ హెడర్స్ (OptionID1, OptionID2...) ఎక్స్‌ట్రాక్షన్
-                let key1 = "", key2 = "", key3 = "", key4 = "";
-                Object.keys(backendKeys).forEach(k => {
-                  const upperKey = k.toUpperCase().replace(/[\s\-]+/g, ''); 
-                  if (upperKey === "OPTIONID1") key1 = String(backendKeys[k] || '').trim();
-                  if (upperKey === "OPTIONID2") key2 = String(backendKeys[k] || '').trim();
-                  if (upperKey === "OPTIONID3") key3 = String(backendKeys[k] || '').trim();
-                  if (upperKey === "OPTIONID4") key4 = String(backendKeys[k] || '').trim();
-                });
-
-                const officialCorrectKeys = [key1, key2, key3, key4].filter(k => k !== '');
-
-                // 5. క్వశ్చన్ టైప్ కనుక్కోవడం
-                let extractedQType = "";
-                Object.keys(item).forEach(k => {
-                  const cleanKey = k.toLowerCase().replace(/\s+/g, '');
-                  if (cleanKey === "questiontype" || cleanKey === "type") {
-                    extractedQType = String(item[k] || '').toUpperCase().trim();
-                  }
-                });
-                const qType = extractedQType || String(item.questionType || '').toUpperCase().trim();
-
-                // ─── SECTION A లాజిక్ (MCQ) ───
-                if (qType === "MCQ") {
-                  let chosenValue = "";
-                  Object.keys(item).forEach(k => {
-                    const cleanKey = k.toLowerCase().replace(/\s+/g, '');
-                    if (cleanKey === "chosenoption" || cleanKey === "chosen") {
-                      chosenValue = String(item[k] || '').trim();
-                    }
-                  });
-                  const chosen = chosenValue || String(item.chosenOption || '').trim();
-                  if (chosen === "--" || !chosen) return;
-
-                  let extractedOptionId = "";
-                  Object.keys(item).forEach(k => {
-                    const cleanKey = k.toLowerCase().replace(/\s+/g, '');
-                    if (cleanKey === `option${chosen}id`) {
-                      extractedOptionId = String(item[k] || '').trim();
-                    }
-                  });
-                  const studentOptionId = extractedOptionId || String(item[`option${chosen}Id`] || item[`Option ${chosen} ID`] || '').trim();
-
-                  const isCorrect = officialCorrectKeys.some(keyId => String(keyId).trim() === String(studentOptionId).trim());
-
-                  if (isCorrect) {
-                    report[currentSubject].secAPositive += 4;
-                    report[currentSubject].secATotal += 4;
-                  } else {
-                    report[currentSubject].secANegative += 1;
-                    report[currentSubject].secATotal -= 1;
-                  }
-                }
-                // ─── SECTION B లాజిక్ (SA / NUMERICAL) ───
-                else if (qType === "SA" || qType === "NUMERICAL") {
-                  let answerValue = "";
-                  Object.keys(item).forEach(k => {
-                    const cleanKey = k.toLowerCase().replace(/\s+/g, '');
-                    if (cleanKey === "givenanswer" || cleanKey === "answer") {
-                      answerValue = String(item[k] || '').trim();
-                    }
-                  });
-                  const studentAnswer = answerValue || String(item.givenAnswer || item["Given Answer"] || '').trim();
-
-                  const hasAnyIntegerRule = officialCorrectKeys.some(ans => {
-                    const cleanAns = String(ans).toUpperCase();
-                    return cleanAns.includes("ANY") || cleanAns.includes("NON") || cleanAns.includes("INTEGER");
-                  });
-
-                  let isCorrect = false;
-                  if (hasAnyIntegerRule) {
-                    const parsedAns = parseInt(studentAnswer, 10);
-                    isCorrect = !isNaN(parsedAns) && parsedAns >= 0 && parsedAns <= 9;
-                  } else {
-                    isCorrect = officialCorrectKeys.some(ans => String(ans).trim() === String(studentAnswer).trim());
-                  }
-
-                  if (isCorrect) {
-                    report[currentSubject].secBPositive += 4;
-                    report[currentSubject].secBTotal += 4;
-                  } else {
-                    report[currentSubject].secBNegative += 1;
-                    report[currentSubject].secBTotal -= 1;
-                  }
-                }
-              });
-
-              let calculatedGrandTotal = 0;
-              Object.keys(report).forEach(sub => {
-                report[sub].totalMarks = report[sub].secATotal + report[sub].secBTotal;
-                calculatedGrandTotal += report[sub].totalMarks;
-              });
-
-              setScoreData({
-                success: true,
-                studentInfo: {
-                  name: studentInfo.name || data.studentInfo?.name || "N/A",
-                  appNo: studentInfo.appNo || data.studentInfo?.appNo || "N/A",
-                  rollNo: studentInfo.rollNo || data.studentInfo?.rollNo || "N/A",
-                  examDate: studentInfo.examDate || data.studentInfo?.examDate || "N/A",
-                  examShift: studentInfo.examShift || data.studentInfo?.examShift || "Shift1"
-                },
-                subjects: report,
-                totalMarks: calculatedGrandTotal
-              });
-
-              console.log(`లైవ్ ఎవాల్యుయేషన్ పూర్తయింది! మొత్తం మార్కులు: ${calculatedGrandTotal}`);
+              setScoreData(data);
+              console.log(`ఎవాల్యుయేషన్ పూర్తయింది! మొత్తం మార్కులు: ${data.totalMarks}`);
           } else {
-              console.log(data.message || "డేటా ప్రాసెస్ చేయడంలో లోపం వచ్చింది!");
+              alert(data.message || "డేటా ప్రాసెస్ చేయడంలో లోపం వచ్చింది!");
           }
       } catch (error) {
-          console.error("Catch Block Active:", error);
-          alert("ఎవాల్యుయేషన్ ప్రాసెస్ లో లోపం వచ్చింది!");
+          console.error("Server Error:", error);
+          alert("సర్వర్ కనెక్షన్ లో లోపం వచ్చింది!");
       } finally {
-          setEvaluatorLoading(false); 
+          setEvaluatorLoading(false);
       }
   };
 
