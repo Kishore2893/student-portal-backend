@@ -124,12 +124,12 @@ function App() {
           // 🛡️ సర్వర్ ఫెయిల్ అయినా సరే పాత పద్ధతిలో మోడల్ ఓపెన్ అవ్వడానికి డెమో బాక్స్ బైండింగ్
           setScoreData({
             success: true,
-            totalMarks: 99, // ఇమేజ్ #1 మార్కులు
-            studentInfo: { name: "KK STUDENT", appNo: "270310XXXXXX", rollNo: "TL010XXXXX", examDate: "24-01-2027", examShift: "Shift1" },
+            totalMarks: 0, // ఇమేజ్ #1 మార్కులు
+            studentInfo: { name: "NA", appNo: "NA", rollNo: "NA", examDate: "NA", examShift: "NA" },
             subjects: {
-              Mathematics: { secAPositive: 128, secANegative: 6, secATotal: 122, secBPositive: 0, secBNegative: 5, secBTotal: -5, totalMarks: 117 },
-              Physics:     { secAPositive: 56, secANegative: 26, secATotal: 30, secBPositive: 0, secBNegative: 5, secBTotal: -5, totalMarks: 25 },
-              Chemistry:   { secAPositive: 0, secANegative: 38, secATotal: -38, secBPositive: 0, secBNegative: 5, secBTotal: -5, totalMarks: -43 }
+              Mathematics: { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 },
+              Physics:     { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 },
+              Chemistry:   { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 }
             }
           });
       } finally {
