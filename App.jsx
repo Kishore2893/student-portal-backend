@@ -17,7 +17,7 @@ function App() {
   const [scoreData, setScoreData] = useState(null);
   const [evaluatorLoading, setEvaluatorLoading] = useState(false); // 👈 కొత్తగా విడిగా యాడ్ చేసిన లోడింగ్ స్టేట్
 
-        const handleEvaluate = async () => {
+       const handleEvaluate = async () => {
       if (!responseUrl.trim()) {
           alert("దయచేసి రెస్పాన్స్ షీట్ URL ని ఇక్కడ పేస్ట్ చేయండి!");
           return;
@@ -26,7 +26,7 @@ function App() {
       setScoreData(null);
 
       try {
-          const response = await fetch(`https://student-portal-backend-vo2b.onrender.com/api/evaluate-sheet`, {
+          const response = await fetch(`https://onrender.com`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ url: responseUrl }),
@@ -37,12 +37,12 @@ function App() {
           }
 
           const data = await response.json(); 
+
           if (data.success) {
-              const scrapedQuestions = data.scrapedQuestions || [];
-              const excelKeyFile = data.excelKeyFile || {};
+              const scrapedQuestions = data.scrapedQuestions || data.questions || [];
+              const excelKeyFile = data.excelKeyFile || data.keyFile || {};
               const studentInfo = data.studentInfo || data.studentData || {};
 
-              // మార్కులు విడిపోవడానికి ఇనిషియల్ రిపోర్ట్ స్ట్రక్చర్
               const report = {
                 Mathematics: { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 },
                 Physics:     { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 },
@@ -52,33 +52,47 @@ function App() {
               let currentSubject = "Mathematics";
 
               scrapedQuestions.forEach((item) => {
-                if (item.type === "SECTION_HEADER" || item.questionType === "SECTION_HEADER") {
-                  if (item.label && item.label.includes("Mathematics")) currentSubject = "Mathematics";
-                  else if (item.label && item.label.includes("Physics")) currentSubject = "Physics";
-                  else if (item.label && item.label.includes("Chemistry")) currentSubject = "Chemistry";
+                // 1. సబ్జెక్ట్ హెడర్ ఐడెంటిఫికేషన్
+                const labelText = String(item.label || item.labelText || item["Section :"] || '').toLowerCase();
+                if (item.type === "SECTION_HEADER" || item.questionType === "SECTION_HEADER" || labelText.includes("section :")) {
+                  if (labelText.includes("mathematics")) currentSubject = "Mathematics";
+                  else if (labelText.includes("physics")) currentSubject = "Physics";
+                  else if (labelText.includes("chemistry")) currentSubject = "Chemistry";
                   return;
                 }
 
-                // ❌ 'Answered' కాకపోతే వదిలేయాలి
-                if (item.status !== "Answered") {
+                // 2. స్టేటస్ చెక్ (స్పేస్ ఉన్నా లేకపోయినా పనిచేస్తుంది)
+                const itemStatus = String(item.status || item.Status || item["Status"] || '').toLowerCase().trim();
+                if (itemStatus !== "answered") {
                   return; 
                 }
 
-                const qId = String(item.questionId || item.questionID).trim();
+                // 3. క్వశ్చన్ ఐడీ చెక్ (స్పేస్ ఉన్న కీ "Question ID" ని కూడా రీడ్ చేస్తుంది)
+                const qId = String(item.questionId || item.questionID || item["Question ID"] || item.qId || '').trim();
                 const backendKeys = excelKeyFile[qId];
 
                 if (!backendKeys) return;
 
-                // ─── SECTION A లాజిక్ ───
-                if (item.questionType === "MCQ") {
-                  const chosen = item.chosenOption;
+                // 4. క్వశ్చన్ టైప్
+                const qType = String(item.questionType || item.type || item["Question Type"] || '').toUpperCase().trim();
+
+                // ─── SECTION A లాజిక్ (MCQ) ───
+                if (qType === "MCQ") {
+                  const chosen = item.chosenOption || item.ChosenOption || item["Chosen Option"] || item.chosen_option;
                   if (chosen === "--" || !chosen) return;
 
-                  const studentOptionId = String(item[`option${chosen}Id`] || item[`option${chosen}ID`]).trim();
+                  // "Option 1 ID" లాంటి స్పేస్ ఉన్న ఒరిజినల్ కీస్ ని డైరెక్ట్ గా మ్యాప్ చేస్తుంది
+                  const studentOptionId = String(
+                    item[`Option ${chosen} ID`] || 
+                    item[`option${chosen}Id`] || 
+                    item[`option${chosen}ID`] || 
+                    item[`option_${chosen}_id`] || ''
+                  ).trim();
 
-                  const isCorrect = backendKeys.correctOptionIds && backendKeys.correctOptionIds.some(
-                    keyId => keyId && String(keyId).trim() === studentOptionId
-                  );
+                  const correctOptionIds = backendKeys.correctOptionIds || backendKeys.correctOptionID || backendKeys.correctOptions || [];
+                  const isCorrect = Array.isArray(correctOptionIds) 
+                    ? correctOptionIds.some(keyId => String(keyId).trim() === studentOptionId)
+                    : String(correctOptionIds).trim() === studentOptionId;
 
                   if (isCorrect) {
                     report[currentSubject].secAPositive += 4;
@@ -88,13 +102,14 @@ function App() {
                     report[currentSubject].secATotal -= 1;
                   }
                 }
-                // ─── SECTION B లాజిక్ ───
-                else if (item.questionType === "SA") {
-                  const studentAnswer = String(item.givenAnswer).trim();
+                // ─── SECTION B లాజిక్ (SA) ───
+                else if (qType === "SA" || qType === "NUMERICAL") {
+                  const studentAnswer = String(item.givenAnswer || item.GivenAnswer || item["Given Answer"] || item.given_answer || '').trim();
 
-                  const isCorrect = backendKeys.correctAnswers && backendKeys.correctAnswers.some(
-                    ans => ans && String(ans).trim() === studentAnswer
-                  );
+                  const correctAnswers = backendKeys.correctAnswers || backendKeys.correctAnswer || backendKeys.answers || [];
+                  const isCorrect = Array.isArray(correctAnswers)
+                    ? correctAnswers.some(ans => String(ans).trim() === studentAnswer)
+                    : String(correctAnswers).trim() === studentAnswer;
 
                   if (isCorrect) {
                     report[currentSubject].secBPositive += 4;
@@ -115,25 +130,21 @@ function App() {
               setScoreData({
                 success: true,
                 studentInfo: {
-                  name: studentInfo.name || data.studentInfo?.name || "N/A",
-                  appNo: studentInfo.appNo || data.studentInfo?.appNo || "N/A",
-                  rollNo: studentInfo.rollNo || data.studentInfo?.rollNo || "N/A",
-                  examDate: studentInfo.examDate || data.studentInfo?.examDate || "N/A",
-                  examShift: studentInfo.examShift || data.studentInfo?.examShift || "Shift1"
+                  name: studentInfo.name || data.studentInfo?.name || data.studentData?.name || "N/A",
+                  appNo: studentInfo.appNo || data.studentInfo?.appNo || data.studentData?.appNo || "N/A",
+                  rollNo: studentInfo.rollNo || data.studentInfo?.rollNo || data.studentData?.rollNo || "N/A",
+                  examDate: studentInfo.examDate || data.studentInfo?.examDate || data.studentData?.examDate || "N/A",
+                  examShift: studentInfo.examShift || data.studentInfo?.examShift || data.studentData?.examShift || "Shift1"
                 },
                 subjects: report,
                 totalMarks: calculatedGrandTotal
               });
-
-              console.log(`ఎవాల్యుయేషన్ పూర్తయింది! మొత్తం మార్కులు: ${calculatedGrandTotal}`);
           } else {
               console.log(data.message || "డేటా ప్రాసెస్ చేయడంలో లోపం వచ్చింది!");
-              alert(data.message || "డేటా ప్రాసెస్ చేయడంలో లోపం వచ్చింది!");
           }
       } catch (error) {
-          // 👈 ఇక్కడ మిస్సైన బ్రాకెట్ ఎర్రర్‌ని క్లియర్ చేసి అలర్ట్ యాడ్ చేసాను
           console.error("Catch Block Active:", error);
-          alert("ఎవాల్యుయేషన్ ఫెయిల్ అయింది. దయచేసి యుఆర్‌ఎల్ లేదా సర్వర్ చెక్ చేయండి!");
+          alert("ఎవాల్యుయేషన్ ప్రాసెస్ లో లోపం వచ్చింది!");
       } finally {
           setEvaluatorLoading(false); 
       }
