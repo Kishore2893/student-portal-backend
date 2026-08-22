@@ -17,7 +17,7 @@ function App() {
   const [scoreData, setScoreData] = useState(null);
   const [evaluatorLoading, setEvaluatorLoading] = useState(false); // 👈 కొత్తగా విడిగా యాడ్ చేసిన లోడింగ్ స్టేట్
 
-               const handleEvaluate = async () => {
+                const handleEvaluate = async () => {
       if (!responseUrl.trim()) {
           alert("దయచేసి రెస్పాన్స్ షీట్ URL ని ఇక్కడ పేస్ట్ చేయండి!");
           return;
@@ -33,7 +33,7 @@ function App() {
           });
 
           if (!response.ok) {
-              throw new Error("Server Route Not Found");
+              throw new Error("సర్వర్ రూట్ దొరకలేదు లేదా సర్వర్ డౌన్ లో ఉంది!");
           }
 
           const data = await response.json(); 
@@ -43,6 +43,7 @@ function App() {
               const excelKeyFile = data.excelKeyFile || data.keyFile || {};
               const studentInfo = data.studentInfo || data.studentData || {};
 
+              // ప్యూర్ లైవ్ లెక్కింపు కోసం రిపోర్ట్ స్ట్రక్చర్
               const report = {
                 Mathematics: { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 },
                 Physics:     { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 },
@@ -52,7 +53,7 @@ function App() {
               let currentSubject = "Mathematics";
 
               scrapedQuestions.forEach((item) => {
-                // 1. సబ్జెక్ట్ హెడర్ ఐడెంటిఫికేషన్
+                // 1. సబ్జెక్ట్ మార్పును గుర్తించడం
                 let sectionLabel = "";
                 Object.keys(item).forEach(k => {
                   if (k.toLowerCase().includes("section") || k.toLowerCase().includes("subject")) {
@@ -68,7 +69,7 @@ function App() {
                   return;
                 }
 
-                // 2. 🌟 స్టేటస్ తనిఖీ
+                // 2. స్టేటస్ తనిఖీ
                 let statusValue = "";
                 Object.keys(item).forEach(k => {
                   if (k.toLowerCase().replace(/\s+/g, '') === "status") {
@@ -77,7 +78,7 @@ function App() {
                 });
                 if (statusValue.toLowerCase().trim() !== "answered") return; 
 
-                // 3. క్వశ్చన్ ఐడీ పట్టుకోవడం
+                // 3. క్వశ్చన్ ఐడీ పట్టుకోవడం (స్పేస్ ఉన్నా లేకపోయినా క్లీన్ చేస్తుంది)
                 let extractedQId = "";
                 Object.keys(item).forEach(k => {
                   const cleanKey = k.toLowerCase().replace(/\s+/g, '');
@@ -87,13 +88,13 @@ function App() {
                 });
                 const qId = extractedQId || String(item.questionId || item.questionID || '').trim();
 
-                // 🚨 `" "` (Quotes) ఎర్రర్ ని ఫిక్స్ చేసే చోటు: ఎక్సెల్ కీస్ ని కూడా స్ట్రింగ్ గా మార్చి పక్కాగా వెతుకుతుంది!
+                // 🚨 టైప్ మిస్‌మ్యాచ్ ని ఫిక్స్ చేసే లైన్: నంబర్/స్ట్రింగ్ గందరగోళం లేకుండా క్లీన్ గా వెతుకుతుంది
                 const foundKey = Object.keys(excelKeyFile).find(k => String(k).trim() === qId);
                 const backendKeys = foundKey ? excelKeyFile[foundKey] : null;
 
                 if (!backendKeys) return;
 
-                // 4. ఎక్సెల్ హెడర్స్ (OptionID1, OptionID2...) నుండి కీస్ ఎక్స్‌ట్రాక్ట్ చేయడం
+                // 4. ఎక్సెల్ హెడర్స్ (OptionID1, OptionID2...) నుండి ఆప్షన్స్ ఎక్స్‌ట్రాక్ట్ చేయడం
                 let key1 = "", key2 = "", key3 = "", key4 = "";
                 Object.keys(backendKeys).forEach(k => {
                   const upperKey = k.toUpperCase().replace(/[\s\-]+/g, ''); 
@@ -136,7 +137,7 @@ function App() {
                   });
                   const studentOptionId = extractedOptionId || String(item[`option${chosen}Id`] || item[`Option ${chosen} ID`] || '').trim();
 
-                  // 🚨 రెండు వైపులా స్ట్రింగ్ రూపంలోకి మార్చి పక్కాగా కొటేషన్స్ మ్యాచ్ అయ్యేలా చేయడం
+                  // ఎక్సెల్ లోని OptionID లతో పక్కాగా మ్యాచ్ చేయడం
                   const isCorrect = officialCorrectKeys.some(keyId => String(keyId).trim() === String(studentOptionId).trim());
 
                   if (isCorrect) {
@@ -168,7 +169,6 @@ function App() {
                     const parsedAns = parseInt(studentAnswer, 10);
                     isCorrect = !isNaN(parsedAns) && parsedAns >= 0 && parsedAns <= 9;
                   } else {
-                    // 🚨 ఇక్కడ కూడా నంబర్ మరియు స్ట్రింగ్ డేటా టైప్స్ ని పక్కాగా మ్యాచ్ చేయడం
                     isCorrect = officialCorrectKeys.some(ans => String(ans).trim() === String(studentAnswer).trim());
                   }
 
@@ -188,6 +188,7 @@ function App() {
                 calculatedGrandTotal += report[sub].totalMarks;
               });
 
+              // 📊 కేవలం లైవ్ లెక్కింపు ద్వారా వచ్చిన మార్కులను మాత్రమే ఇక్కడ సెట్ చేస్తున్నాము!
               setScoreData({
                 success: true,
                 studentInfo: {
@@ -200,12 +201,14 @@ function App() {
                 subjects: report,
                 totalMarks: calculatedGrandTotal
               });
+
+              console.log(`లైవ్ ఎవాల్యుయేషన్ పూర్తయింది! మొత్తం మార్కులు: ${calculatedGrandTotal}`);
           } else {
-              console.log(data.message || "డేటా ప్రాసెస్ చేయడంలో లోపం వచ్చింది!");
+              alert(data.message || "డేటా ప్రాసెస్ చేయడంలో బ్యాకెండ్ లోపం వచ్చింది!");
           }
       } catch (error) {
-          console.error("Catch Block Active:", error);
-          alert("ఎవాల్యుయేషన్ ప్రాసెస్ లో లోపం వచ్చింది!");
+          console.error("Evaluation Error:", error);
+          alert("ఎవాల్యుయేషన్ ప్రాసెస్ లో లోపం వచ్చింది! సర్వర్ అందుబాటులో ఉందో లేదో తనిఖీ చేయండి.");
       } finally {
           setEvaluatorLoading(false); 
       }
