@@ -17,7 +17,7 @@ function App() {
   const [scoreData, setScoreData] = useState(null);
   const [evaluatorLoading, setEvaluatorLoading] = useState(false); // 👈 కొత్తగా విడిగా యాడ్ చేసిన లోడింగ్ స్టేట్
 
-      const handleEvaluate = async () => {
+        const handleEvaluate = async () => {
       if (!responseUrl.trim()) {
           alert("దయచేసి రెస్పాన్స్ షీట్ URL ని ఇక్కడ పేస్ట్ చేయండి!");
           return;
@@ -32,7 +32,6 @@ function App() {
               body: JSON.stringify({ url: responseUrl }),
           });
 
-          // 🚨 సర్వర్ 404 పంపినా లేదా క్లాష్ అయినా కిందికి జంప్ అవుతుంది
           if (!response.ok) {
               throw new Error("Server Route Not Found");
           }
@@ -41,8 +40,9 @@ function App() {
           if (data.success) {
               const scrapedQuestions = data.scrapedQuestions || [];
               const excelKeyFile = data.excelKeyFile || {};
-              const studentInfo = data.studentInfo || {};
+              const studentInfo = data.studentInfo || data.studentData || {};
 
+              // మార్కులు విడిపోవడానికి ఇనిషియల్ రిపోర్ట్ స్ట్రక్చర్
               const report = {
                 Mathematics: { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 },
                 Physics:     { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 },
@@ -52,27 +52,29 @@ function App() {
               let currentSubject = "Mathematics";
 
               scrapedQuestions.forEach((item) => {
-                if (item.type === "SECTION_HEADER") {
-                  if (item.label.includes("Mathematics")) currentSubject = "Mathematics";
-                  else if (item.label.includes("Physics")) currentSubject = "Physics";
-                  else if (item.label.includes("Chemistry")) currentSubject = "Chemistry";
+                if (item.type === "SECTION_HEADER" || item.questionType === "SECTION_HEADER") {
+                  if (item.label && item.label.includes("Mathematics")) currentSubject = "Mathematics";
+                  else if (item.label && item.label.includes("Physics")) currentSubject = "Physics";
+                  else if (item.label && item.label.includes("Chemistry")) currentSubject = "Chemistry";
                   return;
                 }
 
+                // ❌ 'Answered' కాకపోతే వదిలేయాలి
                 if (item.status !== "Answered") {
                   return; 
                 }
 
-                const qId = String(item.questionId).trim();
+                const qId = String(item.questionId || item.questionID).trim();
                 const backendKeys = excelKeyFile[qId];
 
                 if (!backendKeys) return;
 
+                // ─── SECTION A లాజిక్ ───
                 if (item.questionType === "MCQ") {
                   const chosen = item.chosenOption;
                   if (chosen === "--" || !chosen) return;
 
-                  const studentOptionId = String(item[`option${chosen}Id`]).trim();
+                  const studentOptionId = String(item[`option${chosen}Id`] || item[`option${chosen}ID`]).trim();
 
                   const isCorrect = backendKeys.correctOptionIds && backendKeys.correctOptionIds.some(
                     keyId => keyId && String(keyId).trim() === studentOptionId
@@ -86,6 +88,7 @@ function App() {
                     report[currentSubject].secATotal -= 1;
                   }
                 }
+                // ─── SECTION B లాజిక్ ───
                 else if (item.questionType === "SA") {
                   const studentAnswer = String(item.givenAnswer).trim();
 
@@ -111,32 +114,30 @@ function App() {
 
               setScoreData({
                 success: true,
-                studentInfo: studentInfo,
+                studentInfo: {
+                  name: studentInfo.name || data.studentInfo?.name || "N/A",
+                  appNo: studentInfo.appNo || data.studentInfo?.appNo || "N/A",
+                  rollNo: studentInfo.rollNo || data.studentInfo?.rollNo || "N/A",
+                  examDate: studentInfo.examDate || data.studentInfo?.examDate || "N/A",
+                  examShift: studentInfo.examShift || data.studentInfo?.examShift || "Shift1"
+                },
                 subjects: report,
                 totalMarks: calculatedGrandTotal
               });
+
+              console.log(`ఎవాల్యుయేషన్ పూర్తయింది! మొత్తం మార్కులు: ${calculatedGrandTotal}`);
           } else {
               console.log(data.message || "డేటా ప్రాసెస్ చేయడంలో లోపం వచ్చింది!");
+              alert(data.message || "డేటా ప్రాసెస్ చేయడంలో లోపం వచ్చింది!");
           }
       } catch (error) {
-          console.error("Catch Block Active - Forcing Modal Open:", error);
-          
-          // 🛡️ సర్వర్ ఫెయిల్ అయినా సరే పాత పద్ధతిలో మోడల్ ఓపెన్ అవ్వడానికి డెమో బాక్స్ బైండింగ్
-          setScoreData({
-            success: true,
-            totalMarks: 0, // ఇమేజ్ #1 మార్కులు
-            studentInfo: { name: "NA", appNo: "NA", rollNo: "NA", examDate: "NA", examShift: "NA" },
-            subjects: {
-              Mathematics: { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 },
-              Physics:     { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 },
-              Chemistry:   { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 }
-            }
-          });
+          // 👈 ఇక్కడ మిస్సైన బ్రాకెట్ ఎర్రర్‌ని క్లియర్ చేసి అలర్ట్ యాడ్ చేసాను
+          console.error("Catch Block Active:", error);
+          alert("ఎవాల్యుయేషన్ ఫెయిల్ అయింది. దయచేసి యుఆర్‌ఎల్ లేదా సర్వర్ చెక్ చేయండి!");
       } finally {
-          setEvaluatorLoading(false);
+          setEvaluatorLoading(false); 
       }
   };
-
 
   // 📆 🌟 వెబ్‌సైట్ మోడిఫికేషన్ లేదా బ్యాకెండ్ డేటా అప్‌డేట్ చేసినప్పుడు ఆటోమేటిక్‌గా ఆ రోజు కరెంట్ డేట్ కింద మారేలా:
   const [footerUpdatedDate, setFooterUpdatedDate] = useState(() => {
