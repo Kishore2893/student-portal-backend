@@ -17,7 +17,7 @@ function App() {
   const [scoreData, setScoreData] = useState(null);
   const [evaluatorLoading, setEvaluatorLoading] = useState(false); // 👈 కొత్తగా విడిగా యాడ్ చేసిన లోడింగ్ స్టేట్
 
-             const handleEvaluate = async () => {
+               const handleEvaluate = async () => {
       if (!responseUrl.trim()) {
           alert("దయచేసి రెస్పాన్స్ షీట్ URL ని ఇక్కడ పేస్ట్ చేయండి!");
           return;
@@ -39,14 +39,6 @@ function App() {
           const data = await response.json(); 
 
           if (data.success) {
-              // 1. సేఫ్టీ బ్యాకప్: ఒకవేళ బ్యాకెండ్ లోనే ఆల్రెడీ మార్కులు కాలిక్యులేట్ అయి వస్తే (మీ పాత కోడ్ లాగా) నేరుగా దాన్ని వాడేస్తుంది!
-              if (data.subjects && Object.keys(data.subjects).length > 0 && (data.totalMarks !== undefined && data.totalMarks !== 0)) {
-                  setScoreData(data);
-                  console.log("Loaded pre-calculated marks from backend successfully!");
-                  return;
-                }
-
-              // 2. ఒకవేళ బ్యాకెండ్ నుండి రా డేటా (Raw Data) వస్తే లైవ్ కాలిక్యులేషన్ చేస్తుంది
               const scrapedQuestions = data.scrapedQuestions || data.questions || [];
               const excelKeyFile = data.excelKeyFile || data.keyFile || {};
               const studentInfo = data.studentInfo || data.studentData || {};
@@ -60,7 +52,7 @@ function App() {
               let currentSubject = "Mathematics";
 
               scrapedQuestions.forEach((item) => {
-                // సబ్జెక్ట్ హెడర్ చెక్
+                // 1. సబ్జెక్ట్ హెడర్ ఐడెంటిఫికేషన్
                 let sectionLabel = "";
                 Object.keys(item).forEach(k => {
                   if (k.toLowerCase().includes("section") || k.toLowerCase().includes("subject")) {
@@ -76,19 +68,16 @@ function App() {
                   return;
                 }
 
-                // 🚨 స్పేసెస్ ని పూర్తిగా రిమూవ్ చేసి స్టేటస్ వెతికే సూపర్ కండిషన్ (బగ్ ఫిక్స్)
-                let itemStatus = "";
+                // 2. 🌟 స్టేటస్ తనిఖీ
+                let statusValue = "";
                 Object.keys(item).forEach(k => {
                   if (k.toLowerCase().replace(/\s+/g, '') === "status") {
-                    itemStatus = String(item[k] || '').toLowerCase().replace(/\s+/g, '');
+                    statusValue = String(item[k] || '');
                   }
                 });
+                if (statusValue.toLowerCase().trim() !== "answered") return; 
 
-                if (itemStatus !== "answered") {
-                  return; 
-                }
-
-                // క్వశ్చన్ ఐడీ పట్టుకోవడం
+                // 3. క్వశ్చన్ ఐడీ పట్టుకోవడం
                 let extractedQId = "";
                 Object.keys(item).forEach(k => {
                   const cleanKey = k.toLowerCase().replace(/\s+/g, '');
@@ -98,15 +87,13 @@ function App() {
                 });
                 const qId = extractedQId || String(item.questionId || item.questionID || '').trim();
 
-                let backendKeys = excelKeyFile[qId];
-                if (!backendKeys) {
-                  const foundKey = Object.keys(excelKeyFile).find(k => k.trim() === qId);
-                  if (foundKey) backendKeys = excelKeyFile[foundKey];
-                }
+                // 🚨 `" "` (Quotes) ఎర్రర్ ని ఫిక్స్ చేసే చోటు: ఎక్సెల్ కీస్ ని కూడా స్ట్రింగ్ గా మార్చి పక్కాగా వెతుకుతుంది!
+                const foundKey = Object.keys(excelKeyFile).find(k => String(k).trim() === qId);
+                const backendKeys = foundKey ? excelKeyFile[foundKey] : null;
 
                 if (!backendKeys) return;
 
-                // ఎక్సెల్ హెడర్స్ ఎక్స్‌ట్రాక్షన్
+                // 4. ఎక్సెల్ హెడర్స్ (OptionID1, OptionID2...) నుండి కీస్ ఎక్స్‌ట్రాక్ట్ చేయడం
                 let key1 = "", key2 = "", key3 = "", key4 = "";
                 Object.keys(backendKeys).forEach(k => {
                   const upperKey = k.toUpperCase().replace(/[\s\-]+/g, ''); 
@@ -118,7 +105,7 @@ function App() {
 
                 const officialCorrectKeys = [key1, key2, key3, key4].filter(k => k !== '');
 
-                // క్వశ్చన్ టైప్
+                // 5. క్వశ్చన్ టైప్ కనుక్కోవడం
                 let extractedQType = "";
                 Object.keys(item).forEach(k => {
                   const cleanKey = k.toLowerCase().replace(/\s+/g, '');
@@ -149,7 +136,8 @@ function App() {
                   });
                   const studentOptionId = extractedOptionId || String(item[`option${chosen}Id`] || item[`Option ${chosen} ID`] || '').trim();
 
-                  const isCorrect = officialCorrectKeys.some(keyId => keyId === studentOptionId);
+                  // 🚨 రెండు వైపులా స్ట్రింగ్ రూపంలోకి మార్చి పక్కాగా కొటేషన్స్ మ్యాచ్ అయ్యేలా చేయడం
+                  const isCorrect = officialCorrectKeys.some(keyId => String(keyId).trim() === String(studentOptionId).trim());
 
                   if (isCorrect) {
                     report[currentSubject].secAPositive += 4;
@@ -159,7 +147,7 @@ function App() {
                     report[currentSubject].secATotal -= 1;
                   }
                 }
-                // ─── SECTION B లాజిక్ (SA) ───
+                // ─── SECTION B లాజిక్ (SA / NUMERICAL) ───
                 else if (qType === "SA" || qType === "NUMERICAL") {
                   let answerValue = "";
                   Object.keys(item).forEach(k => {
@@ -171,7 +159,7 @@ function App() {
                   const studentAnswer = answerValue || String(item.givenAnswer || item["Given Answer"] || '').trim();
 
                   const hasAnyIntegerRule = officialCorrectKeys.some(ans => {
-                    const cleanAns = ans.toUpperCase();
+                    const cleanAns = String(ans).toUpperCase();
                     return cleanAns.includes("ANY") || cleanAns.includes("NON") || cleanAns.includes("INTEGER");
                   });
 
@@ -180,7 +168,8 @@ function App() {
                     const parsedAns = parseInt(studentAnswer, 10);
                     isCorrect = !isNaN(parsedAns) && parsedAns >= 0 && parsedAns <= 9;
                   } else {
-                    isCorrect = officialCorrectKeys.some(ans => ans === studentAnswer);
+                    // 🚨 ఇక్కడ కూడా నంబర్ మరియు స్ట్రింగ్ డేటా టైప్స్ ని పక్కాగా మ్యాచ్ చేయడం
+                    isCorrect = officialCorrectKeys.some(ans => String(ans).trim() === String(studentAnswer).trim());
                   }
 
                   if (isCorrect) {
