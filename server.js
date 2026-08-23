@@ -242,7 +242,7 @@ function loadExcelAnswerKey(filePath) {
     }
 }
 
-// స్వతంత్ర ఎవాల్యుయేటర్ మెయిన్ API (టెక్స్ట్ బేస్డ్ సెక్షన్ ట్రాకర్ ఇంజిన్ - సబ్జెక్ట్ వైస్ మ్యాచింగ్ పక్కా ఫిక్స్)
+// స్వతంత్ర ఎవాల్యుయేటర్ మెయిన్ API (టెక్స్ట్ బేస్డ్ సెక్షన్ ట్రాకర్ ఇంజిన్)
 app.post('/api/evaluate-sheet', async (req, res) => {
     const { url } = req.body;
     if (!url) return res.status(400).json({ success: false, message: "రెస్పాన్స్ షీట్ URL అవసరం!" });
@@ -272,13 +272,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
         }
         
         const workbook = xlsx.readFile(excelPath);
-        
-        // క్రాష్ బగ్ ఫిక్స్: ఎక్సెల్ లో ఏ పేరుతో ట్యాబ్ ఉన్నా కరెక్ట్ గా పిక్ చేస్తుంది
-        const targetSheetName = workbook.SheetNames.find(name => {
-            const rows = xlsx.utils.sheet_to_json(workbook.Sheets[name]);
-            return rows.length > 0;
-        }) || workbook.SheetNames[0];
-
+        const targetSheetName = workbook.SheetNames[0]; // మొదటి షీట్ ని తీసుకుంటుంది
         const sheetData = xlsx.utils.sheet_to_json(workbook.Sheets[targetSheetName]);
 
         const MASTER_KEY_MAP = {};
@@ -304,7 +298,6 @@ app.post('/api/evaluate-sheet', async (req, res) => {
         let wrongCount = 0;
         let unattemptedCount = 0;
 
-        // సబ్జెక్ట్ వైస్ డేటా స్ట్రక్చర్
         let subjects = {
             Mathematics: { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 },
             Physics: { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 },
@@ -377,7 +370,6 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                 let studentChosenNum = '--';
                 let studentOptionId = '--';
 
-                // కేవలం పక్కాగా 'Answered' అని ఉంటేనే లెక్కిస్తాము
                 const isAnsweredOnly = /^Answered$/i.test(statusStr);
 
                 if (isAnsweredOnly) {
@@ -400,7 +392,6 @@ app.post('/api/evaluate-sheet', async (req, res) => {
 
                 if (!keyInfo) return; 
 
-                // ప్రశ్న DROP అయితే అందరికీ +4 మార్కులు
                 if (keyInfo.isDrop) {
                     totalMarks += 4;
                     correctCount++;
@@ -411,11 +402,9 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                         subjects[currentSub].secAPositive += 4;
                         subjects[currentSub].secATotal += 4;
                     }
-                    subjects[currentSub].totalMarks += 4;
                     return;
                 }
 
-                // 'Answered' కాకుండా మిగిలినవన్నీ (Marked for review వంటివి) స్కిప్ అవుతాయి
                 if (!isAnsweredOnly) {
                     unattemptedCount++;
                     return;
@@ -435,7 +424,6 @@ app.post('/api/evaluate-sheet', async (req, res) => {
 
                 let isCorrect = false;
 
-                // Numerical ప్రశ్నల మ్యాచింగ్
                 if (isSectionB) {
                     const hasAnyIntegerRule = keyInfo.keys.some(ans => {
                         const cleanAns = ans.toString().toUpperCase();
@@ -448,16 +436,13 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                     } else {
                         isCorrect = keyInfo.keys.some(ans => ans.toString().trim() === chosenAnswer.toString().trim());
                     }
-                } 
-                // MCQ ప్రశ్నల మ్యాచింగ్ (Option ID మ్యాచింగ్ పక్కా ఫిక్స్)
-                else {
+                } else {
                     isCorrect = keyInfo.keys.some(key => {
                         const cleanKey = key.toString().trim();
                         return cleanKey === studentOptionId || studentOptionId.includes(cleanKey);
                     });
                 }
 
-                // మార్కింగ్ స్కీమ్ వర్తింపజేయడం (+4 లేదా -1)
                 if (isCorrect) {
                     totalMarks += 4;
                     correctCount++;
@@ -482,7 +467,6 @@ app.post('/api/evaluate-sheet', async (req, res) => {
             }
         });
 
-        // ప్రతి సబ్జెక్టు యొక్క ఫైనల్ టోటల్స్ లెక్కించడం
         for (const sub in subjects) {
             subjects[sub].totalMarks = subjects[sub].secATotal + subjects[sub].secBTotal;
         }
@@ -499,6 +483,6 @@ app.post('/api/evaluate-sheet', async (req, res) => {
 
     } catch (error) {
         console.error("Evaluation Error:", error.message);
-        res.status(500).json({ success: false, message: "రెస్పాన్స్ షీట్ లోపల డేటాను ఎవాల్యుయేట్ చేయడంలో లోపం వచ్చింది!" });
+        res.status(500).json({ success: false, message: "డేటాను ఎవాల్యుయేట్ చేయడంలో లోపం వచ్చింది!" });
     }
 });
