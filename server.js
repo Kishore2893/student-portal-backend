@@ -268,11 +268,12 @@ app.post('/api/evaluate-sheet', async (req, res) => {
         // ఎక్సెల్ మాస్టర్ కీ లోడింగ్
         const excelPath = path.join(__dirname, 'JEE_Master_Key.xlsx');
         if (!fs.existsSync(excelPath)) {
-            return res.status(500).json({ success: false, message: "サーవర్‌లో JEE_Master_Key.xlsx ఫైల్ లభించలేదు!" });
+            return res.status(500).json({ success: false, message: "సర్వర్‌లో JEE_Master_Key.xlsx ఫైల్ లభించలేదు!" });
         }
         
         const workbook = xlsx.readFile(excelPath);
-        const targetSheetName = workbook.SheetNames[0]; // మొదటి ట్యాబ్ ని సురక్షితంగా తీసుకుంటుంది
+        // 🚨 ఫిక్స్: మొదటి షీట్ పేరును కరెక్ట్ గా పిక్ చేయడం
+        const targetSheetName = workbook.SheetNames[0]; 
         const sheetData = xlsx.utils.sheet_to_json(workbook.Sheets[targetSheetName]);
 
         const MASTER_KEY_MAP = {};
@@ -341,6 +342,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                     
                     if (rowText.includes("Question ID")) {
                         const match = rowText.match(/Question\s*ID\s*:?\s*(\d+)/i);
+                        // 🚨 పక్కా ఫిక్స్: కేవలం match కాకుండా match[1] లోపల ఉన్న అసలైన నంబర్ ని తీసుకోవడం
                         if (match && match[1]) qId = match[1].trim();
                     }
                     if (rowText.includes("Status")) {
@@ -392,6 +394,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
 
                 if (!keyInfo) return; 
 
+                // రూల్ A: ప్రశ్న DROP అయితే అందరికీ +4 మార్కులు వస్తాయి
                 if (keyInfo.isDrop) {
                     totalMarks += 4;
                     correctCount++;
@@ -405,6 +408,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                     return;
                 }
 
+                // రూల్ B: 'Answered' కాకుండా మిగిలినవన్నీ (Marked for review మరియు Not Attempted) వదిలేయడం
                 if (!isAnsweredOnly) {
                     unattemptedCount++;
                     return;
@@ -424,6 +428,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
 
                 let isCorrect = false;
 
+                // రూల్ C: Numerical ప్రశ్నల కోసం (Section B)
                 if (isSectionB) {
                     const hasAnyIntegerRule = keyInfo.keys.some(ans => {
                         const cleanAns = ans.toString().toUpperCase();
@@ -436,13 +441,16 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                     } else {
                         isCorrect = keyInfo.keys.some(ans => ans.toString().trim() === chosenAnswer.toString().trim());
                     }
-                } else {
+                } 
+                // రూల్ D: MCQ ప్రశ్నల కోసం Option ID వెరిఫికేషన్ (Section A)
+                else {
                     isCorrect = keyInfo.keys.some(key => {
                         const cleanKey = key.toString().trim();
                         return cleanKey === studentOptionId || studentOptionId.includes(cleanKey);
                     });
                 }
 
+                // 5. మార్కింగ్ స్కీమ్ వర్తింపజేయడం (+4 లేదా -1)
                 if (isCorrect) {
                     totalMarks += 4;
                     correctCount++;
@@ -467,6 +475,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
             }
         });
 
+        // ప్రతి సబ్జెక్టు యొక్క ఫైనల్ టోటల్స్ అప్‌డేట్ చేయడం
         for (const sub in subjects) {
             subjects[sub].totalMarks = subjects[sub].secATotal + subjects[sub].secBTotal;
         }
@@ -486,12 +495,3 @@ app.post('/api/evaluate-sheet', async (req, res) => {
         res.status(500).json({ success: false, message: "డేటాను ఎవాల్యుయేట్ చేయడంలో లోపం వచ్చింది!" });
     }
 });
-
-// 🚨 పక్కా సేఫ్ గార్డ్: ఒకవేళ మీ ఫైల్ లో ఎక్కడా app.listen లేకపోతే ఇది సర్వర్‌ను ఆన్‌లైన్ లో ఉంచుతుంది
-if (!global.isServerListening) {
-    const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-        console.log(`Server is up and running perfectly on port ${PORT}...`);
-    });
-    global.isServerListening = true;
-}
