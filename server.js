@@ -273,6 +273,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
         
         const workbook = xlsx.readFile(excelPath);
         
+        // క్రాష్ బగ్ ఫిక్స్: ఎక్సెల్ లో ఏ పేరుతో ట్యాబ్ ఉన్నా కరెక్ట్ గా పిక్ చేస్తుంది
         const targetSheetName = workbook.SheetNames.find(name => {
             const rows = xlsx.utils.sheet_to_json(workbook.Sheets[name]);
             return rows.length > 0;
