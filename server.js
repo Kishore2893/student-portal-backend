@@ -220,10 +220,10 @@ function loadExcelAnswerKey(filePath) {
 
             if (qId && dateKey && shiftKey) {
                 const uniqueKeys = [
-                    row['NTA KEY1']?.toString().trim(),
-                    row['NTA KEY2']?.toString().trim(),
-                    row['NTA KEY3']?.toString().trim(),
-                    row['NTA KEY4']?.toString().trim()
+                    row['OptionID1']?.toString().trim(),
+                    row['OptionID2']?.toString().trim(),
+                    row['OptionID3']?.toString().trim(),
+                    row['OptionID4']?.toString().trim()
                 ].filter(Boolean);
 
                 const finalUniqueKeys = [...new Set(uniqueKeys)];
