@@ -306,177 +306,180 @@ function App() {
             </div>
 
             {scoreData && (
-              <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 99999, padding: '20px', boxSizing: 'border-box' }}>
-                <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '1150px', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '92vh', animation: 'scaleUp 0.3s ease-out' }}>
-                  
-                  <style>{`
-                    @keyframes scaleUp { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
-                    .result-table th { background-color: #0c3d7c !important; color: #ffffff !important; font-weight: 700 !important; text-transform: uppercase; letter-spacing: 0.5px; font-size: 12px; padding: 12px 10px !important; border: 1px solid #334155 !important; }
-                    .result-table td { padding: 12px 10px !important; border: 1px solid #e2e8f0 !important; font-size: 14px; font-weight: 600; color: #334155; text-align: center; }
-                    .sub-header-row { background-color: #1e293b !important; color: #ffffff !important; font-size: 14px !important; font-weight: bold !important; letter-spacing: 1px; }
-                  `}</style>
+  <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 99999, padding: '20px', boxSizing: 'border-box' }}>
+    <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '1150px', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '92vh', animation: 'scaleUp 0.3s ease-out' }}>
+      
+      <style>{`
+        @keyframes scaleUp { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+        .result-table th { background-color: #0c3d7c !important; color: #ffffff !important; font-weight: 700 !important; text-transform: uppercase; letter-spacing: 0.5px; font-size: 12px; padding: 12px 10px !important; border: 1px solid #334155 !important; }
+        .result-table td { padding: 12px 10px !important; border: 1px solid #e2e8f0 !important; font-size: 14px; font-weight: 600; color: #334155; text-align: center; }
+        .sub-header-row { background-color: #1e293b !important; color: #ffffff !important; font-size: 14px !important; font-weight: bold !important; letter-spacing: 1px; }
+      `}</style>
 
-                  {/* 1. హెడర్ సెక్షన్ */}
-                  <div style={{ background: 'linear-gradient(135deg, #0f172a, #1e3a8a)', color: '#ffffff', padding: '20px 35px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '4px solid #3b82f6' }}>
-                    <div>
-                      <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '800', letterSpacing: '0.5px' }}>🎯 JEE-MAIN Response Report</h2>
-                      <small style={{ color: '#93c5fd', fontWeight: '600' }}>Subject Wise Evaluation</small>
-                    </div>
-                    <button onClick={() => setScoreData(null)} style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: '#ffffff', border: 'none', padding: '10px 22px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', boxShadow: '0 4px 10px rgba(220,38,38,0.3)' }}>
-                      Close Report ✕
-                    </button>
-                  </div>
+      {/* 1. హెడర్ సెక్షన్ */}
+      <div style={{ background: 'linear-gradient(135deg, #0f172a, #1e3a8a)', color: '#ffffff', padding: '20px 35px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '4px solid #3b82f6' }}>
+        <div>
+          <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '800', letterSpacing: '0.5px' }}>🎯 JEE-MAIN Response Report</h2>
+          <small style={{ color: '#93c5fd', fontWeight: '600' }}>Subject Wise Evaluation</small>
+        </div>
+        <button onClick={() => setScoreData(null)} style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)', color: '#ffffff', border: 'none', padding: '10px 22px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px', boxShadow: '0 4px 10px rgba(220,38,38,0.3)' }}>
+          Close Report ✕
+        </button>
+      </div>
 
-                  {/* 2. మెయిన్ టేబుల్ కంటెంట్ ఏరియా */}
-                  <div style={{ padding: '35px', overflowY: 'auto', flex: 1, backgroundColor: '#f8fafc' }}>
-                    
-                    <table className="result-table" style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: '#ffffff', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', borderRadius: '8px', overflow: 'hidden', marginBottom: '35px' }}>
-                      <thead>
-                        {/* ROW 1: స్టూడెంట్ వివరాలు */}
-                        <tr>
-                          <th>Student Name:</th>
-                          <td style={{ backgroundColor: '#fff', fontWeight: '700', color: '#1e3a8a', textAlign: 'left', paddingLeft: '15px' }}>{scoreData.studentInfo?.name || "N/A"}</td>
-                          <th>Application Number:</th>
-                          <td style={{ backgroundColor: '#fff', fontWeight: '700', color: '#0f172a', textAlign: 'left', paddingLeft: '15px' }}>{scoreData.studentInfo?.appNo || "N/A"}</td>
-                          <th>Roll Number:</th>
-                          <td style={{ backgroundColor: '#fff', fontWeight: '700', color: '#0f172a', textAlign: 'left', paddingLeft: '15px' }}>{scoreData.studentInfo?.rollNo || "N/A"}</td>
-                          <th>Test Date:</th>
-                          <td style={{ backgroundColor: '#fff', fontWeight: '700', color: '#0f172a', textAlign: 'left', paddingLeft: '15px' }}>{scoreData.studentInfo?.examDate || "N/A"}</td>
-                          <th>Test Time:</th>
-                          <td style={{ backgroundColor: '#fff', fontWeight: '700', color: '#0f172a', textAlign: 'left', paddingLeft: '15px' }}>{scoreData.studentInfo?.examShift === 'Shift2' ? '3:00 PM - 6:00 PM' : '9:00 AM - 12:00 PM'}</td>
-                        </tr>
-                        {/* ROW 2: సబ్జెక్ట్ హెడర్స్ */}
-                        <tr>
-                          <th style={{ background: '#f1f5f9', border: 'none' }}></th>
-                          <th colSpan="3" className="sub-header-row" style={{ background: '#2563eb' }}>Mathematics</th>
-                          <th colSpan="3" className="sub-header-row" style={{ background: '#059669' }}>Physics</th>
-                          <th colSpan="3" className="sub-header-row" style={{ background: '#d97706' }}>Chemistry</th>
-                        </tr>
+      {/* 2. మెయిన్ టేబుల్ కంటెంట్ ఏరియా */}
+      <div style={{ padding: '35px', overflowY: 'auto', flex: 1, backgroundColor: '#f8fafc' }}>
+        
+        <table className="result-table" style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: '#ffffff', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', borderRadius: '8px', overflow: 'hidden', marginBottom: '35px' }}>
+          <thead>
+            {/* ROW 1: స్టూడెంట్ వివరాలు */}
+            <tr>
+              <th>Student Name:</th>
+              <td style={{ backgroundColor: '#fff', fontWeight: '700', color: '#1e3a8a', textAlign: 'left', paddingLeft: '15px' }}>{scoreData.studentInfo?.name || "N/A"}</td>
+              <th>Application Number:</th>
+              <td style={{ backgroundColor: '#fff', fontWeight: '700', color: '#0f172a', textAlign: 'left', paddingLeft: '15px' }}>{scoreData.studentInfo?.appNo || "N/A"}</td>
+              <th>Roll Number:</th>
+              <td style={{ backgroundColor: '#fff', fontWeight: '700', color: '#0f172a', textAlign: 'left', paddingLeft: '15px' }}>{scoreData.studentInfo?.rollNo || "N/A"}</td>
+              <th>Test Date:</th>
+              <td style={{ backgroundColor: '#fff', fontWeight: '700', color: '#0f172a', textAlign: 'left', paddingLeft: '15px' }}>{scoreData.studentInfo?.examDate || "N/A"}</td>
+              <th>Test Time:</th>
+              <td style={{ backgroundColor: '#fff', fontWeight: '700', color: '#0f172a', textAlign: 'left', paddingLeft: '15px' }}>{scoreData.studentInfo?.examShift === 'Shift2' ? '3:00 PM - 6:00 PM' : '9:00 AM - 12:00 PM'}</td>
+            </tr>
+            {/* ROW 2: సబ్జెక్ట్ హెడర్స్ */}
+            <tr>
+              <th style={{ background: '#f1f5f9', border: 'none' }}></th>
+              <th colSpan="3" className="sub-header-row" style={{ background: '#2563eb' }}>Mathematics</th>
+              <th colSpan="3" className="sub-header-row" style={{ background: '#059669' }}>Physics</th>
+              <th colSpan="3" className="sub-header-row" style={{ background: '#d97706' }}>Chemistry</th>
+            </tr>
 
-                        {/* ROW 3: సబ్-కాలమ్స్ */}
-                        <tr>
-                          <th style={{ backgroundColor: '#475569' }}>Section</th>
-                          <th style={{ backgroundColor: '#1e3a8a' }}>Positive</th>
-                          <th style={{ backgroundColor: '#1e3a8a' }}>Negative</th>
-                          <th style={{ backgroundColor: '#1d4ed8', color: '#fff' }}>Total</th>
-                          <th style={{ backgroundColor: '#065f46' }}>Positive</th>
-                          <th style={{ backgroundColor: '#065f46' }}>Negative</th>
-                          <th style={{ backgroundColor: '#047857', color: '#fff' }}>Total</th>
-                          <th style={{ backgroundColor: '#92400e' }}>Positive</th>
-                          <th style={{ backgroundColor: '#92400e' }}>Negative</th>
-                          <th style={{ backgroundColor: '#b45309', color: '#fff' }}>Total</th>
-                        </tr>
-                      </thead>
-                      
-                      <tbody>
-                        {/* ROW 4: Section A మార్కులు */}
-                        <tr>
-                          <td style={{ backgroundColor: '#f1f5f9', fontWeight: 'bold', color: '#1e293b' }}>A</td>
-                          <td>{scoreData.subjects?.Mathematics?.secAPositive ?? 0}</td>
-                          <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Mathematics?.secANegative ?? 0}</td>
-                          <td style={{ backgroundColor: '#eff6ff', color: '#1e40af', fontWeight: '700' }}>{scoreData.subjects?.Mathematics?.secATotal ?? 0}</td>
-                          <td>{scoreData.subjects?.Physics?.secAPositive ?? 0}</td>
-                          <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Physics?.secANegative ?? 0}</td>
-                          <td style={{ backgroundColor: '#ecfdf5', color: '#065f46', fontWeight: '700' }}>{scoreData.subjects?.Physics?.secATotal ?? 0}</td>
-                          <td>{scoreData.subjects?.Chemistry?.secAPositive ?? 0}</td>
-                          <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Chemistry?.secANegative ?? 0}</td>
-                          <td style={{ backgroundColor: '#fff7ed', color: '#92400e', fontWeight: '700' }}>{scoreData.subjects?.Chemistry?.secATotal ?? 0}</td>
-                        </tr>
+            {/* ROW 3: సబ్-కాలమ్స్ */}
+            <tr>
+              <th style={{ backgroundColor: '#475569' }}>Section</th>
+              <th style={{ backgroundColor: '#1e3a8a' }}>Positive</th>
+              <th style={{ backgroundColor: '#1e3a8a' }}>Negative</th>
+              <th style={{ backgroundColor: '#1d4ed8', color: '#fff' }}>Total</th>
+              <th style={{ backgroundColor: '#065f46' }}>Positive</th>
+              <th style={{ backgroundColor: '#065f46' }}>Negative</th>
+              <th style={{ backgroundColor: '#047857', color: '#fff' }}>Total</th>
+              <th style={{ backgroundColor: '#92400e' }}>Positive</th>
+              <th style={{ backgroundColor: '#92400e' }}>Negative</th>
+              <th style={{ backgroundColor: '#b45309', color: '#fff' }}>Total</th>
+            </tr>
+          </thead>
+          
+          <tbody>
+            {/* ROW 4: Section A మార్కులు */}
+            <tr>
+              <td style={{ backgroundColor: '#f1f5f9', fontWeight: 'bold', color: '#1e293b' }}>A</td>
+              <td style={{ color: '#16a34a' }}>{scoreData.subjects?.Mathematics?.secAPositive ?? 0}</td>
+              <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Mathematics?.secANegative ? `-${Math.abs(scoreData.subjects.Mathematics.secANegative)}` : 0}</td>
+              <td style={{ backgroundColor: '#eff6ff', color: '#1e40af', fontWeight: '700' }}>{scoreData.subjects?.Mathematics?.secATotal ?? 0}</td>
 
-                        {/* ROW 5: Section B మార్కులు */}
-                        <tr>
-                          <td style={{ backgroundColor: '#f1f5f9', fontWeight: 'bold', color: '#1e293b' }}>B</td>
-                          <td>{scoreData.subjects?.Mathematics?.secBPositive ?? 0}</td>
-                          <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Mathematics?.secBNegative ?? 0}</td>
-                          <td style={{ backgroundColor: '#eff6ff', color: '#1e40af', fontWeight: '700' }}>{scoreData.subjects?.Mathematics?.secBTotal ?? 0}</td>
-                          <td>{scoreData.subjects?.Physics?.secBPositive ?? 0}</td>
-                          <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Physics?.secBNegative ?? 0}</td>
-                          <td style={{ backgroundColor: '#ecfdf5', color: '#065f46', fontWeight: '700' }}>{scoreData.subjects?.Physics?.secBTotal ?? 0}</td>
-                          <td>{scoreData.subjects?.Chemistry?.secBPositive ?? 0}</td>
-                          <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Chemistry?.secBNegative ?? 0}</td>
-                          <td style={{ backgroundColor: '#fff7ed', color: '#92400e', fontWeight: '700' }}>{scoreData.subjects?.Chemistry?.secBTotal ?? 0}</td>
-                        </tr>
-                      </tbody>
-                    </table>
+              <td style={{ color: '#16a34a' }}>{scoreData.subjects?.Physics?.secAPositive ?? 0}</td>
+              <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Physics?.secANegative ? `-${Math.abs(scoreData.subjects.Physics.secANegative)}` : 0}</td>
+              <td style={{ backgroundColor: '#ecfdf5', color: '#065f46', fontWeight: '700' }}>{scoreData.subjects?.Physics?.secATotal ?? 0}</td>
 
-                    {/* కింద వచ్చే రెండు సమ్మరీ టేబుల్స్ (Subject Wise & Total Marks) */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '50px' }}>
-                      
-                      {/* ఎడమ వైపు: Subject Wise Table */}
-                      <div>
-                        <table className="result-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-                          <thead>
-                            <tr>
-                              <th colSpan="4" style={{ background: '#1e293b', fontSize: '13px' }}>Subject Wise</th>
-                            </tr>
-                            <tr>
-                              <th style={{ backgroundColor: '#475569' }}>Subject</th>
-                              <th style={{ backgroundColor: '#10b981' }}>Positive</th>
-                              <th style={{ backgroundColor: '#ef4444' }}>Negative</th>
-                              <th style={{ backgroundColor: '#3b82f6' }}>Total</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td style={{ fontWeight: 'bold', backgroundColor: '#fff', textAlign: 'left', paddingLeft: '20px' }}>Maths</td>
-                              <td>{(scoreData.subjects?.Mathematics?.secAPositive ?? 0) + (scoreData.subjects?.Mathematics?.secBPositive ?? 0)}</td>
-                              <td style={{ color: '#ef4444' }}>{(scoreData.subjects?.Mathematics?.secANegative ?? 0) + (scoreData.subjects?.Mathematics?.secBNegative ?? 0)}</td>
-                              <td style={{ backgroundColor: '#eff6ff', color: '#1d4ed8', fontWeight: 'bold' }}>{scoreData.subjects?.Mathematics?.totalMarks ?? 0}</td>
-                            </tr>
-                            <tr>
-                              <td style={{ fontWeight: 'bold', backgroundColor: '#fff', textAlign: 'left', paddingLeft: '20px' }}>Physics</td>
-                              <td>{(scoreData.subjects?.Physics?.secAPositive ?? 0) + (scoreData.subjects?.Physics?.secBPositive ?? 0)}</td>
-                              <td style={{ color: '#ef4444' }}>{(scoreData.subjects?.Physics?.secANegative ?? 0) + (scoreData.subjects?.Physics?.secBNegative ?? 0)}</td>
-                              <td style={{ backgroundColor: '#ecfdf5', color: '#047857', fontWeight: 'bold' }}>{scoreData.subjects?.Physics?.totalMarks ?? 0}</td>
-                            </tr>
-                            <tr>
-                              <td style={{ fontWeight: 'bold', backgroundColor: '#fff', textAlign: 'left', paddingLeft: '20px' }}>Chemistry</td>
-                              <td>{(scoreData.subjects?.Chemistry?.secAPositive ?? 0) + (scoreData.subjects?.Chemistry?.secBPositive ?? 0)}</td>
-                              <td style={{ color: '#ef4444' }}>{(scoreData.subjects?.Chemistry?.secANegative ?? 0) + (scoreData.subjects?.Chemistry?.secBNegative ?? 0)}</td>
-                              <td style={{ backgroundColor: '#fff7ed', color: '#b45309', fontWeight: 'bold' }}>{scoreData.subjects?.Chemistry?.totalMarks ?? 0}</td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
+              <td style={{ color: '#16a34a' }}>{scoreData.subjects?.Chemistry?.secAPositive ?? 0}</td>
+              <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Chemistry?.secANegative ? `-${Math.abs(scoreData.subjects.Chemistry.secANegative)}` : 0}</td>
+              <td style={{ backgroundColor: '#fff7ed', color: '#92400e', fontWeight: '700' }}>{scoreData.subjects?.Chemistry?.secATotal ?? 0}</td>
+            </tr>
 
-                      {/* కుడి వైపు: Total Marks Table */}
-                      <div>
-                        <table className="result-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-                          <thead>
-                            <tr>
-                              <th colSpan="2" style={{ background: '#0f172a', fontSize: '13px' }}>Total Marks</th>
-                            </tr>
-                            <tr>
-                              <th style={{ backgroundColor: '#475569' }}>Subject</th>
-                              <th style={{ backgroundColor: '#2563eb' }}>Total</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td style={{ fontWeight: 'bold', backgroundColor: '#fff', textAlign: 'left', paddingLeft: '20px' }}>Maths</td>
-                              <td style={{ fontWeight: 'bold', color: '#1e3a8a' }}>{scoreData.subjects?.Mathematics?.totalMarks ?? 0}</td>
-                            </tr>
-                            <tr>
-                              <td style={{ fontWeight: 'bold', backgroundColor: '#fff', textAlign: 'left', paddingLeft: '20px' }}>Physics</td>
-                              <td style={{ fontWeight: 'bold', color: '#047857' }}>{scoreData.subjects?.Physics?.totalMarks ?? 0}</td>
-                            </tr>
-                            <tr>
-                              <td style={{ fontWeight: 'bold', backgroundColor: '#fff', textAlign: 'left', paddingLeft: '20px' }}>Chemistry</td>
-                              <td style={{ fontWeight: 'bold', color: '#b45309' }}>{scoreData.subjects?.Chemistry?.totalMarks ?? 0}</td>
-                            </tr>
-                            <tr style={{ backgroundColor: '#f1f5f9' }}>
-                              <td style={{ fontWeight: '800', color: '#0f172a', textAlign: 'left', paddingLeft: '20px', fontSize: '15px' }}>GRAND TOTAL</td>
-                              <td style={{ fontWeight: '800', color: '#ffffff', backgroundColor: '#1e3a8a', fontSize: '18px' }}>{scoreData.totalMarks ?? 0} / 300</td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+            {/* ROW 5: Section B మార్కులు */}
+            <tr>
+              <td style={{ backgroundColor: '#f1f5f9', fontWeight: 'bold', color: '#1e293b' }}>B</td>
+              <td style={{ color: '#16a34a' }}>{scoreData.subjects?.Mathematics?.secBPositive ?? 0}</td>
+              <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Mathematics?.secBNegative ? `-${Math.abs(scoreData.subjects.Mathematics.secBNegative)}` : 0}</td>
+              <td style={{ backgroundColor: '#eff6ff', color: '#1e40af', fontWeight: '700' }}>{scoreData.subjects?.Mathematics?.secBTotal ?? 0}</td>
 
+              <td style={{ color: '#16a34a' }}>{scoreData.subjects?.Physics?.secBPositive ?? 0}</td>
+              <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Physics?.secBNegative ? `-${Math.abs(scoreData.subjects.Physics.secBNegative)}` : 0}</td>
+              <td style={{ backgroundColor: '#ecfdf5', color: '#065f46', fontWeight: '700' }}>{scoreData.subjects?.Physics?.secBTotal ?? 0}</td>
+
+              <td style={{ color: '#16a34a' }}>{scoreData.subjects?.Chemistry?.secBPositive ?? 0}</td>
+              <td style={{ color: '#ef4444' }}>{scoreData.subjects?.Chemistry?.secBNegative ? `-${Math.abs(scoreData.subjects.Chemistry.secBNegative)}` : 0}</td>
+              <td style={{ backgroundColor: '#fff7ed', color: '#92400e', fontWeight: '700' }}>{scoreData.subjects?.Chemistry?.secBTotal ?? 0}</td>
+            </tr>
+          </tbody>
+        </table>
+
+        {/* సమ్మరీ టేబుల్స్ (Subject Wise & Total Marks) */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '50px' }}>
+          
+          {/* Subject Wise Table */}
+          <div>
+            <table className="result-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th colSpan="4" style={{ background: '#1e293b', fontSize: '13px' }}>Subject Wise</th>
+                </tr>
+                <tr>
+                  <th style={{ backgroundColor: '#475569' }}>Subject</th>
+                  <th style={{ backgroundColor: '#10b981' }}>Positive</th>
+                  <th style={{ backgroundColor: '#ef4444' }}>Negative</th>
+                  <th style={{ backgroundColor: '#3b82f6' }}>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{ fontWeight: 'bold', backgroundColor: '#fff', textAlign: 'left', paddingLeft: '20px' }}>Maths</td>
+                  <td style={{ color: '#16a34a' }}>{(scoreData.subjects?.Mathematics?.secAPositive ?? 0) + (scoreData.subjects?.Mathematics?.secBPositive ?? 0)}</td>
+                  <td style={{ color: '#ef4444' }}>-{(scoreData.subjects?.Mathematics?.secANegative ?? 0) + (scoreData.subjects?.Mathematics?.secBNegative ?? 0)}</td>
+                  <td style={{ backgroundColor: '#eff6ff', color: '#1d4ed8', fontWeight: 'bold' }}>{scoreData.subjects?.Mathematics?.totalMarks ?? 0}</td>
+                </tr>
+                <tr>
+                  <td style={{ fontWeight: 'bold', backgroundColor: '#fff', textAlign: 'left', paddingLeft: '20px' }}>Physics</td>
+                  <td style={{ color: '#16a34a' }}>{(scoreData.subjects?.Physics?.secAPositive ?? 0) + (scoreData.subjects?.Physics?.secBPositive ?? 0)}</td>
+                  <td style={{ color: '#ef4444' }}>-{(scoreData.subjects?.Physics?.secANegative ?? 0) + (scoreData.subjects?.Physics?.secBNegative ?? 0)}</td>
+                  <td style={{ backgroundColor: '#ecfdf5', color: '#047857', fontWeight: 'bold' }}>{scoreData.subjects?.Physics?.totalMarks ?? 0}</td>
+                </tr>
+                <tr>
+                  <td style={{ fontWeight: 'bold', backgroundColor: '#fff', textAlign: 'left', paddingLeft: '20px' }}>Chemistry</td>
+                  <td style={{ color: '#16a34a' }}>{(scoreData.subjects?.Chemistry?.secAPositive ?? 0) + (scoreData.subjects?.Chemistry?.secBPositive ?? 0)}</td>
+                  <td style={{ color: '#ef4444' }}>-{(scoreData.subjects?.Chemistry?.secANegative ?? 0) + (scoreData.subjects?.Chemistry?.secBNegative ?? 0)}</td>
+                  <td style={{ backgroundColor: '#fff7ed', color: '#b45309', fontWeight: 'bold' }}>{scoreData.subjects?.Chemistry?.totalMarks ?? 0}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Total Marks Table */}
+          <div>
+            <table className="result-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th colSpan="2" style={{ background: '#0f172a', fontSize: '13px' }}>Total Marks</th>
+                </tr>
+                <tr>
+                  <th style={{ backgroundColor: '#475569' }}>Subject</th>
+                  <th style={{ backgroundColor: '#2563eb' }}>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{ fontWeight: 'bold', backgroundColor: '#fff', textAlign: 'left', paddingLeft: '20px' }}>Maths</td>
+                  <td style={{ fontWeight: 'bold', color: '#1e3a8a' }}>{scoreData.subjects?.Mathematics?.totalMarks ?? 0}</td>
+                </tr>
+                <tr>
+                  <td style={{ fontWeight: 'bold', backgroundColor: '#fff', textAlign: 'left', paddingLeft: '20px' }}>Physics</td>
+                  <td style={{ fontWeight: 'bold', color: '#047857' }}>{scoreData.subjects?.Physics?.totalMarks ?? 0}</td>
+                </tr>
+                <tr>
+                  <td style={{ fontWeight: 'bold', backgroundColor: '#fff', textAlign: 'left', paddingLeft: '20px' }}>Chemistry</td>
+                  <td style={{ fontWeight: 'bold', color: '#b45309' }}>{scoreData.subjects?.Chemistry?.totalMarks ?? 0}</td>
+                </tr>
+                <tr style={{ backgroundColor: '#f1f5f9' }}>
+                  <td style={{ fontWeight: '800', color: '#0f172a', textAlign: 'left', paddingLeft: '20px', fontSize: '15px' }}>GRAND TOTAL</td>
+                  <td style={{ fontWeight: '800', color: '#ffffff', backgroundColor: '#1e3a8a', fontSize: '18px' }}>{scoreData.totalMarks ?? 0} / 300</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
             {/* కుడి వైపు లాగిన్ ఫారమ్ బాక్స్ */}
             <div style={{ background: '#ffffff', width: '420px', flexShrink: 0, borderRadius: '4px', border: '1px solid #ced4da', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' }}>
               <div style={{ backgroundColor: '#0043a4', color: 'white', fontSize: '18px', fontWeight: 'bold', padding: '16px 20px', borderTopLeftRadius: '3px', borderTopRightRadius: '3px' }}>
