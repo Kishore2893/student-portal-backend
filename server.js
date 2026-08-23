@@ -271,7 +271,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
             return res.status(500).json({ success: false, message: "సర్వర్‌లో JEE_Master_Key.xlsx ఫైల్ లభించలేదు!" });
         }
         
-        // 🔄 [ఎక్సెల్ షీట్ నేమ్ బగ్ ఫిక్స్]
+                // 🔄 [ఎక్సెల్ షీట్ నేమ్ బగ్ ఫిక్స్] - మీ పాత 3 లైన్ల స్థానంలో దీన్ని రీప్లేస్ చేయండి:
         const workbook = xlsx.readFile(excelPath);
         
         // ఎక్సెల్ లో ఏ పేరుతో ట్యాబ్ ఉన్నా (Sheet1 లేదా JEE Main), డేటా ఉన్న మొదటి షీట్ ని కరెక్ట్ గా పిక్ చేస్తుంది
@@ -282,6 +282,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
 
         const sheetData = xlsx.utils.sheet_to_json(workbook.Sheets[targetSheetName]);
 
+        
         const MASTER_KEY_MAP = {};
         sheetData.forEach(row => {
             // మీ ఎక్సెల్ హెడర్ 'Question ID' ని పక్కాగా రీడ్ చేస్తుంది
@@ -352,29 +353,32 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                 $(el).find("tr").each((rIdx, rowEl) => {
                     const rowText = $(rowEl).text() || "";
                     
-                    if (rowText.includes("Question ID")) {
-                        const match = rowText.match(/Question\s*ID\s*:?\s*(\d+)/i);
-                        if (match && match[1]) qId = match[1].trim();
-                    }
-                    if (rowText.includes("Status")) {
-                        const match = rowText.match(/Status\s*:?\s*([^\n\r]+)/i);
-                        if (match && match[1]) statusStr = match[1].trim();
-                    }
-                    if (rowText.includes("Chosen Option")) {
-                        const match = rowText.match(/Chosen\s*Option\s*:?\s*(\d+)/i);
-                        if (match && match[1]) chosenOptionNum = match[1].trim();
-                    }
-                    if (rowText.includes("Given Answer")) {
-                        const match = rowText.match(/Given\s*Answer\s*:?\s*([^\n\r]+)/i);
-                        if (match && match[1]) givenAnswerVal = match[1].trim();
-                    }
-                    for (let i = 1; i <= 4; i++) {
-                        if (rowText.includes(`Option ${i} ID`)) {
-                            const regex = new RegExp(`Option\\s*${i}\\s*ID\\s*:?\\s*(\\d+)`, 'i');
-                            const match = rowText.match(regex);
-                            if (match && match[1]) optionIdMap[i.toString()] = match[1].trim();
-                        }
-                    }
+                    // 🚨 మీ server.js లో ఉన్న ఈ లైన్లని ఇలా మార్చండి:
+
+if (rowText.includes("Question ID")) {
+    const match = rowText.match(/Question\s*ID\s*:?\s*(\d+)/i); // 👈 : పక్కన ? పెట్టాము (కాలన్ ఉన్నా లేకున్నా రీడ్ చేస్తుంది)
+    if (match && match[1]) qId = match[1].trim();
+}
+if (rowText.includes("Status")) {
+    const match = rowText.match(/Status\s*:?\s*([^\n\r]+)/i); // 👈 :? పెట్టాము
+    if (match && match[1]) statusStr = match[1].trim();
+}
+if (rowText.includes("Chosen Option")) {
+    const match = rowText.match(/Chosen\s*Option\s*:?\s*(\d+)/i); // 👈 :? పెట్టాము
+    if (match && match[1]) chosenOptionNum = match[1].trim();
+}
+if (rowText.includes("Given Answer")) {
+    const match = rowText.match(/Given\s*Answer\s*:?\s*([^\n\r]+)/i); // 👈 :? పెట్టాము
+    if (match && match[1]) givenAnswerVal = match[1].trim();
+}
+for (let i = 1; i <= 4; i++) {
+    if (rowText.includes(`Option ${i} ID`)) {
+        const regex = new RegExp(`Option\\s*${i}\\s*ID\\s*:?\\s*(\\d+)`, 'i'); // 👈 :? పెట్టాము
+        const match = rowText.match(regex);
+        if (match && match[1]) optionIdMap[i.toString()] = match[1].trim();
+    }
+}
+
                 });
 
                 if (!qId) return;
@@ -383,10 +387,8 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                 let studentChosenNum = '--';
                 let studentOptionId = '--';
 
-                // 'Answered' మరియు 'Marked For Review' రెండింటికి వాల్యూ రీడ్ చేసే ఫిక్స్
-                const isAttempted = /Answered/i.test(statusStr);
-
-                if (isAttempted) {
+                // 🚨 పక్కా రూల్: కేవలం 'Answered' స్టేటస్ ఉన్న ప్రశ్నలనే లెక్కించాలి, Marked For Review ని పూర్తిగా వదిలేయాలి!
+                if (/^Answered$/i.test(statusStr)) {
                     if (isSectionB) {
                         chosenAnswer = givenAnswerVal;
                     } else if (chosenOptionNum) {
