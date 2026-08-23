@@ -242,7 +242,7 @@ function loadExcelAnswerKey(filePath) {
     }
 }
 
-// స్వతంత్ర ఎవాల్యుయేటర్ మెయిన్ API (టెక్స్ట్ బేస్డ్ సెక్షన్ ట్రాకర్ ఇంజిన్ - సేఫ్ మోడ్)
+// స్వతంత్ర ఎవాల్యుయేటర్ మెయిన్ API (టెక్స్ట్ బేస్డ్ సెక్షన్ ట్రాకర్ ఇంజిన్ - పక్కా బగ్ ఫిక్స్డ్)
 app.post('/api/evaluate-sheet', async (req, res) => {
     const { url } = req.body;
     if (!url) return res.status(400).json({ success: false, message: "రెస్పాన్స్ షీట్ URL అవసరం!" });
@@ -271,9 +271,13 @@ app.post('/api/evaluate-sheet', async (req, res) => {
             return res.status(500).json({ success: false, message: "సర్వర్‌లో JEE_Master_Key.xlsx ఫైల్ లభించలేదు!" });
         }
         
-        const workbook = xlsx.readFile(excelPath);
-        const targetSheetName = workbook.SheetNames[0]; // మొదటి ఇండెక్స్ పక్కాగా ఫిక్స్ చేశాను
-        const sheetData = xlsx.utils.sheet_to_json(workbook.Sheets[targetSheetName]);
+        // 🚨 పక్కా ఫిక్స్: మీ ఫైల్ లో 'xlsx' ఏ కేస్ లో ఉన్నా సరే ఎర్రర్ రాకుండా రీడ్ చేస్తుంది
+        const currentXlsx = typeof xlsx !== 'undefined' ? xlsx : (typeof XLSX !== 'undefined' ? XLSX : require('xlsx'));
+        const workbook = currentXlsx.readFile(excelPath);
+        
+        // మొదటి ట్యాబ్/షీట్ పేరును స్ట్రింగ్ లాగా సురక్షితంగా తీసుకోవడం
+        const targetSheetName = workbook.SheetNames[0]; 
+        const sheetData = currentXlsx.utils.sheet_to_json(workbook.Sheets[targetSheetName]);
 
         const MASTER_KEY_MAP = {};
         sheetData.forEach(row => {
@@ -306,7 +310,6 @@ app.post('/api/evaluate-sheet', async (req, res) => {
 
         let currentSub = "Mathematics";
         let isSectionB = false;
-
         $(".main-info-pnl, .section-start, .section-cnt, table, div").each((idx, el) => {
             const blockText = $(el).text() || "";
             
@@ -324,7 +327,6 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                 let givenAnswerVal = "";
                 let optionIdMap = {};
 
-                // 🚨 బగ్ ఫిక్స్: ఎక్కడా Regex అండ్ .match వాడకుండా నేరుగా Cheerio తో డేటా పిక్ చేయడం
                 qId = $(el).find('td:contains("Question ID")').next().text().trim();
                 statusStr = $(el).find('td:contains("Status")').next().text().trim();
                 chosenOptionNum = $(el).find('td:contains("Chosen Option")').next().text().trim();
@@ -350,6 +352,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                         studentOptionId = optionIdMap[chosenOptionNum] || '--';
                     }
                 }
+
                 let keyInfo = null;
                 for (const excelQId in MASTER_KEY_MAP) {
                     if (qId === excelQId || qId.includes(excelQId) || excelQId.includes(qId)) {
@@ -360,7 +363,6 @@ app.post('/api/evaluate-sheet', async (req, res) => {
 
                 if (!keyInfo) return; 
 
-                // రూల్ A: ప్రశ్న DROP అయితే అందరికీ +4 మార్కులు వస్తాయి
                 if (keyInfo.isDrop) {
                     totalMarks += 4;
                     correctCount++;
@@ -374,7 +376,6 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                     return;
                 }
 
-                // రూల్ B: 'Answered' కాకుండా మిగిలినవన్నీ వదిలేయడం
                 if (!isAnsweredOnly) {
                     unattemptedCount++;
                     return;
@@ -394,7 +395,6 @@ app.post('/api/evaluate-sheet', async (req, res) => {
 
                 let isCorrect = false;
 
-                // రూల్ C: Numerical ప్రశ్నల కోసం (Section B)
                 if (isSectionB) {
                     const hasAnyIntegerRule = keyInfo.keys.some(ans => {
                         const cleanAns = ans.toString().toUpperCase();
@@ -407,16 +407,13 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                     } else {
                         isCorrect = keyInfo.keys.some(ans => ans.toString().trim() === chosenAnswer.toString().trim());
                     }
-                } 
-                // రూల్ D: MCQ ప్రశ్నల కోసం Option ID వెриఫికేషన్ (Section A)
-                else {
+                } else {
                     isCorrect = keyInfo.keys.some(key => {
                         const cleanKey = key.toString().trim();
                         return cleanKey === studentOptionId || studentOptionId.includes(cleanKey);
                     });
                 }
 
-                // 5. మార్కింగ్ స్కీమ్ వర్తింపజేయడం (+4 లేదా -1)
                 if (isCorrect) {
                     totalMarks += 4;
                     correctCount++;
@@ -441,7 +438,6 @@ app.post('/api/evaluate-sheet', async (req, res) => {
             }
         });
 
-        // ప్రతి సబ్జెక్టు యొక్క ఫైనల్ టోటల్స్ అప్‌డేట్ చేయడం
         for (const sub in subjects) {
             subjects[sub].totalMarks = subjects[sub].secATotal + subjects[sub].secBTotal;
         }
