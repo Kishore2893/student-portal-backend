@@ -3,80 +3,53 @@ const path = require('path');
 const cors = require('cors');
 const fs = require('fs');
 const xlsx = require('xlsx');
-const axios = require('axios'); // రెస్పాన్స్ షీట్ డౌన్‌లోడ్ కోసం
-const cheerio = require('cheerio'); // HTML డేటా స్క్రాపింగ్ కోసం
+const axios = require('axios'); 
+const cheerio = require('cheerio'); 
 
 const app = express();
 
-// 1. ఎక్స్‌ప్రెస్ బాడీ పార్సర్ మరియు CORS సెట్టింగ్స్ అన్నింటికంటే ముందే ఉండాలి
+// బాడీ పార్సర్ మరియు CORS సెట్టింగ్స్
 app.use(express.json());
-
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST'],
   allowedHeaders: ['Content-Type', 'Accept']
 }));
 
-// 2. ఆ తర్వాతే మిగిలిన స్టాటిక్ ఫోల్డర్ రూట్స్ ఉండాలి
+// స్టాటిక్ ఫోల్డర్ రూట్స్
 app.use('/jee-main', express.static(path.join(__dirname, 'jee-main')));
 app.use('/jee-advanced', express.static(path.join(__dirname, 'jee-advanced')));
 app.use('/tg-eapcet', express.static(path.join(__dirname, 'tg-eapcet')));
 app.use('/ap-eapcet', express.static(path.join(__dirname, 'ap-eapcet')));
 app.use('/ipe-2027', express.static(path.join(__dirname, 'ipe-2027')));
-
-// Render Disk లో ఉన్న ఫైల్స్‌ను లింక్ చేయడం
 app.use('/public-docs', express.static(path.join(__dirname)));
 
 // డైనమిక్ పిడిఎఫ్ డౌన్‌లోడ్ రూట్
 app.get('/:filename', (req, res, next) => {
     if (!req.params.filename.endsWith('.pdf')) return next();
-
     const pdfName = req.params.filename;
-    
-    // 1. మీ మెయిన్ కేటగిరీ ఫోల్డర్లు అన్నింటినీ ఇక్కడ యాడ్ చేసాం
     const categories = ['jee-main', 'jee-advanced', 'tg-eapcet', 'ap-eapcet', 'ipe-2027'];
-    
-    // 2. అప్లికేషన్ ఫామ్స్, హాల్ టికెట్లు, 1st year, 2nd year తో సహా అన్ని సబ్-పాత్‌లు
     const subPaths = [
-        '',
-        'admit-cards',
-        'application-forms',
+        '', 'admit-cards', 'application-forms',
         path.join('application-forms', 'session-1'),
         path.join('application-forms', 'session-2'),
-        'city-intimations',
-        'rank-cards',
-        '1st-year',                    // IPE 1st Year కోసం
-        '2nd-year',                    // IPE 2nd Year కోసం
+        'city-intimations', 'rank-cards', '1st-year', '2nd-year',
         path.join('1st-year', 'application-forms'),
         path.join('2nd-year', 'application-forms')
     ];
 
-    // అన్ని ఫోల్డర్లలో ఒకదాని తర్వాత ఒకటి వెతికే లూప్
     for (let category of categories) {
         for (let subPath of subPaths) {
             const filePath = path.join(__dirname, category, subPath, pdfName);
-
-            // ఏదైనా ఒక ఫోల్డర్ లోపల ఫైల్ దొరికితే వెంటనే డౌన్‌లోడ్ అవుతుంది
             if (fs.existsSync(filePath)) {
                 return res.download(filePath);
             }
         }
     }
-
-    // ఏ ఫోల్డర్ లోనూ ఫైల్ దొరక్కపోతే ఇది రన్ అవుతుంది
     res.status(404).send(`Cannot find file ${pdfName} in any folder or subfolder.`);
 });
 
-app.use(express.json());
-
-app.use(cors({
-    origin: '*', 
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type', 'Accept']
-}));
-
-app.use('/public-docs', express.static(path.join(__dirname)));
-// Function to load and clean student data from Excel
+// ఎక్సెల్ డేటాబేస్ లోడింగ్ ఫంక్షన్
 function loadStudentDatabase() {
     try {
         const excelPath = path.join(__dirname, 'students.xlsx');
@@ -102,8 +75,7 @@ function loadStudentDatabase() {
 
 let studentDatabase = loadStudentDatabase();
 console.log(`[Database] Success: Loaded ${studentDatabase.length} students from Excel.`);
-
-// 🛠️ 1. పబ్లిక్ నోటీసుల PDF ఫైల్స్ డౌน์โหลด చేయడానికి సరికొత్త పవర్ ఫుల్ రూట్
+// 📢 పబ్లిక్ నోటీసుల PDF ఫైల్స్ డౌน์โหลด రూట్
 app.get('/public-docs/:fileName', (req, res) => {
     const fileName = req.params.fileName;
     const filePath = path.join(__dirname, fileName);
@@ -120,13 +92,17 @@ app.get('/public-docs/:fileName', (req, res) => {
     fs.createReadStream(filePath).pipe(res);
 });
 
-// 📢 2. Public Notices డేటాను ఫ్రంటెండ్‌కు పంపే డైనమిక్ API రూట్
-app.get('/{user.admissionNumber}.pdf', (req, res) => {
+// 📢 Public Notices డేటాను ఫ్రంటెండ్‌కు పంపే డైనమిక్ API రూట్
+app.get('/notices/download', (req, res) => {
     const fileName = req.query.file || "notice1.pdf"; 
     const filePath = path.join(__dirname, 'public-docs', fileName);
-    res.download(filePath, fileName);
+    if (fs.existsSync(filePath)) {
+        return res.download(filePath, fileName);
+    }
+    res.status(404).send("Notice file not found.");
 });
-// 1. Student Login Route
+
+// 🔑 1. Student Login Route
 app.post('/api/student-login', (req, res) => {
     const { admissionNumber, mobileNumber } = req.body;
 
@@ -152,7 +128,7 @@ app.post('/api/student-login', (req, res) => {
     });
 });
 
-// 2. Document Fetch Route
+// 📂 2. Document Fetch Route (Windows Local paths ని Render Linux కి అనుకూలంగా ఫిక్స్ చేసాం)
 app.post('/api/download-doc', (req, res) => {
     const { admissionNumber, examType, docType, subOption } = req.body;
     const reqAdmissionNum = String(admissionNumber || '').replace(/[^0-9]/g, '').trim();
@@ -160,12 +136,12 @@ app.post('/api/download-doc', (req, res) => {
     let filePath = "";
 
     if (examType === 'IPE-2027' || examType === 'IPE Hall Tickets') {
+        // 🚨 లినక్స్/Render సర్వర్ లో 'E:\' డ్రైవ్ ఉండదు కాబట్టి, వాటిని ప్రాజెక్ట్ లోపలి రిలేటివ్ పాత్స్ గా మార్చాము
         let targetFolder = "";
-
         if (docType === 'form') {
-            targetFolder = 'E:\\2026-27\\C Exams\\student-portal\\applications\\ipe-2027\\1st Year';
+            targetFolder = path.join(__dirname, 'applications', 'ipe-2027', '1st-year');
         } else if (docType === 'admit') {
-            targetFolder = 'E:\\2026-27\\C Exams\\student-portal\\applications\\ipe-2027\\2nd Year';
+            targetFolder = path.join(__dirname, 'applications', 'ipe-2027', '2nd-year');
         }
 
         filePath = path.join(targetFolder, `${reqAdmissionNum}.pdf`);
@@ -199,50 +175,7 @@ app.post('/api/download-doc', (req, res) => {
 
     res.sendFile(filePath);
 });
-// =========================================================================
-// ─── 🚀 కొత్తగా జోడించిన JEE EVALUATOR API లాజిక్ (పాత కోడ్ అస్సలు మారలేదు) ───
-// =========================================================================
-function loadExcelAnswerKey(filePath) {
-    try {
-        if (!fs.existsSync(filePath)) {
-            console.log(`[Evaluator Error] Answer key file not found: ${filePath}`);
-            return {};
-        }
-        const workbook = xlsx.readFile(filePath);
-        const sheetName = workbook.SheetNames[0];
-        const sheetData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
-        const keyMap = {};
-
-        sheetData.forEach(row => {
-            const qId = row['Question ID']?.toString().trim();
-            const dateKey = row['DATE']?.toString().trim();
-            const shiftKey = row['SHIFT']?.toString().trim();
-
-            if (qId && dateKey && shiftKey) {
-                const uniqueKeys = [
-                    row['OptionID1']?.toString().trim(),
-                    row['OptionID2']?.toString().trim(),
-                    row['OptionID3']?.toString().trim(),
-                    row['OptionID4']?.toString().trim()
-                ].filter(Boolean);
-
-                const finalUniqueKeys = [...new Set(uniqueKeys)];
-                const compositeKey = `${dateKey}_${shiftKey}_${qId}`;
-                
-                keyMap[compositeKey] = {
-                    keys: finalUniqueKeys,
-                    isDrop: finalUniqueKeys.some(k => k.toUpperCase() === 'DROP')
-                };
-            }
-        });
-        return keyMap;
-    } catch (error) {
-        console.error("Answer Key Excel లోడ్ చేయడంలో లోపం:", error);
-        return {};
-    }
-}
-
-// స్వతంత్ర ఎవాల్యుయేటర్ మెయిన్ API (టెక్స్ట్ బేస్డ్ సెక్షన్ ట్రాకర్ ఇంజిన్ - పక్కా బగ్ ఫిక్స్డ్)
+// 🚀 JEE EVALUATOR API లాజిక్ మరియు కీ మ్యాపింగ్ ఎండ్ పాయింట్ 🚀
 app.post('/api/evaluate-sheet', async (req, res) => {
     const { url } = req.body;
     if (!url) return res.status(400).json({ success: false, message: "రెస్పాన్స్ షీట్ URL అవసరం!" });
@@ -271,13 +204,9 @@ app.post('/api/evaluate-sheet', async (req, res) => {
             return res.status(500).json({ success: false, message: "సర్వర్‌లో JEE_Master_Key.xlsx ఫైల్ లభించలేదు!" });
         }
         
-        // 🚨 పక్కా ఫిక్స్: మీ ఫైల్ లో 'xlsx' ఏ కేస్ లో ఉన్నా సరే ఎర్రర్ రాకుండా రీడ్ చేస్తుంది
-        const currentXlsx = typeof xlsx !== 'undefined' ? xlsx : (typeof XLSX !== 'undefined' ? XLSX : require('xlsx'));
-        const workbook = currentXlsx.readFile(excelPath);
-        
-        // మొదటి ట్యాబ్/షీట్ పేరును స్ట్రింగ్ లాగా సురక్షితంగా తీసుకోవడం
+        const workbook = xlsx.readFile(excelPath);
         const targetSheetName = workbook.SheetNames[0]; 
-        const sheetData = currentXlsx.utils.sheet_to_json(workbook.Sheets[targetSheetName]);
+        const sheetData = xlsx.utils.sheet_to_json(workbook.Sheets[targetSheetName]);
 
         const MASTER_KEY_MAP = {};
         sheetData.forEach(row => {
@@ -310,6 +239,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
 
         let currentSub = "Mathematics";
         let isSectionB = false;
+
         $(".main-info-pnl, .section-start, .section-cnt, table, div").each((idx, el) => {
             const blockText = $(el).text() || "";
             
@@ -456,4 +386,10 @@ app.post('/api/evaluate-sheet', async (req, res) => {
         console.error("Evaluation Error:", error.message);
         res.status(500).json({ success: false, message: "డేటాను ఎవాల్యుయేట్ చేయడంలో లోపం వచ్చింది!" });
     }
+});
+
+// 🚨 ప్రైమరీ సింగిల్ పోర్ట్ లిజనర్ (ఒకే పోర్ట్ ని సేఫ్ గా ఓపెన్ ఉంచుతుంది - No Double Listen Crash)
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    console.log(`[Server Perfect] Listening safely on port ${PORT}...`);
 });
