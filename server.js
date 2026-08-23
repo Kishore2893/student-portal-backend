@@ -175,7 +175,7 @@ app.post('/api/download-doc', (req, res) => {
 
     res.sendFile(filePath);
 });
-// 🚀 JEE EVALUATOR API లాజిక్ మరియు కీ మ్యాపింగ్ ఎండ్ పాయింట్ 🚀
+// స్వతంత్ర ఎవాల్యుయేటర్ మెయిన్ API (టెక్స్ట్ బేస్డ్ సెక్షన్ ట్రాకర్ ఇంజిన్ - పక్కా సొల్యూషన్)
 app.post('/api/evaluate-sheet', async (req, res) => {
     const { url } = req.body;
     if (!url) return res.status(400).json({ success: false, message: "రెస్పాన్స్ షీట్ URL అవసరం!" });
@@ -239,7 +239,6 @@ app.post('/api/evaluate-sheet', async (req, res) => {
 
         let currentSub = "Mathematics";
         let isSectionB = false;
-
         $(".main-info-pnl, .section-start, .section-cnt, table, div").each((idx, el) => {
             const blockText = $(el).text() || "";
             
@@ -257,14 +256,33 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                 let givenAnswerVal = "";
                 let optionIdMap = {};
 
-                qId = $(el).find('td:contains("Question ID")').next().text().trim();
-                statusStr = $(el).find('td:contains("Status")').next().text().trim();
-                chosenOptionNum = $(el).find('td:contains("Chosen Option")').next().text().trim();
-                givenAnswerVal = $(el).find('td:contains("Given Answer")').next().text().trim();
-
-                for (let i = 1; i <= 4; i++) {
-                    optionIdMap[i.toString()] = $(el).find(`td:contains("Option ${i} ID")`).next().text().trim();
-                }
+                $(el).find("tr").each((rIdx, rowEl) => {
+                    const rowText = $(rowEl).text() || "";
+                    
+                    if (rowText.includes("Question ID")) {
+                        const mQ = rowText.match(/Question\s*ID\s*:?\s*(\d+)/i);
+                        if (mQ) { const [_, idText] = mQ; qId = idText.trim(); }
+                    }
+                    if (rowText.includes("Status")) {
+                        const mS = rowText.match(/Status\s*:?\s*([^\n\r]+)/i);
+                        if (mS) { const [_, statusText] = mS; statusStr = statusText.trim(); }
+                    }
+                    if (rowText.includes("Chosen Option")) {
+                        const mC = rowText.match(/Chosen\s*Option\s*:?\s*(\d+)/i);
+                        if (mC) { const [_, optionText] = mC; chosenOptionNum = optionText.trim(); }
+                    }
+                    if (rowText.includes("Given Answer")) {
+                        const mG = rowText.match(/Given\s*Answer\s*:?\s*([^\n\r]+)/i);
+                        if (mG) { const [_, givenText] = mG; givenAnswerVal = givenText.trim(); }
+                    }
+                    for (let i = 1; i <= 4; i++) {
+                        if (rowText.includes(`Option ${i} ID`)) {
+                            const regex = new RegExp(`Option\\s*${i}\\s*ID\\s*:?\\s*(\\d+)`, 'i');
+                            const mO = rowText.match(regex);
+                            if (mO) { const [_, optIdText] = mO; optionIdMap[i.toString()] = optIdText.trim(); }
+                        }
+                    }
+                });
 
                 if (!qId) return;
 
@@ -272,27 +290,23 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                 let studentChosenNum = '--';
                 let studentOptionId = '--';
 
-                const isAnsweredOnly = statusStr.toLowerCase() === "answered";
+                // 🚨 నువ్వు చెప్పిన గోల్డెన్ రూల్: కేవలం పక్కాగా 'Answered' అని ఉంటేనే పరిగణిస్తుంది
+                const isAnsweredOnly = /^Answered$/i.test(statusStr);
 
                 if (isAnsweredOnly) {
                     if (isSectionB) {
                         chosenAnswer = givenAnswerVal;
                     } else if (chosenOptionNum && chosenOptionNum !== '--') {
                         studentChosenNum = chosenOptionNum; 
+                        // ⭐️ ఇమేజ్ లో చూపించినట్లు Chosen Option 1 అయితే ఆటోమేటిక్ గా Option 1 ID పక్కన ఉన్న పెద్ద నంబర్ ఇక్కడ సేవ్ అవుతుంది
                         studentOptionId = optionIdMap[chosenOptionNum] || '--';
                     }
                 }
 
-                let keyInfo = null;
-                for (const excelQId in MASTER_KEY_MAP) {
-                    if (qId === excelQId || qId.includes(excelQId) || excelQId.includes(qId)) {
-                        keyInfo = MASTER_KEY_MAP[excelQId];
-                        break;
-                    }
-                }
-
+                let keyInfo = MASTER_KEY_MAP[qId];
                 if (!keyInfo) return; 
 
+                // రూల్ A: ప్రశ్న DROP అయితే అందరికీ +4 మార్కులు వస్తాయి
                 if (keyInfo.isDrop) {
                     totalMarks += 4;
                     correctCount++;
@@ -306,6 +320,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                     return;
                 }
 
+                // 'Answered' కాకపోతే (Not Answered లేదా Marked for Review) ఇక్కడే వదిలేస్తుంది (No Negative)
                 if (!isAnsweredOnly) {
                     unattemptedCount++;
                     return;
@@ -325,6 +340,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
 
                 let isCorrect = false;
 
+                // న్యూమరికల్ ప్రశ్నల కోసం (Section B) - డైరెక్ట్ వాల్యూస్ చెక్
                 if (isSectionB) {
                     const hasAnyIntegerRule = keyInfo.keys.some(ans => {
                         const cleanAns = ans.toString().toUpperCase();
@@ -337,13 +353,16 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                     } else {
                         isCorrect = keyInfo.keys.some(ans => ans.toString().trim() === chosenAnswer.toString().trim());
                     }
-                } else {
+                } 
+                // MCQ ప్రశ్నల కోసం (Section A) - రెస్పాన్స్ షీట్ లోని పెద్ద Option ID ని ఎక్సెల్ లోని ఐడీలతో పోల్చడం పక్కా ఫిక్స్
+                else {
                     isCorrect = keyInfo.keys.some(key => {
                         const cleanKey = key.toString().trim();
-                        return cleanKey === studentOptionId || studentOptionId.includes(cleanKey);
+                        return cleanKey === studentOptionId && studentOptionId !== '--';
                     });
                 }
 
+                // 5. మార్కింగ్ స్కీమ్ వర్తింపజేయడం (+4 లేదా -1)
                 if (isCorrect) {
                     totalMarks += 4;
                     correctCount++;
@@ -368,6 +387,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
             }
         });
 
+        // ప్రతి సబ్జెక్టు యొక్క ఫైనల్ టోటల్స్ లెక్కించడం
         for (const sub in subjects) {
             subjects[sub].totalMarks = subjects[sub].secATotal + subjects[sub].secBTotal;
         }
@@ -386,10 +406,4 @@ app.post('/api/evaluate-sheet', async (req, res) => {
         console.error("Evaluation Error:", error.message);
         res.status(500).json({ success: false, message: "డేటాను ఎవాల్యుయేట్ చేయడంలో లోపం వచ్చింది!" });
     }
-});
-
-// 🚨 ప్రైమరీ సింగిల్ పోర్ట్ లిజనర్ (ఒకే పోర్ట్ ని సేఫ్ గా ఓపెన్ ఉంచుతుంది - No Double Listen Crash)
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-    console.log(`[Server Perfect] Listening safely on port ${PORT}...`);
 });
