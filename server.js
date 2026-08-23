@@ -268,11 +268,11 @@ app.post('/api/evaluate-sheet', async (req, res) => {
         // ఎక్సెల్ మాస్టర్ కీ లోడింగ్
         const excelPath = path.join(__dirname, 'JEE_Master_Key.xlsx');
         if (!fs.existsSync(excelPath)) {
-            return res.status(500).json({ success: false, message: "సర్వర్‌లో JEE_Master_Key.xlsx ఫైల్ లభించలేదు!" });
+            return res.status(500).json({ success: false, message: "サーవర్‌లో JEE_Master_Key.xlsx ఫైల్ లభించలేదు!" });
         }
         
         const workbook = xlsx.readFile(excelPath);
-        const targetSheetName = workbook.SheetNames[0]; // మొదటి షీట్ ని తీసుకుంటుంది
+        const targetSheetName = workbook.SheetNames[0]; // మొదటి ట్యాబ్ ని సురక్షితంగా తీసుకుంటుంది
         const sheetData = xlsx.utils.sheet_to_json(workbook.Sheets[targetSheetName]);
 
         const MASTER_KEY_MAP = {};
@@ -486,3 +486,12 @@ app.post('/api/evaluate-sheet', async (req, res) => {
         res.status(500).json({ success: false, message: "డేటాను ఎవాల్యుయేట్ చేయడంలో లోపం వచ్చింది!" });
     }
 });
+
+// 🚨 పక్కా సేఫ్ గార్డ్: ఒకవేళ మీ ఫైల్ లో ఎక్కడా app.listen లేకపోతే ఇది సర్వర్‌ను ఆన్‌లైన్ లో ఉంచుతుంది
+if (!global.isServerListening) {
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+        console.log(`Server is up and running perfectly on port ${PORT}...`);
+    });
+    global.isServerListening = true;
+}
