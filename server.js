@@ -272,8 +272,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
         }
         
         const workbook = xlsx.readFile(excelPath);
-        // 🚨 ఫిక్స్: మొదటి షీట్ పేరును కరెక్ట్ గా పిక్ చేయడం
-        const targetSheetName = workbook.SheetNames[0]; 
+        const targetSheetName = workbook.SheetNames[0]; // 👈 మొదటి షీట్ పేరును పక్కాగా పిక్ చేస్తుంది
         const sheetData = xlsx.utils.sheet_to_json(workbook.Sheets[targetSheetName]);
 
         const MASTER_KEY_MAP = {};
@@ -342,7 +341,6 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                     
                     if (rowText.includes("Question ID")) {
                         const match = rowText.match(/Question\s*ID\s*:?\s*(\d+)/i);
-                        // 🚨 పక్కా ఫిక్స్: కేవలం match కాకుండా match[1] లోపల ఉన్న అసలైన నంబర్ ని తీసుకోవడం
                         if (match && match[1]) qId = match[1].trim();
                     }
                     if (rowText.includes("Status")) {
@@ -408,7 +406,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                     return;
                 }
 
-                // రూల్ B: 'Answered' కాకుండా మిగిలినవన్నీ (Marked for review మరియు Not Attempted) వదిలేయడం
+                // రూల్ B: 'Answered' కాకుండా మిగిలినవన్నీ వదిలేయడం
                 if (!isAnsweredOnly) {
                     unattemptedCount++;
                     return;
