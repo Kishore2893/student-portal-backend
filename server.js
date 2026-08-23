@@ -242,7 +242,7 @@ function loadExcelAnswerKey(filePath) {
     }
 }
 
-// స్వతంత్ర ఎవాల్యుయేటర్ మెయిన్ API (టెక్స్ట్ బేస్డ్ సెక్షన్ ట్రాకర్ ఇంజిన్)
+// స్వతంత్ర ఎవాల్యుయేటర్ మెయిన్ API (టెక్స్ట్ బేస్డ్ సెక్షన్ ట్రాకర్ ఇంజిన్ - సేఫ్ మోడ్)
 app.post('/api/evaluate-sheet', async (req, res) => {
     const { url } = req.body;
     if (!url) return res.status(400).json({ success: false, message: "రెస్పాన్స్ షీట్ URL అవసరం!" });
@@ -272,7 +272,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
         }
         
         const workbook = xlsx.readFile(excelPath);
-        const targetSheetName = workbook.SheetNames[0]; // 👈 మొదటి షీట్ పేరును పక్కాగా పిక్ చేస్తుంది
+        const targetSheetName = workbook.SheetNames[0]; // మొదటి ఇండెక్స్ పక్కాగా ఫిక్స్ చేశాను
         const sheetData = xlsx.utils.sheet_to_json(workbook.Sheets[targetSheetName]);
 
         const MASTER_KEY_MAP = {};
@@ -306,28 +306,16 @@ app.post('/api/evaluate-sheet', async (req, res) => {
 
         let currentSub = "Mathematics";
         let isSectionB = false;
+
         $(".main-info-pnl, .section-start, .section-cnt, table, div").each((idx, el) => {
             const blockText = $(el).text() || "";
             
-            if (/Mathematics\s*Section\s*A/i.test(blockText)) {
-                currentSub = "Mathematics";
-                isSectionB = false;
-            } else if (/Mathematics\s*Section\s*B/i.test(blockText)) {
-                currentSub = "Mathematics";
-                isSectionB = true;
-            } else if (/Physics\s*Section\s*A/i.test(blockText)) {
-                currentSub = "Physics";
-                isSectionB = false;
-            } else if (/Physics\s*Section\s*B/i.test(blockText)) {
-                currentSub = "Physics";
-                isSectionB = true;
-            } else if (/Chemistry\s*Section\s*A/i.test(blockText)) {
-                currentSub = "Chemistry";
-                isSectionB = false;
-            } else if (/Chemistry\s*Section\s*B/i.test(blockText)) {
-                currentSub = "Chemistry";
-                isSectionB = true;
-            }
+            if (/Mathematics\s*Section\s*A/i.test(blockText)) { currentSub = "Mathematics"; isSectionB = false; }
+            else if (/Mathematics\s*Section\s*B/i.test(blockText)) { currentSub = "Mathematics"; isSectionB = true; }
+            else if (/Physics\s*Section\s*A/i.test(blockText)) { currentSub = "Physics"; isSectionB = false; }
+            else if (/Physics\s*Section\s*B/i.test(blockText)) { currentSub = "Physics"; isSectionB = true; }
+            else if (/Chemistry\s*Section\s*A/i.test(blockText)) { currentSub = "Chemistry"; isSectionB = false; }
+            else if (/Chemistry\s*Section\s*B/i.test(blockText)) { currentSub = "Chemistry"; isSectionB = true; }
 
             if ($(el).is('table') && blockText.includes("Question ID")) {
                 let qId = "";
@@ -336,33 +324,15 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                 let givenAnswerVal = "";
                 let optionIdMap = {};
 
-                $(el).find("tr").each((rIdx, rowEl) => {
-                    const rowText = $(rowEl).text() || "";
-                    
-                    if (rowText.includes("Question ID")) {
-                        const match = rowText.match(/Question\s*ID\s*:?\s*(\d+)/i);
-                        if (match && match[1]) qId = match[1].trim();
-                    }
-                    if (rowText.includes("Status")) {
-                        const match = rowText.match(/Status\s*:?\s*([^\n\r]+)/i);
-                        if (match && match[1]) statusStr = match[1].trim();
-                    }
-                    if (rowText.includes("Chosen Option")) {
-                        const match = rowText.match(/Chosen\s*Option\s*:?\s*(\d+)/i);
-                        if (match && match[1]) chosenOptionNum = match[1].trim();
-                    }
-                    if (rowText.includes("Given Answer")) {
-                        const match = rowText.match(/Given\s*Answer\s*:?\s*([^\n\r]+)/i);
-                        if (match && match[1]) givenAnswerVal = match[1].trim();
-                    }
-                    for (let i = 1; i <= 4; i++) {
-                        if (rowText.includes(`Option ${i} ID`)) {
-                            const regex = new RegExp(`Option\\s*${i}\\s*ID\\s*:?\\s*(\\d+)`, 'i');
-                            const match = rowText.match(regex);
-                            if (match && match[1]) optionIdMap[i.toString()] = match[1].trim();
-                        }
-                    }
-                });
+                // 🚨 బగ్ ఫిక్స్: ఎక్కడా Regex అండ్ .match వాడకుండా నేరుగా Cheerio తో డేటా పిక్ చేయడం
+                qId = $(el).find('td:contains("Question ID")').next().text().trim();
+                statusStr = $(el).find('td:contains("Status")').next().text().trim();
+                chosenOptionNum = $(el).find('td:contains("Chosen Option")').next().text().trim();
+                givenAnswerVal = $(el).find('td:contains("Given Answer")').next().text().trim();
+
+                for (let i = 1; i <= 4; i++) {
+                    optionIdMap[i.toString()] = $(el).find(`td:contains("Option ${i} ID")`).next().text().trim();
+                }
 
                 if (!qId) return;
 
@@ -370,16 +340,14 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                 let studentChosenNum = '--';
                 let studentOptionId = '--';
 
-                const isAnsweredOnly = /^Answered$/i.test(statusStr);
+                const isAnsweredOnly = statusStr.toLowerCase() === "answered";
 
                 if (isAnsweredOnly) {
                     if (isSectionB) {
                         chosenAnswer = givenAnswerVal;
                     } else if (chosenOptionNum && chosenOptionNum !== '--') {
                         studentChosenNum = chosenOptionNum; 
-                        if (optionIdMap[chosenOptionNum]) {
-                            studentOptionId = optionIdMap[chosenOptionNum]; 
-                        }
+                        studentOptionId = optionIdMap[chosenOptionNum] || '--';
                     }
                 }
                 let keyInfo = null;
@@ -440,7 +408,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                         isCorrect = keyInfo.keys.some(ans => ans.toString().trim() === chosenAnswer.toString().trim());
                     }
                 } 
-                // రూల్ D: MCQ ప్రశ్నల కోసం Option ID వెరిఫికేషన్ (Section A)
+                // రూల్ D: MCQ ప్రశ్నల కోసం Option ID వెриఫికేషన్ (Section A)
                 else {
                     isCorrect = keyInfo.keys.some(key => {
                         const cleanKey = key.toString().trim();
