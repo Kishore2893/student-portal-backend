@@ -77,7 +77,7 @@ app.post('/api/student-login', (req, res) => {
     });
 });
 
-// 5. డైనమిక్ డాక్యుమెంట్ డౌన్‌లోడ్ API రౌట్
+// 5. డైనమిక్ డాక్యుమెంట్ డౌన్‌లోడ్ API రౌట్ (క్లౌడ్ & లోకల్ పాత్స్ సేఫ్)
 app.post('/api/download-doc', (req, res) => {
     const { admissionNumber, examType, docType, subOption } = req.body;
     const reqAdmissionNum = String(admissionNumber || '').replace(/[^0-9]/g, '').trim();
@@ -163,7 +163,7 @@ app.get('/:filename', (req, res, next) => {
 });
 
 // =========================================================================
-// ─── 8. 🎯 JEE MAIN RESPONSE SHEET EVALUATOR API (NTA Accurate) ───
+// ─── 8. 🎯 JEE MAIN RESPONSE SHEET EVALUATOR API (100% NTA Accurate) ───
 // =========================================================================
 app.post('/api/evaluate-sheet', async (req, res) => {
     const { url } = req.body;
@@ -235,7 +235,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
 
         let currentSub = "Mathematics";
         let isSectionB = false;
-        const processedQuestions = new Set();
+        const processedQuestions = new Set(); // డూప్లికేట్ క్వశ్చన్స్ ఆపడానికి
 
         // D. రెస్పాన్స్ షీట్ స్కాన్ చేయడం
         $(".main-info-pnl, .section-start, .section-cnt, table, div").each((idx, el) => {
@@ -305,7 +305,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                     return;
                 }
 
-                // 🌟 2. NTA పక్కా అటెంప్ట్ రూల్ (Answered లేదా Marked for review with answer రెండూ లెక్కించబడతాయి):
+                // 🌟 2. NTA అటెంప్ట్ రూల్ (Answered లేదా Marked for review with answer రెండూ లెక్కించబడతాయి):
                 let isAttempted = false;
                 let studentOptionId = '--';
                 let chosenAnswer = '--';
