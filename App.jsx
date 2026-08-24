@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ExamConsole from './ExamConsole.jsx';
 import Modals from './Modals';
 
@@ -54,58 +54,6 @@ function App() {
     return new Date().toLocaleDateString('en-US', options);
   });
 
-  // 🛡️ ఇన్యాక్టివిటీ ఆటో-లాగౌట్ మరియు సెక్యూరిటీ లాజిక్
-  useEffect(() => {
-    let mainTimerId;
-    let fallbackRedirectId;
-
-    const handleFinalLogout = () => {
-      if (mainTimerId) clearTimeout(mainTimerId);
-      if (fallbackRedirectId) clearTimeout(fallbackRedirectId);
-      localStorage.clear();
-      sessionStorage.clear();
-      window.location.replace(window.location.origin);
-    };
-
-    window.closeSessionModalAndLogout = handleFinalLogout;
-
-    const triggerTimeout = () => {
-      setShowTimeoutModal(true);
-      fallbackRedirectId = setTimeout(handleFinalLogout, 30000);
-    };
-
-    mainTimerId = setTimeout(triggerTimeout, 300000); // 5 నిమిషాలు
-
-    const handleContextMenu = (e) => e.preventDefault();
-    document.addEventListener('contextmenu', handleContextMenu);
-
-    const handleKeyDown = (e) => {
-      if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || (e.ctrlKey && e.key === 'U')) {
-        e.preventDefault();
-        return false;
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      if (mainTimerId) clearTimeout(mainTimerId);
-      if (fallbackRedirectId) clearTimeout(fallbackRedirectId);
-      document.removeEventListener('contextmenu', handleContextMenu);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
-
-  // 🎲 6 అంకెల ఆల్ఫాన్యూమరిక్ క్యాప్చా
-  const generateCaptcha = () => {
-    const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    let result = '';
-    for (let i = 0; i < 6; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    setCaptchaText(result);
-    setUserCaptchaInput(''); 
-  };
-
   // 🌟 ఆటో-లాగిన్ చెక్
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('examUser');
@@ -122,6 +70,61 @@ function App() {
   const [showYearModal, setShowYearModal] = useState(false);
   const [selectedDocType, setSelectedDocType] = useState('');
   const [selectedDocLabel, setSelectedDocLabel] = useState('');
+
+  // 🛡️ 🌟 5 నిమిషాల ఇన్యాక్టివిటీ స్మార్ట్ టైమర్ (మౌస్/కీబోర్డ్ వాడుతున్నంత సేపు రీసెట్ అవుతుంది) 🌟
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    const triggerTimeout = () => {
+      setShowTimeoutModal(true);
+    };
+
+    const resetInactivityTimer = () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      // 5 నిమిషాలు (300000 ms) ఏ పనీ చేయకుండా ఉంటేనే టైమ్-అవుట్ పాప్-అప్ వస్తుంది
+      timerRef.current = setTimeout(triggerTimeout, 300000); 
+    };
+
+    // యూజర్ మౌస్ లేదా కీబోర్డ్ కదిలించినప్పుడల్లా టైమర్ ఆటోమేటిక్‌గా రీసెట్ అవుతుంది
+    const activityEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
+    activityEvents.forEach(event => window.addEventListener(event, resetInactivityTimer));
+
+    resetInactivityTimer(); // స్టార్ట్ 5 మినిట్స్ టైమర్
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      activityEvents.forEach(event => window.removeEventListener(event, resetInactivityTimer));
+    };
+  }, []);
+
+  // 🔒 సెక్యూరిటీ: రైట్ క్లిక్ బ్లాక్ & డెవ్‌టూల్స్ షార్ట్‌కట్ ప్రొటెక్షన్
+  useEffect(() => {
+    const handleContextMenu = (e) => e.preventDefault();
+    const handleKeyDown = (e) => {
+      if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || (e.ctrlKey && e.key === 'U')) {
+        e.preventDefault();
+        return false;
+      }
+    };
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  // 🎲 6 అంకెల ఆల్ఫాన్యూమరిక్ క్యాప్చా
+  const generateCaptcha = () => {
+    const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setCaptchaText(result);
+    setUserCaptchaInput(''); 
+  };
 
   const tickerTextList = [
     "📝 Application form for JEE(Main)-2027 [Session-I] (B.E. / B.Tech)",
@@ -180,6 +183,7 @@ function App() {
 
   const handleLogout = () => {
     localStorage.removeItem('examUser');
+    sessionStorage.clear();
     setUser(null);
     setAdmissionNumber('');
     setMobileNumber('');
@@ -419,7 +423,7 @@ function App() {
         )}
       </div>
 
-      {/* 🎯 🌟 సరికొత్త కలర్స్‌తో JEE Response Report Modal 🌟 🎯 */}
+      {/* 🎯 🌟 సరికొత్త ప్రొఫెషనల్ కలర్స్‌తో JEE Response Report Modal 🌟 🎯 */}
       {scoreData && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 99999, padding: '20px', boxSizing: 'border-box' }}>
           <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '1180px', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '92vh' }}>
@@ -445,10 +449,8 @@ function App() {
             {/* 2. మెయిన్ కంటెంట్ ఏరియా */}
             <div style={{ padding: '30px 35px', overflowY: 'auto', flex: 1, backgroundColor: '#f8fafc' }}>
               
-              {/* స్టూడెంట్ ఇన్ఫో & సబ్జెక్ట్ మార్కుల గ్రిడ్ టేబుల్ */}
               <table className="result-table" style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: '#ffffff', boxShadow: '0 4px 15px rgba(0,0,0,0.04)', borderRadius: '10px', overflow: 'hidden', marginBottom: '30px' }}>
                 <thead>
-                  {/* Row 1: అభ్యర్థి వివరాలు */}
                   <tr>
                     <th style={{ backgroundColor: '#0f172a', color: '#ffffff' }}>Student Name:</th>
                     <td style={{ backgroundColor: '#ffffff', fontWeight: '800', color: '#1e3a8a', textAlign: 'left', paddingLeft: '15px' }}>{scoreData.studentInfo?.name || "N/A"}</td>
@@ -462,7 +464,6 @@ function App() {
                     <td style={{ backgroundColor: '#ffffff', fontWeight: '800', color: '#0f172a', textAlign: 'left', paddingLeft: '15px' }}>{scoreData.studentInfo?.examShift === 'Shift2' ? '3:00 PM - 6:00 PM' : '9:00 AM - 12:00 PM'}</td>
                   </tr>
 
-                  {/* Row 2: కలర్‌ఫుల్ సబ్జెక్ట్ హెడర్లు */}
                   <tr>
                     <th style={{ background: '#f1f5f9', border: '1px solid #cbd5e1' }}></th>
                     <th colSpan="3" style={{ background: 'linear-gradient(135deg, #1e40af, #2563eb)', color: '#ffffff', fontSize: '15px', letterSpacing: '1px' }}>📘 MATHEMATICS</th>
@@ -470,7 +471,6 @@ function App() {
                     <th colSpan="3" style={{ background: 'linear-gradient(135deg, #92400e, #d97706)', color: '#ffffff', fontSize: '15px', letterSpacing: '1px' }}>📙 CHEMISTRY</th>
                   </tr>
 
-                  {/* Row 3: పాజిటివ్, నెగెటివ్, టోటల్ కలర్డ్ హెడర్స్ */}
                   <tr>
                     <th style={{ backgroundColor: '#334155', color: '#ffffff' }}>Section</th>
                     <th style={{ backgroundColor: '#10b981', color: '#ffffff' }}>Positive</th>
@@ -485,7 +485,6 @@ function App() {
                   </tr>
                 </thead>
                 <tbody>
-                  {/* Row 4: Section A మార్కులు */}
                   <tr>
                     <td style={{ backgroundColor: '#f1f5f9', fontWeight: '800', color: '#0f172a' }}>A</td>
                     <td style={{ fontWeight: '700' }}>{scoreData.subjects?.Mathematics?.secAPositive ?? 0}</td>
@@ -501,7 +500,6 @@ function App() {
                     <td style={{ backgroundColor: '#fff7ed', color: '#b45309', fontWeight: '800', fontSize: '15px' }}>{scoreData.subjects?.Chemistry?.secATotal ?? 0}</td>
                   </tr>
 
-                  {/* Row 5: Section B మార్కులు */}
                   <tr>
                     <td style={{ backgroundColor: '#f1f5f9', fontWeight: '800', color: '#0f172a' }}>B</td>
                     <td style={{ fontWeight: '700' }}>{scoreData.subjects?.Mathematics?.secBPositive ?? 0}</td>
@@ -597,22 +595,19 @@ function App() {
         </div>
       )}
 
-      {/* ----------------- 🌟 సరికొత్త క్లీన్ ఫుటర్ డిజైన్ (No Top Policy Bar) ----------------- */}
+      {/* ----------------- 🌟 క్లీన్ ఫుటర్ డిజైన్ ----------------- */}
       <footer style={{ width: '100%', marginTop: '55px', backgroundColor: '#0f172a', borderTop: '3px solid #2563eb', color: '#ffffff', fontFamily: '"Segoe UI", sans-serif', padding: '28px 20px 22px 20px', boxSizing: 'border-box' }}>
         <div style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
           
-          {/* Main Credits */}
           <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.9' }}>
             Content Owned and Maintained by <span style={{ fontWeight: '700', color: '#60a5fa' }}>Kk Information Technology</span><br />
             Designed, Developed and Hosted by <span style={{ fontWeight: '700', color: '#60a5fa' }}>IT Sector</span>
           </div>
 
-          {/* Copyright Text */}
           <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '500' }}>
             © All Rights Reserved.
           </div>
 
-          {/* Bottom Row: Last Updated & Visitors Count */}
           <div style={{ width: '100%', maxWidth: '650px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', marginTop: '8px', paddingTop: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', fontSize: '12px', color: '#94a3b8' }}>
             <div>
               🕒 Last Updated: <span style={{ fontWeight: '700', color: '#ffffff' }}>{footerUpdatedDate}</span>
