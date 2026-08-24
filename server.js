@@ -77,7 +77,7 @@ app.post('/api/student-login', (req, res) => {
     });
 });
 
-// 5. డైనమిక్ డాక్యుమెంట్ డౌన్‌లోడ్ API రౌట్ (క్లౌడ్ & లోకల్ పాత్స్ సేఫ్)
+// 5. డైనమిక్ డాక్యుమెంట్ డౌన్‌లోడ్ API రౌట్
 app.post('/api/download-doc', (req, res) => {
     const { admissionNumber, examType, docType, subOption } = req.body;
     const reqAdmissionNum = String(admissionNumber || '').replace(/[^0-9]/g, '').trim();
@@ -235,7 +235,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
 
         let currentSub = "Mathematics";
         let isSectionB = false;
-        const processedQuestions = new Set(); // డూప్లికేట్ క్వశ్చన్స్ ఆపడానికి
+        const processedQuestions = new Set();
 
         // D. రెస్పాన్స్ షీట్ స్కాన్ చేయడం
         $(".main-info-pnl, .section-start, .section-cnt, table, div").each((idx, el) => {
