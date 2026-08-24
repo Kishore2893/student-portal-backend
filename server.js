@@ -58,7 +58,6 @@ app.post('/api/student-login', (req, res) => {
     const reqAdmissionNum = String(admissionNumber || '').replace(/[^0-9]/g, '').trim();
     const reqMobile = String(mobileNumber || '').replace(/[^0-9]/g, '').trim();
 
-    // తాజా వివరాల కోసం ఎక్సెల్ రీ-లోడ్
     studentDatabase = loadStudentDatabase(); 
 
     console.log(`[Login Attempt] Admission No: ${reqAdmissionNum}, Mobile: ${reqMobile}`);
@@ -122,10 +121,7 @@ app.get('/public-docs/:fileName', (req, res) => {
     const fileName = req.params.fileName;
     const filePath = path.join(__dirname, 'public-docs', fileName);
 
-    console.log(`[Notice Request] Checking file at: ${filePath}`);
-
     if (!fs.existsSync(filePath)) {
-        console.log(`[Notice Error] File not found in directory: ${filePath}`);
         return res.status(404).send(`<h3>Error: ${fileName} file is not available on the server!</h3>`);
     }
 
@@ -167,21 +163,21 @@ app.get('/:filename', (req, res, next) => {
 });
 
 // =========================================================================
-// ─── 8. 🎯 JEE MAIN RESPONSE SHEET EVALUATOR API ───
+// ─── 8. 🎯 JEE MAIN RESPONSE SHEET EVALUATOR API (NTA Accurate) ───
 // =========================================================================
 app.post('/api/evaluate-sheet', async (req, res) => {
     const { url } = req.body;
     if (!url) return res.status(400).json({ success: false, message: "రెస్పాన్స్ షీట్ URL అవసరం!" });
 
     try {
-        // A. రెస్పాన్స్ షీట్ HTML డౌన్‌లోడ్ చేయడం
+        // A. రెస్పాన్స్ షీట్ HTML డౌన్‌లోడ్
         const response = await axios.get(url, { 
-            timeout: 20000,
+            timeout: 25000,
             headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
         });
         const $ = cheerio.load(response.data);
 
-        // B. అభ్యర్థి ప్రాథమిక వివరాలు సేకరించడం
+        // B. అభ్యర్థి వివరాల సేకరణ
         const testDateText = $("td:contains('Test Date')").next().text().trim() || "N/A";
         const testTimeText = $("td:contains('Test Time')").next().text().trim() || "N/A";
         const examShift = testTimeText.includes('3:00 PM') ? 'Shift2' : 'Shift1';
@@ -194,7 +190,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
             examShift: examShift
         };
 
-        // C. ఎక్సెల్ మాస్టర్ కీ లోడ్ చేయడం
+        // C. ఎక్సెల్ మాస్టర్ కీ లోడింగ్
         const excelPath = path.join(__dirname, 'JEE_Master_Key.xlsx');
         if (!fs.existsSync(excelPath)) {
             return res.status(500).json({ success: false, message: "సర్వర్‌లో JEE_Master_Key.xlsx ఫైల్ లభించలేదు!" });
@@ -239,9 +235,9 @@ app.post('/api/evaluate-sheet', async (req, res) => {
 
         let currentSub = "Mathematics";
         let isSectionB = false;
-        const processedQuestions = new Set(); // డూప్లికేట్ క్వశ్చన్స్ రాకుండా ట్రాకర్
+        const processedQuestions = new Set();
 
-        // D. రెస్పాన్స్ షీట్ టేబుల్స్ స్కాన్ చేయడం
+        // D. రెస్పాన్స్ షీట్ స్కాన్ చేయడం
         $(".main-info-pnl, .section-start, .section-cnt, table, div").each((idx, el) => {
             const blockText = $(el).text() || "";
 
@@ -261,28 +257,27 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                 let optionIdMap = {};
 
                 $(el).find("tr").each((rIdx, rowEl) => {
-                    const rowText = $(rowEl).text() || "";
+                    const rowText = $(rowEl).text().replace(/\s+/g, ' ').trim();
                     
-                    if (rowText.includes("Question ID")) {
+                    if (/Question\s*ID/i.test(rowText)) {
                         const match = rowText.match(/Question\s*ID\s*:?\s*(\d+)/i);
                         if (match && match[1]) qId = match[1].trim();
                     }
-                    if (rowText.includes("Status")) {
-                        const match = rowText.match(/Status\s*:?\s*([^\n\r]+)/i);
+                    if (/Status/i.test(rowText)) {
+                        const match = rowText.match(/Status\s*:?\s*([^;]+)/i);
                         if (match && match[1]) statusStr = match[1].trim();
                     }
-                    if (rowText.includes("Chosen Option")) {
+                    if (/Chosen\s*Option/i.test(rowText)) {
                         const match = rowText.match(/Chosen\s*Option\s*:?\s*(\d+)/i);
                         if (match && match[1]) chosenOptionNum = match[1].trim();
                     }
-                    if (rowText.includes("Given Answer")) {
-                        const match = rowText.match(/Given\s*Answer\s*:?\s*([^\n\r]+)/i);
+                    if (/Given\s*Answer/i.test(rowText)) {
+                        const match = rowText.match(/Given\s*Answer\s*:?\s*([^\s;]+)/i);
                         if (match && match[1]) givenAnswerVal = match[1].trim();
                     }
                     for (let i = 1; i <= 4; i++) {
-                        if (rowText.includes(`Option ${i} ID`)) {
-                            const regex = new RegExp(`Option\\s*${i}\\s*ID\\s*:?\\s*(\\d+)`, 'i');
-                            const match = rowText.match(regex);
+                        if (new RegExp(`Option\\s*${i}\\s*ID`, 'i').test(rowText)) {
+                            const match = rowText.match(new RegExp(`Option\\s*${i}\\s*ID\\s*:?\\s*(\\d+)`, 'i'));
                             if (match && match[1]) optionIdMap[i.toString()] = match[1].trim();
                         }
                     }
@@ -291,27 +286,11 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                 if (!qId || processedQuestions.has(qId)) return;
                 processedQuestions.add(qId);
 
-                let chosenAnswer = '--';
-                let studentOptionId = '--';
-
-                // 🔒 కేవలం ఖచ్చితంగా "Answered" అని ఉన్న ప్రశ్నలనే అటెంప్ట్ చేసినట్లుగా తీసుకుంటుంది
-                // "Marked For Review" లేదా "Not Answered" ఉన్నవి Unattempted (0 మార్కులు) గా మారిపోతాయి
-                const isAttempted = /^Answered$/i.test(statusStr.trim());
-
-                if (isAttempted) {
-                    if (isSectionB) {
-                        chosenAnswer = givenAnswerVal;
-                    } else if (chosenOptionNum && optionIdMap[chosenOptionNum]) {
-                        studentOptionId = optionIdMap[chosenOptionNum];
-                    }
-                }
-
                 // మాస్టర్ కీ మ్యాచింగ్
                 let keyInfo = MASTER_KEY_MAP[qId] || Object.entries(MASTER_KEY_MAP).find(([k]) => qId.includes(k) || k.includes(qId))?.[1];
-
                 if (!keyInfo) return;
 
-                // 1. DROP ప్రశ్న అయితే బోనస్ (+4)
+                // 🌟 1. DROP ప్రశ్న అయితే అందరికీ +4 బోనస్
                 if (keyInfo.isDrop) {
                     totalMarks += 4;
                     correctCount++;
@@ -326,20 +305,30 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                     return;
                 }
 
-                // 2. Unattempted లేదా "Marked for Review" ప్రశ్నలు (0 మార్కులు)
+                // 🌟 2. NTA పక్కా అటెంప్ట్ రూల్ (Answered లేదా Marked for review with answer రెండూ లెక్కించబడతాయి):
+                let isAttempted = false;
+                let studentOptionId = '--';
+                let chosenAnswer = '--';
+
                 if (isSectionB) {
-                    if (!isAttempted || chosenAnswer === '--' || chosenAnswer === '') {
-                        unattemptedCount++;
-                        return;
+                    if (givenAnswerVal && givenAnswerVal !== '--' && givenAnswerVal !== '') {
+                        isAttempted = true;
+                        chosenAnswer = givenAnswerVal;
                     }
                 } else {
-                    if (!isAttempted || studentOptionId === '--' || studentOptionId === '') {
-                        unattemptedCount++;
-                        return;
+                    if (chosenOptionNum && chosenOptionNum !== '--' && optionIdMap[chosenOptionNum]) {
+                        isAttempted = true;
+                        studentOptionId = optionIdMap[chosenOptionNum];
                     }
                 }
 
-                // 3. కరెక్ట్ ఆన్సర్ వెరిఫికేషన్
+                // అటెంప్ట్ చేయనివి (0 మార్కులు)
+                if (!isAttempted) {
+                    unattemptedCount++;
+                    return;
+                }
+
+                // 3. కరెక్ట్ ఆన్సర్ వెరిఫికేషన్ (డెసిమల్స్ & స్ట్రింగ్స్ సపోర్ట్)
                 let isCorrect = false;
 
                 if (isSectionB) {
@@ -352,7 +341,14 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                         const parsed = parseInt(chosenAnswer, 10);
                         isCorrect = !isNaN(parsed) && parsed >= 0 && parsed <= 9;
                     } else {
-                        isCorrect = keyInfo.keys.some(ans => ans.trim() === chosenAnswer.trim());
+                        const studentNum = parseFloat(chosenAnswer);
+                        isCorrect = keyInfo.keys.some(ans => {
+                            const keyNum = parseFloat(ans);
+                            if (!isNaN(studentNum) && !isNaN(keyNum)) {
+                                return Math.abs(studentNum - keyNum) < 0.001; // 15.0 == 15
+                            }
+                            return ans.trim().toLowerCase() === chosenAnswer.trim().toLowerCase();
+                        });
                     }
                 } else {
                     isCorrect = keyInfo.keys.some(key => key.trim() === studentOptionId.trim());
@@ -385,7 +381,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
             }
         });
 
-        // E. ఫైనల్ JSON రెస్పాన్స్ ఫ్రంటెండ్‌కు పంపడం
+        // E. ఫైనల్ రెస్పాన్స్
         res.json({
             success: true,
             studentInfo,
@@ -402,6 +398,6 @@ app.post('/api/evaluate-sheet', async (req, res) => {
     }
 });
 
-// 9. Render Cloud & Local Environment Dynamic Port Binding
+// 9. Render Cloud & Local Dynamic Port Binding
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server is running smoothly on port ${PORT}...`));
+app.listen(PORT, () => console.log(`🚀 Server is running on port ${PORT}...`));
