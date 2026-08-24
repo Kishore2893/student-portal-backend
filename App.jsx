@@ -71,33 +71,34 @@ function App() {
   const [selectedDocType, setSelectedDocType] = useState('');
   const [selectedDocLabel, setSelectedDocLabel] = useState('');
 
-  // 🛡️ 🌟 5 నిమిషాల ఇన్యాక్టివిటీ స్మార్ట్ టైమర్ (మౌస్/కీబోర్డ్ వాడుతున్నంత సేపు రీసెట్ అవుతుంది) 🌟
+  // 🛡️ 🌟 స్మార్ట్ ఇన్యాక్టివిటీ ట్రాకర్ (ఆటో-రీఫ్రెష్ అవ్వకుండా యూజర్ యాక్టివిటీ ఉంటే రీసెట్ అవుతుంది) 🌟
   const timerRef = useRef(null);
 
   useEffect(() => {
-    const triggerTimeout = () => {
-      setShowTimeoutModal(true);
-    };
+    // విద్యార్థి లాగిన్ అయినప్పుడు మాత్రమే టైమర్ పనిచేస్తుంది
+    if (!user) return;
 
     const resetInactivityTimer = () => {
       if (timerRef.current) clearTimeout(timerRef.current);
-      // 5 నిమిషాలు (300000 ms) ఏ పనీ చేయకుండా ఉంటేనే టైమ్-అవుట్ పాప్-అప్ వస్తుంది
-      timerRef.current = setTimeout(triggerTimeout, 300000); 
+      // 15 నిమిషాలు ఏ పనీ చేయకపోతేనే టైమ్-అవుట్ చూపిస్తుంది (15 * 60 * 1000)
+      timerRef.current = setTimeout(() => {
+        setShowTimeoutModal(true);
+      }, 900000); 
     };
 
-    // యూజర్ మౌస్ లేదా కీబోర్డ్ కదిలించినప్పుడల్లా టైమర్ ఆటోమేటిక్‌గా రీసెట్ అవుతుంది
-    const activityEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
+    // యూజర్ యాక్టివిటీ ఈవెంట్స్
+    const activityEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll'];
     activityEvents.forEach(event => window.addEventListener(event, resetInactivityTimer));
 
-    resetInactivityTimer(); // స్టార్ట్ 5 మినిట్స్ టైమర్
+    resetInactivityTimer(); // స్టార్ట్ టైమర్
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
       activityEvents.forEach(event => window.removeEventListener(event, resetInactivityTimer));
     };
-  }, []);
+  }, [user]);
 
-  // 🔒 సెక్యూరిటీ: రైట్ క్లిక్ బ్లాక్ & డెవ్‌టూల్స్ షార్ట్‌కట్ ప్రొటెక్షన్
+  // సెక్యూరిటీ లాజిక్ (రైట్ క్లిక్ & F12 డిసేబుల్)
   useEffect(() => {
     const handleContextMenu = (e) => e.preventDefault();
     const handleKeyDown = (e) => {
@@ -182,6 +183,7 @@ function App() {
   };
 
   const handleLogout = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
     localStorage.removeItem('examUser');
     sessionStorage.clear();
     setUser(null);
@@ -423,7 +425,7 @@ function App() {
         )}
       </div>
 
-      {/* 🎯 🌟 సరికొత్త ప్రొఫెషనల్ కలర్స్‌తో JEE Response Report Modal 🌟 🎯 */}
+      {/* 🎯 🌟 JEE Response Report Modal 🌟 🎯 */}
       {scoreData && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 99999, padding: '20px', boxSizing: 'border-box' }}>
           <div style={{ backgroundColor: '#ffffff', width: '100%', maxWidth: '1180px', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', overflow: 'hidden', display: 'flex', flexDirection: 'column', maxHeight: '92vh' }}>
@@ -595,19 +597,22 @@ function App() {
         </div>
       )}
 
-      {/* ----------------- 🌟 క్లీన్ ఫుటర్ డిజైన్ ----------------- */}
+      {/* ----------------- 🌟 క్లీన్ ఫుటర్ డిజైన్ (No Top Policy Bar) ----------------- */}
       <footer style={{ width: '100%', marginTop: '55px', backgroundColor: '#0f172a', borderTop: '3px solid #2563eb', color: '#ffffff', fontFamily: '"Segoe UI", sans-serif', padding: '28px 20px 22px 20px', boxSizing: 'border-box' }}>
         <div style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
           
+          {/* Main Credits */}
           <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.9' }}>
             Content Owned and Maintained by <span style={{ fontWeight: '700', color: '#60a5fa' }}>Kk Information Technology</span><br />
             Designed, Developed and Hosted by <span style={{ fontWeight: '700', color: '#60a5fa' }}>IT Sector</span>
           </div>
 
+          {/* Copyright Text */}
           <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '500' }}>
             © All Rights Reserved.
           </div>
 
+          {/* Bottom Row: Last Updated & Visitors Count */}
           <div style={{ width: '100%', maxWidth: '650px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', marginTop: '8px', paddingTop: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', fontSize: '12px', color: '#94a3b8' }}>
             <div>
               🕒 Last Updated: <span style={{ fontWeight: '700', color: '#ffffff' }}>{footerUpdatedDate}</span>
