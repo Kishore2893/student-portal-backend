@@ -8,11 +8,11 @@ function App() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
-  // 🔒 క్యాప్చా కోసం స్టేట్స్
+  // 🔒 క్యాప్చా స్టేట్స్
   const [captchaText, setCaptchaText] = useState('');
   const [userCaptchaInput, setUserCaptchaInput] = useState('');
 
-  // ─── JEE ఎవాల్యుయేటర్ కోసం స్టేట్స్ ───
+  // ─── JEE ఎవాల్యుయేటర్ స్టేట్స్ ───
   const [responseUrl, setResponseUrl] = useState('');
   const [scoreData, setScoreData] = useState(null);
   const [evaluatorLoading, setEvaluatorLoading] = useState(false);
@@ -48,13 +48,13 @@ function App() {
     }
   };
 
-  // 📆 వెబ్‌సైట్ ఫుటర్ లైవ్ డేట్
+  // 📆 లైవ్ అప్‌డేట్ డేట్
   const [footerUpdatedDate] = useState(() => {
     const options = { year: 'numeric', month: 'short', day: 'numeric' };
     return new Date().toLocaleDateString('en-US', options);
   });
 
-  // 🛡️ 5 నిమిషాల ఇన్యాక్టివిటీ ఆటో-లాగౌట్ మరియు సెక్యూరిటీ లాజిక్
+  // 🛡️ ఇన్యాక్టివిటీ ఆటో-లాగౌట్ మరియు సెక్యూరిటీ లాజిక్
   useEffect(() => {
     let mainTimerId;
     let fallbackRedirectId;
@@ -74,7 +74,7 @@ function App() {
       fallbackRedirectId = setTimeout(handleFinalLogout, 30000);
     };
 
-    mainTimerId = setTimeout(triggerTimeout, 300000); 
+    mainTimerId = setTimeout(triggerTimeout, 300000); // 5 నిమిషాలు
 
     const handleContextMenu = (e) => e.preventDefault();
     document.addEventListener('contextmenu', handleContextMenu);
@@ -95,7 +95,7 @@ function App() {
     };
   }, []);
 
-  // 🎲 6 అంకెల ఆల్ఫాన్యూమరిక్ క్యాప్చా జనరేటర్
+  // 🎲 6 అంకెల ఆల్ఫాన్యూమరిక్ క్యాప్చా
   const generateCaptcha = () => {
     const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     let result = '';
@@ -149,7 +149,6 @@ function App() {
     e.preventDefault(); 
     setError(''); 
 
-    // 🔒 క్యాప్చా వెరిఫికేషన్
     if (userCaptchaInput !== captchaText) {
       setError("Invalid Captcha! Please try again.");
       generateCaptcha();
@@ -326,7 +325,7 @@ function App() {
                   />
                 </div>
 
-                {/* 🔒 క్యాప్చా సెక్షన్ */}
+                {/* 🔒 క్యాప్చా విభాగం */}
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '25px', gap: '15px', width: '100%' }}>
                   <span style={{ fontSize: '14px', color: '#000000', fontWeight: 'bold' }}>Security Pin:</span>
                   <div style={{ background: 'linear-gradient(45deg, #e2e8f0, #cbd5e1)', color: '#0001bc', padding: '4px 10px', borderRadius: '6px', fontWeight: 'bold', fontSize: '20px', letterSpacing: '4px', textDecoration: 'line-through', userSelect: 'none', border: '1px dashed #94a3b8', fontStyle: 'italic', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '120px', height: '38px', flexShrink: 0 }}>
@@ -402,7 +401,7 @@ function App() {
               .sub-header-row { color: #ffffff !important; font-size: 14px !important; font-weight: bold !important; }
             `}</style>
 
-            {/* Modal Header */}
+            {/* Header */}
             <div style={{ background: 'linear-gradient(135deg, #0f172a, #1e3a8a)', color: '#ffffff', padding: '20px 35px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '4px solid #3b82f6' }}>
               <div>
                 <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '800' }}>🎯 JEE-MAIN Response Report</h2>
@@ -413,7 +412,7 @@ function App() {
               </button>
             </div>
 
-            {/* Modal Table Area */}
+            {/* Table Area */}
             <div style={{ padding: '35px', overflowY: 'auto', flex: 1, backgroundColor: '#f8fafc' }}>
               <table className="result-table" style={{ width: '100%', borderCollapse: 'collapse', backgroundColor: '#ffffff', boxShadow: '0 4px 15px rgba(0,0,0,0.03)', borderRadius: '8px', overflow: 'hidden', marginBottom: '35px' }}>
                 <thead>
@@ -551,7 +550,7 @@ function App() {
         </div>
       )}
 
-      {/* టూ-టోన్ అఫీషియల్ ఫుటర్ */}
+      {/* టూ-టోన్ ఫుటర్ */}
       <footer style={{ width: '100%', marginTop: '50px', borderTop: '4px solid #0043a4' }}>
         <div style={{ backgroundColor: '#222222', padding: '16px 20px', borderBottom: '1px solid #333333', display: 'flex', justifyContent: 'center', gap: '15px', color: '#cbd5e1', fontSize: '13px', fontWeight: '500', flexWrap: 'wrap' }}>
           <span>Copyright Policy</span> | 
