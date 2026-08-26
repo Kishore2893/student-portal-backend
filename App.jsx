@@ -174,7 +174,6 @@ function App() {
     setUserCaptchaInput(''); 
   };
 
-  // మీరు అడిగిన మార్పు: "City Intimation Slip" డిలీట్ చేశాను.
   const tickerTextList = [
     "📝 Application form for JEE(Main)-2027 [Session-I] (B.E. / B.Tech)",
     "📌 Admit Card for JEE(Main)-2027 [Session-I] (B.E. / B.Tech)",
@@ -227,7 +226,9 @@ function App() {
     } finally { 
       setLoading(false); 
     }
-  };  const handleLogout = () => {
+  };
+
+  const handleLogout = () => {
     if (timerRef.current) clearTimeout(timerRef.current);
     localStorage.removeItem('examUser');
     sessionStorage.clear();
@@ -426,9 +427,7 @@ function App() {
             </div>
           </div>
         ) : (
-          <div style={{ maxWidth: '1020px', width: '100%', margin: '30px auto', padding: '0 20px', boxSizing: 'border-box' }}>
-            
-            {/* వెల్కమ్ ప్రొఫైల్ బ్యానర్ */}
+          <div style={{ maxWidth: '1020px', width: '100%', margin: '30px auto', padding: '0 20px', boxSizing: 'border-box' }}>            {/* వెల్కమ్ ప్రొఫైల్ బ్యానర్ */}
             <div style={{ background: `linear-gradient(135deg, #0b1d3a, ${currentThemeColor})`, color: 'white', padding: '26px 30px', borderRadius: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', boxShadow: '0 12px 30px -8px rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)' }}>
               <div>
                 <div style={{ display: 'inline-block', backgroundColor: 'rgba(255, 255, 255, 0.15)', color: '#ffffff', fontSize: '11px', fontWeight: '800', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '6px' }}>
@@ -475,6 +474,143 @@ function App() {
           </div>
         )}
       </div>
+
+      {/* 🎯 🌟 Scorecard Modal (FIXED SCROLL, JPG FIX, CHEMKIS, FULL NAME & SEC-A COLOR) 🌟 🎯 */}
+      {scoreData && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 99999, padding: '15px', boxSizing: 'border-box' }}>
+          
+          <div id="scorecard-modal-content" style={{ backgroundColor: '#071022', width: '100%', maxWidth: '1000px', borderRadius: '16px', boxShadow: '0 0 40px rgba(13, 71, 161, 0.4)', border: '1px solid #1e3a8a', overflow: 'hidden', display: 'flex', flexDirection: 'column', fontFamily: '"Segoe UI", sans-serif' }}>
+            
+            <div style={{ padding: '12px 25px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', background: 'linear-gradient(90deg, #071022 0%, #0d234a 50%, #071022 100%)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                <div style={{ background: '#ffffff', borderRadius: '50%', padding: '3px', display: 'flex' }}>
+                   <div style={{ width: '36px', height: '36px', background: 'linear-gradient(45deg, #3b82f6, #ef4444, #eab308, #22c55e)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                     <div style={{ width: '16px', height: '16px', backgroundColor: 'white', borderRadius: '50%' }}></div>
+                   </div>
+                </div>
+                <div>
+                  <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '800', color: '#ffffff', letterSpacing: '0.5px' }}>JEE-Main Response Report</h2>
+                  <div style={{ color: '#94a3b8', fontSize: '12px', fontWeight: '500', marginTop: '2px' }}>Official Subject-Wise Performance Analysis</div>
+                </div>
+              </div>
+              
+              <div id="modal-action-buttons" style={{ display: 'flex', gap: '10px' }}>
+                <button onClick={handleDownloadJPG} style={{ backgroundColor: '#2563eb', color: '#ffffff', border: '1px solid #1d4ed8', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }} title="Download as JPG">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  Download
+                </button>
+                <button onClick={() => setScoreData(null)} style={{ backgroundColor: '#dc2626', color: '#ffffff', border: '1px solid #b91c1c', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>
+                  Close Report ✕
+                </button>
+              </div>
+            </div>
+
+            <div style={{ padding: '15px 25px', flex: 1 }}>
+              {/* స్టూడెంట్ నేమ్ కట్ అవ్వకుండా ఫుల్ గా రావడానికి flex: '2' వాడాను */}
+              <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '10px', marginBottom: '15px', width: '100%' }}>
+                {[
+                  { label: "Student Name:", value: scoreData.studentInfo?.name || "N/A", flex: '2' },
+                  { label: "Application No:", value: scoreData.studentInfo?.appNo || "N/A", flex: '1' },
+                  { label: "Roll Number:", value: scoreData.studentInfo?.rollNo || "N/A", flex: '1' },
+                  { label: "Test Date:", value: scoreData.studentInfo?.examDate || "N/A", flex: '1' },
+                  { label: "Test Time:", value: scoreData.studentInfo?.examShift === 'Shift2' ? '3:00 PM - 6:00 PM' : '9:00 AM - 12:00 PM', flex: '1.2' }
+                ].map((info, idx) => (
+                  <div key={idx} style={{ backgroundColor: '#475569', borderRadius: '8px', padding: '6px 10px', flex: info.flex, minWidth: '0', border: '1px solid #64748b' }}>
+                    <div style={{ color: '#cbd5e1', fontSize: '10px', marginBottom: '2px', whiteSpace: 'nowrap' }}>{info.label}</div>
+                    <div style={{ color: '#ffffff', fontSize: '12px', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{info.value}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '15px', marginBottom: '15px' }}>
+                <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', color: '#0f172a' }}>Subject Score Matrix Table</h3>
+                <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr 1fr 1fr', gap: '10px' }}>
+                  <div></div>
+                  <div style={{ background: 'linear-gradient(90deg, #1e3a8a, #3b82f6)', color: 'white', textAlign: 'center', padding: '8px', borderRadius: '25px', fontWeight: 'bold', fontSize: '13px' }}>Mathematics</div>
+                  <div style={{ background: 'linear-gradient(90deg, #14532d, #22c55e)', color: 'white', textAlign: 'center', padding: '8px', borderRadius: '25px', fontWeight: 'bold', fontSize: '13px' }}>Physics</div>
+                  <div style={{ background: 'linear-gradient(90deg, #b45309, #eab308)', color: 'white', textAlign: 'center', padding: '8px', borderRadius: '25px', fontWeight: 'bold', fontSize: '13px' }}>Chemistry</div>
+
+                  {/* Section A - Light Indigo కలర్ */}
+                  <div style={{ backgroundColor: '#e0e7ff', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#4338ca', padding: '10px', fontSize: '13px' }}>Section A</div>
+                  {[
+                    { subj: 'Mathematics', sec: 'A' },
+                    { subj: 'Physics', sec: 'A' },
+                    { subj: 'Chemistry', sec: 'A' }
+                  ].map((item, idx) => (
+                    <div key={`A-${idx}`} style={{ backgroundColor: '#eef2ff', borderRadius: '12px', padding: '10px', border: '1px solid #a5b4fc' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '13px' }}><span style={{color: '#4f46e5'}}>Positive (+)</span> <span style={{ fontWeight: 'bold', color: '#16a34a' }}>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Positive`] ?? 0}</span></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '13px' }}><span style={{color: '#4f46e5'}}>Negative (-)</span> <span style={{ fontWeight: 'bold', color: '#ef4444' }}>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Negative`] ?? 0}</span></div>
+                      <div style={{ borderTop: '1px solid #a5b4fc', margin: '6px 0' }}></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#312e81', fontWeight: 'bold', fontSize: '14px' }}><span>Total</span> <span>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Total`] ?? 0}</span></div>
+                    </div>
+                  ))}
+
+                  {/* Section B - Light Blue కలర్ */}
+                  <div style={{ backgroundColor: '#bae6fd', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#0369a1', padding: '10px', fontSize: '13px' }}>Section B</div>
+                  {[
+                    { subj: 'Mathematics', sec: 'B' },
+                    { subj: 'Physics', sec: 'B' },
+                    { subj: 'Chemistry', sec: 'B' }
+                  ].map((item, idx) => (
+                    <div key={`B-${idx}`} style={{ backgroundColor: '#e0f2fe', borderRadius: '12px', padding: '10px', border: '1px solid #7dd3fc' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '13px' }}><span style={{color: '#0369a1'}}>Positive (+)</span> <span style={{ fontWeight: 'bold', color: '#16a34a' }}>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Positive`] ?? 0}</span></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '13px' }}><span style={{color: '#0369a1'}}>Negative (-)</span> <span style={{ fontWeight: 'bold', color: '#ef4444' }}>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Negative`] ?? 0}</span></div>
+                      <div style={{ borderTop: '1px solid #7dd3fc', margin: '6px 0' }}></div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#0c4a6e', fontWeight: 'bold', fontSize: '14px' }}><span>Total</span> <span>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Total`] ?? 0}</span></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '15px' }}>
+                <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '15px', flex: '1.2' }}>
+                  <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', color: '#0f172a' }}>Subject Wise Summary</h3>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <div style={{ flex: 1, backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
+                      <div style={{ color: '#1e3a8a', fontSize: '13px', marginBottom: '2px', fontWeight: '600' }}>Maths</div>
+                      <div style={{ fontSize: '24px', fontWeight: '800', color: '#1d4ed8' }}>{scoreData.subjects?.Mathematics?.totalMarks ?? 0}</div>
+                    </div>
+                    <div style={{ flex: 1, backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
+                      <div style={{ color: '#14532d', fontSize: '13px', marginBottom: '2px', fontWeight: '600' }}>Physics</div>
+                      <div style={{ fontSize: '24px', fontWeight: '800', color: '#15803d' }}>{scoreData.subjects?.Physics?.totalMarks ?? 0}</div>
+                    </div>
+                    <div style={{ flex: 1, backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
+                      <div style={{ color: '#78350f', fontSize: '13px', marginBottom: '2px', fontWeight: '600' }}>Chemistry</div>
+                      <div style={{ fontSize: '24px', fontWeight: '800', color: '#b45309' }}>{scoreData.subjects?.Chemistry?.totalMarks ?? 0}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* ✨ టోటల్ మార్క్స్ (కుడి వైపు Congratulations & Chemki) ✨ */}
+                <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '15px', flex: '0.8' }}>
+                  <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', color: '#0f172a' }}>Total Marks</h3>
+                  <div style={{ background: '#1e293b', borderRadius: '10px', padding: '15px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'white', border: '2px solid #334155', position: 'relative', overflow: 'hidden' }}>
+                    
+                    <div style={{ zIndex: 2 }}>
+                      <div style={{ fontSize: '12px', marginBottom: '4px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px' }}>Grand Total</div>
+                      <div style={{ fontSize: '36px', fontWeight: '900', color: '#fbbf24' }}>
+                        {scoreData.totalMarks ?? 0} <span style={{ fontSize: '20px', fontWeight: '600', color: '#64748b' }}>/ 300</span>
+                      </div>
+                    </div>
+                    
+                    {/* రైట్ సైడ్ సింబల్ + Congratulations + Chemki (Sparkles) */}
+                    <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', borderLeft: '1px dashed #475569', paddingLeft: '20px', minWidth: '110px' }}>
+                      <div style={{ position: 'absolute', top: '-5px', left: '10px', fontSize: '14px' }}>✨</div>
+                      <div style={{ position: 'absolute', bottom: '15px', right: '-5px', fontSize: '16px' }}>🌟</div>
+                      <div style={{ position: 'absolute', top: '15px', right: '0px', fontSize: '12px' }}>✨</div>
+                      
+                      <div style={{ fontSize: '32px', filter: 'drop-shadow(0 0 6px rgba(251, 191, 36, 0.4))', marginBottom: '4px' }}>🎯</div>
+                      <div style={{ color: '#fbbf24', fontSize: '11px', fontWeight: '800', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Congratulations!</div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* ----------------- 🌟 ఫుటర్ ----------------- */}
       <footer style={{ width: '100%', marginTop: '55px', backgroundColor: '#0f172a', borderTop: '3px solid #2563eb', color: '#ffffff', fontFamily: '"Segoe UI", sans-serif', padding: '28px 20px 22px 20px', boxSizing: 'border-box' }}>
