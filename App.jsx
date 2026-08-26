@@ -8,17 +8,14 @@ function App() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   
-  // 🔒 క్యాప్చా స్టేట్స్
   const [captchaText, setCaptchaText] = useState('');
   const [userCaptchaInput, setUserCaptchaInput] = useState('');
 
-  // ─── JEE ఎవాల్యుయేటర్ స్టేట్స్ ───
   const [responseUrl, setResponseUrl] = useState('');
   const [scoreData, setScoreData] = useState(null);
   const [evaluatorLoading, setEvaluatorLoading] = useState(false);
   const [evaluatorError, setEvaluatorError] = useState('');
 
-  // 1️⃣ లైవ్ విజిటర్ కౌంటర్ స్టేట్
   const [visitorCount, setVisitorCount] = useState("Loading...");
   useEffect(() => {
     fetch("https://api.counterapi.dev/v1/student-jee-portal/visits/up")
@@ -33,7 +30,6 @@ function App() {
       });
   }, []);
 
-  // 2️⃣ లాస్ట్ అప్డేట్ డేట్
   const [footerUpdatedDate, setFooterUpdatedDate] = useState("");
   useEffect(() => {
     try {
@@ -45,7 +41,6 @@ function App() {
     }
   }, []);
 
-  // 3️⃣ ఇమేజ్ డౌన్‌లోడ్ చేయడానికి html2canvas స్క్రిప్ట్ ఆటోమేటిక్ గా లోడ్ అవుతుంది
   useEffect(() => {
     if (!document.getElementById('html2canvas-script')) {
       const script = document.createElement('script');
@@ -55,15 +50,26 @@ function App() {
     }
   }, []);
 
-  // ఇమేజ్ డౌన్‌లోడ్ ఫంక్షన్
+  // 🖼️ పాపప్ బ్యాక్‌గ్రౌండ్ ఇష్యూ ఫిక్స్ చేసిన డౌన్‌లోడ్ కోడ్
   const handleDownloadJPG = () => {
     if (window.html2canvas) {
       const element = document.getElementById('scorecard-modal-content');
       const actionBtns = document.getElementById('modal-action-buttons');
+      
       if (actionBtns) actionBtns.style.display = 'none';
+
+      // రౌండ్ కార్నర్స్ వల్ల వచ్చే బ్లాక్ బ్యాక్ గ్రౌండ్ తీసేయడానికి ట్రిక్
+      const originalRadius = element.style.borderRadius;
+      const originalBoxShadow = element.style.boxShadow;
+      element.style.borderRadius = '0px';
+      element.style.boxShadow = 'none';
 
       window.html2canvas(element, { scale: 2, backgroundColor: '#071022', useCORS: true }).then(canvas => {
         if (actionBtns) actionBtns.style.display = 'flex';
+        // తిరిగి రౌండ్ కార్నర్స్ సెట్ చేయడం
+        element.style.borderRadius = originalRadius;
+        element.style.boxShadow = originalBoxShadow;
+        
         const data = canvas.toDataURL('image/jpeg', 1.0);
         const link = document.createElement('a');
         link.href = data;
@@ -104,7 +110,6 @@ function App() {
     }
   };
 
-  // 🌟 ఆటో-లాగిన్ చెక్
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('examUser');
     try {
@@ -121,7 +126,6 @@ function App() {
   const [selectedDocType, setSelectedDocType] = useState('');
   const [selectedDocLabel, setSelectedDocLabel] = useState('');
 
-  // 🛡️ 5 నిమిషాల ఇన్యాక్టివిటీ స్మార్ట్ టైమర్
   const timerRef = useRef(null);
 
   useEffect(() => {
@@ -131,7 +135,7 @@ function App() {
 
     const resetInactivityTimer = () => {
       if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(triggerTimeout, 300000); // 5 నిమిషాలు
+      timerRef.current = setTimeout(triggerTimeout, 300000); 
     };
 
     const activityEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
@@ -145,7 +149,6 @@ function App() {
     };
   }, []);
 
-  // 🔒 సెక్యూరిటీ: రైట్ క్లిక్ బ్లాక్ & డెవ్టూల్స్ షార్ట్కట్ ప్రొటెక్షన్
   useEffect(() => {
     const handleContextMenu = (e) => e.preventDefault();
     const handleKeyDown = (e) => {
@@ -163,7 +166,6 @@ function App() {
     };
   }, []);
 
-  // 🎲 6 అంకెల ఆల్ఫాన్యూమరిక్ క్యాప్చా
   const generateCaptcha = () => {
     const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
     let result = '';
@@ -273,13 +275,11 @@ function App() {
   return (
     <div style={{ backgroundColor: '#f1f5f9', minHeight: '100vh', width: '100%', fontFamily: '"Segoe UI", Roboto, sans-serif', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
       
-      {/* 🟦 హెడర్ బ్యానర్ */}
       <header style={{ backgroundColor: '#ffffff', padding: '22px 20px', textAlign: 'center', width: '100%', boxSizing: 'border-box', position: 'relative', borderBottom: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
         <h1 style={{ margin: 0, fontSize: '26px', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.5px' }}>NATIONAL ENTRANCE EXAMS</h1>
         <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: '#64748b', fontWeight: '600', letterSpacing: '0.3px' }}>JEE Main • JEE Advanced • TG EAPCET • AP EAPCET • IPE-2027</p>
       </header>
 
-      {/* 📢 Ticker Bar */}
       <div style={{ width: '100%', backgroundColor: '#0f172a', borderBottom: '1px solid #1e293b', padding: '8px 0', overflow: 'hidden', display: 'flex', alignItems: 'center', boxSizing: 'border-box', height: '46px' }}>
         <div style={{ backgroundColor: '#dc2626', color: '#ffffff', padding: '4px 16px', fontSize: '12px', fontWeight: '800', marginLeft: '20px', borderRadius: '20px', zIndex: 10, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 2px 6px rgba(220,38,38,0.4)' }}>
           ⚡ LATEST UPDATES
@@ -303,7 +303,6 @@ function App() {
               .btn-primary:disabled { opacity: 0.65; cursor: not-allowed; }
             `}</style>
 
-            {/* ─── 🎯 JEE Evaluator Card ─── */}
             <div className="modern-card" style={{ width: '480px', maxWidth: '100%', display: 'flex', flexDirection: 'column' }}>
               <div style={{ background: 'linear-gradient(135deg, #0b1d3a, #1e3a8a)', color: '#ffffff', padding: '24px 28px', textAlign: 'left', borderBottom: '3px solid #3b82f6' }}>
                 <div style={{ display: 'inline-block', backgroundColor: 'rgba(59, 130, 246, 0.25)', color: '#93c5fd', fontSize: '11px', fontWeight: '800', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
@@ -320,36 +319,20 @@ function App() {
                   <label style={{ display: 'block', fontWeight: '700', marginBottom: '8px', color: '#1e293b', fontSize: '14px' }}>
                     🔗 Candidate Response Sheet URL:
                   </label>
-                  <input 
-                    type="text" 
-                    className="modern-input"
-                    placeholder="Paste official response sheet link here..." 
-                    value={responseUrl}
-                    onChange={(e) => setResponseUrl(e.target.value)}
-                  />
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', color: '#64748b', fontSize: '12px' }}>
-                    <span>ℹ️ Supports official NTA candidate response sheet links.</span>
-                  </div>
+                  <input type="text" className="modern-input" placeholder="Paste official response sheet link here..." value={responseUrl} onChange={(e) => setResponseUrl(e.target.value)} />
                   {evaluatorError && (
-                    <div style={{ marginTop: '14px', padding: '10px 14px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', color: '#dc2626', fontSize: '13px', fontWeight: '600' }}>
-                      ⚠️ {evaluatorError}
-                    </div>
+                    <div style={{ marginTop: '14px', padding: '10px 14px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', color: '#dc2626', fontSize: '13px', fontWeight: '600' }}>⚠️ {evaluatorError}</div>
                   )}
                 </div>
 
                 <div style={{ marginTop: '30px' }}>
-                  <button 
-                    onClick={handleEvaluate}
-                    disabled={evaluatorLoading}
-                    className="btn-primary"
-                  >
+                  <button onClick={handleEvaluate} disabled={evaluatorLoading} className="btn-primary">
                     {evaluatorLoading ? '⏳ Evaluating Response Sheet...' : '⚡ Calculate Score'}
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* ─── 🔐 Candidate Login Card ─── */}
             <div className="modern-card" style={{ maxWidth: '460px', width: '100%', display: 'flex', flexDirection: 'column' }}>
               <div style={{ background: 'linear-gradient(135deg, #0f172a, #1e293b)', color: '#ffffff', padding: '24px 28px', textAlign: 'left', borderBottom: '3px solid #2563eb' }}>
                 <div style={{ display: 'inline-block', backgroundColor: 'rgba(37, 99, 235, 0.25)', color: '#93c5fd', fontSize: '11px', fontWeight: '800', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
@@ -364,50 +347,20 @@ function App() {
               <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', padding: '28px 30px', boxSizing: 'border-box' }}>
                 
                 <div style={{ marginBottom: '18px' }}>
-                  <label style={{ display: 'block', marginBottom: '6px', fontWeight: '700', color: '#1e293b', fontSize: '13px' }}>
-                    🆔 Admission Number:
-                  </label>
-                  <input 
-                    type="text" 
-                    className="modern-input"
-                    value={admissionNumber} 
-                    onChange={(e) => setAdmissionNumber(e.target.value)} 
-                    required 
-                    placeholder="Enter 9-Digit ID"
-                    maxLength={9} 
-                  />
+                  <label style={{ display: 'block', marginBottom: '6px', fontWeight: '700', color: '#1e293b', fontSize: '13px' }}>🆔 Admission Number:</label>
+                  <input type="text" className="modern-input" value={admissionNumber} onChange={(e) => setAdmissionNumber(e.target.value)} required placeholder="Enter 9-Digit ID" maxLength={9} />
                 </div>
 
                 <div style={{ marginBottom: '18px' }}>
-                  <label style={{ display: 'block', marginBottom: '6px', fontWeight: '700', color: '#1e293b', fontSize: '13px' }}>
-                    📱 Registered Mobile Number:
-                  </label>
-                  <input 
-                    type="password" 
-                    className="modern-input"
-                    value={mobileNumber} 
-                    onChange={(e) => setMobileNumber(e.target.value)} 
-                    required 
-                    placeholder="Enter 10-Digit Mobile Number" 
-                  />
+                  <label style={{ display: 'block', marginBottom: '6px', fontWeight: '700', color: '#1e293b', fontSize: '13px' }}>📱 Registered Mobile Number:</label>
+                  <input type="password" className="modern-input" value={mobileNumber} onChange={(e) => setMobileNumber(e.target.value)} required placeholder="Enter 10-Digit Mobile Number" />
                 </div>
 
                 <div style={{ marginBottom: '18px' }}>
-                  <label style={{ display: 'block', marginBottom: '6px', fontWeight: '700', color: '#1e293b', fontSize: '13px' }}>
-                    🔐 Enter Security Pin:
-                  </label>
-                  <input 
-                    type="text" 
-                    className="modern-input"
-                    value={userCaptchaInput} 
-                    onChange={(e) => setUserCaptchaInput(e.target.value)} 
-                    required 
-                    placeholder="Type the 6-character PIN shown below" 
-                    maxLength={6} 
-                  />
+                  <label style={{ display: 'block', marginBottom: '6px', fontWeight: '700', color: '#1e293b', fontSize: '13px' }}>🔐 Enter Security Pin:</label>
+                  <input type="text" className="modern-input" value={userCaptchaInput} onChange={(e) => setUserCaptchaInput(e.target.value)} required placeholder="Type the 6-character PIN shown below" maxLength={6} />
                 </div>
 
-                {/* 🔒 స్టైలిష్ క్యాప్చా బాక్స్ */}
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '22px', gap: '14px', background: '#f8fafc', padding: '10px 14px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
                   <span style={{ fontSize: '13px', color: '#475569', fontWeight: '700' }}>Security PIN:</span>
                   <div style={{ background: 'linear-gradient(45deg, #e2e8f0, #cbd5e1)', color: '#1e3a8a', padding: '6px 14px', borderRadius: '8px', fontWeight: '800', fontSize: '19px', letterSpacing: '4px', textDecoration: 'line-through', userSelect: 'none', fontStyle: 'italic', display: 'flex', flex: 1, justifyContent: 'center' }}>
@@ -430,7 +383,6 @@ function App() {
         ) : (
           <div style={{ maxWidth: '1020px', width: '100%', margin: '30px auto', padding: '0 20px', boxSizing: 'border-box' }}>
             
-            {/* వెల్కమ్ ప్రొఫైల్ బ్యానర్ */}
             <div style={{ background: `linear-gradient(135deg, #0b1d3a, ${currentThemeColor})`, color: 'white', padding: '26px 30px', borderRadius: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', boxShadow: '0 12px 30px -8px rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)' }}>
               <div>
                 <div style={{ display: 'inline-block', backgroundColor: 'rgba(255, 255, 255, 0.15)', color: '#ffffff', fontSize: '11px', fontWeight: '800', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '6px' }}>
@@ -444,7 +396,6 @@ function App() {
               </button>
             </div>
 
-            {/* ✅ మళ్లీ యాడ్ చేసిన 5 Exam Selector Tabs */}
             <div style={{ width: '100%', backgroundColor: '#ffffff', padding: '14px 18px', borderRadius: '16px', border: '1px solid #e2e8f0', boxSizing: 'border-box', marginBottom: '25px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
                 {['JEE Main', 'JEE Advanced', 'TG EAPCET', 'AP EAPCET', 'IPE-2027'].map((exam) => (
@@ -478,7 +429,7 @@ function App() {
         )}
       </div>
 
-      {/* 🎯 🌟 Scorecard Modal (FIXED SCROLL, JPG FIX, CHEMKIS, FULL NAME & SEC-A COLOR) 🌟 🎯 */}
+      {/* 🎯 🌟 Scorecard Modal 🌟 🎯 */}
       {scoreData && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 99999, padding: '15px', boxSizing: 'border-box' }}>
           
@@ -509,7 +460,6 @@ function App() {
             </div>
 
             <div style={{ padding: '15px 25px', flex: 1 }}>
-              {/* స్టూడెంట్ నేమ్ కట్ అవ్వకుండా ఫుల్ గా రావడానికి flex: '2' వాడాను */}
               <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '10px', marginBottom: '15px', width: '100%' }}>
                 {[
                   { label: "Student Name:", value: scoreData.studentInfo?.name || "N/A", flex: '2' },
@@ -533,7 +483,6 @@ function App() {
                   <div style={{ background: 'linear-gradient(90deg, #14532d, #22c55e)', color: 'white', textAlign: 'center', padding: '8px', borderRadius: '25px', fontWeight: 'bold', fontSize: '13px' }}>Physics</div>
                   <div style={{ background: 'linear-gradient(90deg, #b45309, #eab308)', color: 'white', textAlign: 'center', padding: '8px', borderRadius: '25px', fontWeight: 'bold', fontSize: '13px' }}>Chemistry</div>
 
-                  {/* Section A - Light Indigo కలర్ */}
                   <div style={{ backgroundColor: '#e0e7ff', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#4338ca', padding: '10px', fontSize: '13px' }}>Section A</div>
                   {[
                     { subj: 'Mathematics', sec: 'A' },
@@ -548,7 +497,6 @@ function App() {
                     </div>
                   ))}
 
-                  {/* Section B - Light Blue కలర్ */}
                   <div style={{ backgroundColor: '#bae6fd', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#0369a1', padding: '10px', fontSize: '13px' }}>Section B</div>
                   {[
                     { subj: 'Mathematics', sec: 'B' },
@@ -584,26 +532,39 @@ function App() {
                   </div>
                 </div>
 
-                {/* ✨ టోటల్ మార్క్స్ (కుడి వైపు Congratulations & Chemki) ✨ */}
+                {/* 🏆 హైలైట్ చేసిన టోటల్ మార్క్స్ & గోల్డ్ Cursive Text */}
                 <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '15px', flex: '0.8' }}>
                   <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', color: '#0f172a' }}>Total Marks</h3>
                   <div style={{ background: '#1e293b', borderRadius: '10px', padding: '15px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'white', border: '2px solid #334155', position: 'relative', overflow: 'hidden' }}>
                     
+                    {/* లెఫ్ట్: మార్క్స్ (Bright White & Gold) */}
                     <div style={{ zIndex: 2 }}>
-                      <div style={{ fontSize: '12px', marginBottom: '4px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px' }}>Grand Total</div>
-                      <div style={{ fontSize: '36px', fontWeight: '900', color: '#fbbf24' }}>
-                        {scoreData.totalMarks ?? 0} <span style={{ fontSize: '20px', fontWeight: '600', color: '#64748b' }}>/ 300</span>
+                      <div style={{ fontSize: '14px', marginBottom: '4px', color: '#ffffff', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '1.5px' }}>Grand Total</div>
+                      <div style={{ fontSize: '42px', fontWeight: '900', color: '#fbbf24' }}>
+                        {scoreData.totalMarks ?? 0} <span style={{ fontSize: '24px', fontWeight: '800', color: '#ffffff' }}>/ 300</span>
                       </div>
                     </div>
                     
-                    {/* రైట్ సైడ్ సింబల్ + Congratulations + Chemki (Sparkles) */}
-                    <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', borderLeft: '1px dashed #475569', paddingLeft: '20px', minWidth: '110px' }}>
-                      <div style={{ position: 'absolute', top: '-5px', left: '10px', fontSize: '14px' }}>✨</div>
-                      <div style={{ position: 'absolute', bottom: '15px', right: '-5px', fontSize: '16px' }}>🌟</div>
-                      <div style={{ position: 'absolute', top: '15px', right: '0px', fontSize: '12px' }}>✨</div>
+                    {/* రైట్: ఐకాన్ & Cursive "Congratulations" */}
+                    <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', borderLeft: '1px dashed #475569', paddingLeft: '15px', minWidth: '140px' }}>
+                      <div style={{ position: 'absolute', top: '-10px', left: '10px', fontSize: '16px' }}>✨</div>
+                      <div style={{ position: 'absolute', bottom: '15px', right: '-15px', fontSize: '18px' }}>🌟</div>
+                      <div style={{ position: 'absolute', top: '15px', right: '-5px', fontSize: '14px' }}>✨</div>
                       
-                      <div style={{ fontSize: '32px', filter: 'drop-shadow(0 0 6px rgba(251, 191, 36, 0.4))', marginBottom: '4px' }}>🎯</div>
-                      <div style={{ color: '#fbbf24', fontSize: '11px', fontWeight: '800', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Congratulations!</div>
+                      <div style={{ fontSize: '32px', filter: 'drop-shadow(0 0 6px rgba(251, 191, 36, 0.4))', marginBottom: '2px' }}>🎯</div>
+                      
+                      {/* ఫ్యాన్సీ గోల్డ్ కర్సివ్ స్టైల్ */}
+                      <div style={{ 
+                        fontFamily: '"Brush Script MT", "Great Vibes", "Lucinda Handwriting", cursive', 
+                        fontSize: '28px', 
+                        background: 'linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c)', 
+                        WebkitBackgroundClip: 'text', 
+                        WebkitTextFillColor: 'transparent', 
+                        transform: 'rotate(-6deg)',
+                        lineHeight: '1.2'
+                      }}>
+                        Congratulations
+                      </div>
                     </div>
 
                   </div>
