@@ -121,28 +121,6 @@ export default function ExamConsole({ activeExam, currentThemeColor, handleDocCl
             </button>
           </div>
 
-          {/* 2. City Intimation Slip (JEE Main Only) */}
-          {activeExam === 'JEE Main' && (
-            <div className="modern-doc-card">
-              <div style={{ width: '50px', height: '50px', borderRadius: '12px', background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', marginBottom: '12px' }}>
-                🗺️
-              </div>
-              <h4 style={{ margin: '0 0 16px 0', fontSize: '15px', fontWeight: '700', color: '#1e293b' }}>
-                City Intimation Slip
-              </h4>
-              <button 
-                onClick={() => handleJeeCardClick('city', 'City Intimation Slip')}
-                className="modern-action-btn"
-                style={{ 
-                  backgroundColor: docColors.city,
-                  boxShadow: '0 4px 12px rgba(0, 105, 92, 0.25)'
-                }}
-              >
-                View & Print
-              </button>
-            </div>
-          )}
-
           {/* 3. Second Card (Admit Card / 2nd Year) */}
           <div className="modern-doc-card">
             <div style={{ width: '50px', height: '50px', borderRadius: '12px', background: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', marginBottom: '12px' }}>
