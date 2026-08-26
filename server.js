@@ -8,7 +8,7 @@ const cheerio = require('cheerio');
 
 const app = express();
 
-// 1. మిడిల్‌వేర్ మరియు CORS సెట్టింగ్స్
+// 1. మిడిల్వేర్ మరియు CORS సెట్టింగ్స్
 app.use(express.json());
 app.use(cors({
     origin: '*',
@@ -77,7 +77,7 @@ app.post('/api/student-login', (req, res) => {
     });
 });
 
-// 5. డైనమిక్ డాక్యుమెంట్ డౌన్‌లోడ్ API రౌట్
+// 5. డైనమిక్ డాక్యుమెంట్ డౌన్లోడ్ API రౌట్
 app.post('/api/download-doc', (req, res) => {
     const { admissionNumber, examType, docType, subOption } = req.body;
     const reqAdmissionNum = String(admissionNumber || '').replace(/[^0-9]/g, '').trim();
@@ -94,7 +94,6 @@ app.post('/api/download-doc', (req, res) => {
         if (examType === 'AP EAPCET') examFolder = 'ap-eapcet';
 
         let docFolder = 'application-forms';
-        if (docType === 'city') docFolder = 'city-intimations';
         if (docType === 'admit' || docType === 'hall') docFolder = 'admit-cards';
         if (docType === 'score') docFolder = 'rank-cards';
 
@@ -116,7 +115,7 @@ app.post('/api/download-doc', (req, res) => {
     res.download(filePath, `${reqAdmissionNum}.pdf`);
 });
 
-// 6. పబ్లిక్ నోటీసుల PDF ఫైల్స్ డౌన్‌లోడ్ రౌట్
+// 6. పబ్లిక్ నోటీసుల PDF ఫైల్స్ డౌన్లోడ్ రౌట్
 app.get('/public-docs/:fileName', (req, res) => {
     const fileName = req.params.fileName;
     const filePath = path.join(__dirname, 'public-docs', fileName);
@@ -130,7 +129,7 @@ app.get('/public-docs/:fileName', (req, res) => {
     fs.createReadStream(filePath).pipe(res);
 });
 
-// 7. డైనమిక్ PDF ఫైల్ డౌన్‌లోడ్ రౌట్ (అడ్మిషన్ నంబర్ లేదా నేరుగా ఫైల్ పేరుతో)
+// 7. డైనమిక్ PDF ఫైల్ డౌన్లోడ్ రౌట్ (అడ్మిషన్ నంబర్ లేదా నేరుగా ఫైల్ పేరుతో)
 app.get('/:filename', (req, res, next) => {
     if (!req.params.filename.endsWith('.pdf')) return next();
 
@@ -142,7 +141,6 @@ app.get('/:filename', (req, res, next) => {
         'application-forms',
         path.join('application-forms', 'session-1'),
         path.join('application-forms', 'session-2'),
-        'city-intimations',
         'rank-cards',
         '1st-year',
         '2nd-year',
@@ -170,7 +168,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
     if (!url) return res.status(400).json({ success: false, message: "రెస్పాన్స్ షీట్ URL అవసరం!" });
 
     try {
-        // A. రెస్పాన్స్ షీట్ HTML డౌన్‌లోడ్
+        // A. రెస్పాన్స్ షీట్ HTML డౌన్లోడ్
         const response = await axios.get(url, { 
             timeout: 25000,
             headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
@@ -193,7 +191,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
         // C. ఎక్సెల్ మాస్టర్ కీ లోడింగ్
         const excelPath = path.join(__dirname, 'JEE_Master_Key.xlsx');
         if (!fs.existsSync(excelPath)) {
-            return res.status(500).json({ success: false, message: "సర్వర్‌లో JEE_Master_Key.xlsx ఫైల్ లభించలేదు!" });
+            return res.status(500).json({ success: false, message: "సర్వర్లో JEE_Master_Key.xlsx ఫైల్ లభించలేదు!" });
         }
         
         const workbook = xlsx.readFile(excelPath);
