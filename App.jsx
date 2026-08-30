@@ -18,20 +18,28 @@ function App() {
   const [evaluatorLoading, setEvaluatorLoading] = useState(false);
   const [evaluatorError, setEvaluatorError] = useState('');
 
-    // 1️⃣ లైవ్ విజిటర్ కౌంటర్ స్టేట్ (REAL VISITORS ONLY - Starts from 1)
-  const [visitorCount, setVisitorCount] = useState("Loading...");
+   // 1️⃣ లైవ్ విజిటర్ కౌంటర్ స్టేట్ (NO LOADING TEXT & INSTANT DISPLAY)
+  const [visitorCount, setVisitorCount] = useState(() => {
+    // లోడింగ్ టెక్స్ట్ లేకుండా.. గతంలో ఉన్న నంబర్‌ని ఇన్‌స్టంట్ గా చూపిస్తుంది
+    return localStorage.getItem("lastVisitorCount") || "---"; 
+  });
   
   useEffect(() => {
-    // కౌంటర్ ఫ్రెష్ గా 1 నుండి మొదలవ్వడానికి కొత్త లింక్ (student-jee-portal-new) వాడాను
-    fetch("https://api.counterapi.dev/v1/student-jee-portal-new/visits/up")
+    const url = "https://api.counterapi.dev/v1/student-portal-live-v3/visits/up?t=" + new Date().getTime();
+    
+    fetch(url, { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
-        // ఒరిజినల్ గా ఎంతమంది విజిట్ చేశారో ఆ కౌంట్ మాత్రమే తీసుకుంటుంది (1, 2, 3...)
         const count = (data && typeof data.count === 'number') ? data.count : 1;
-        setVisitorCount(count.toLocaleString('en-IN'));
+        const formattedCount = count.toLocaleString('en-IN');
+        setVisitorCount(formattedCount);
+        localStorage.setItem("lastVisitorCount", formattedCount); // కొత్త నంబర్ ని సేవ్ చేస్తుంది
       })
       .catch(() => {
-        setVisitorCount("1");
+        // ఇంటర్నెట్ ప్రాబ్లం వల్ల API ఫెయిల్ అయితే పాత నంబర్ అలాగే ఉంచుతుంది
+        if (!localStorage.getItem("lastVisitorCount")) {
+          setVisitorCount("1");
+        }
       });
   }, []);
 
