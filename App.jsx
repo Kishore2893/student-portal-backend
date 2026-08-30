@@ -63,7 +63,7 @@ function App() {
   const handleEvaluate = async () => {
     setEvaluatorError('');
     if (!responseUrl.trim()) {
-      setEvaluatorError("An error occurred while processing the response sheet.!");
+      setEvaluatorError("Please Enter a valid Response Sheet URL.!");
       return;
     }
     setEvaluatorLoading(true); 
