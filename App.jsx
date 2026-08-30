@@ -18,20 +18,20 @@ function App() {
   const [evaluatorLoading, setEvaluatorLoading] = useState(false);
   const [evaluatorError, setEvaluatorError] = useState('');
 
-    // 1️⃣ లైవ్ విజిటర్ కౌంటర్ స్టేట్
+    // 1️⃣ లైవ్ విజిటర్ కౌంటర్ స్టేట్ (REAL VISITORS ONLY - Starts from 1)
   const [visitorCount, setVisitorCount] = useState("Loading...");
+  
   useEffect(() => {
-    fetch("https://api.counterapi.dev/v1/student-jee-portal/visits/up")
+    // కౌంటర్ ఫ్రెష్ గా 1 నుండి మొదలవ్వడానికి కొత్త లింక్ (student-jee-portal-new) వాడాను
+    fetch("https://api.counterapi.dev/v1/student-jee-portal-new/visits/up")
       .then(res => res.json())
       .then(data => {
-        // డేటాలో count లేకపోతే NaN రాకుండా సెట్ చేశాను
-        const count = (data && typeof data.count === 'number') ? data.count : Math.floor(Math.random() * 10) + 1;
-        const totalVisits = 184392 + count;
-        setVisitorCount(totalVisits.toLocaleString('en-IN'));
+        // ఒరిజినల్ గా ఎంతమంది విజిట్ చేశారో ఆ కౌంట్ మాత్రమే తీసుకుంటుంది (1, 2, 3...)
+        const count = (data && typeof data.count === 'number') ? data.count : 1;
+        setVisitorCount(count.toLocaleString('en-IN'));
       })
       .catch(() => {
-        const randomIncrease = Math.floor(Math.random() * 10) + 1;
-        setVisitorCount((184392 + randomIncrease).toLocaleString('en-IN'));
+        setVisitorCount("1");
       });
   }, []);
 
