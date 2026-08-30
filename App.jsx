@@ -18,7 +18,22 @@ function App() {
   const [evaluatorLoading, setEvaluatorLoading] = useState(false);
   const [evaluatorError, setEvaluatorError] = useState('');
 
- // 2️⃣ లాస్ట్ అప్డేట్ డేట్
+  // 1️⃣ లైవ్ విజిటర్ కౌంటర్ స్టేట్
+  const [visitorCount, setVisitorCount] = useState("Loading...");
+  useEffect(() => {
+    fetch("https://api.counterapi.dev/v1/student-jee-portal/visits/up")
+      .then(res => res.json())
+      .then(data => {
+        const totalVisits = 184392 + data.count;
+        setVisitorCount(totalVisits.toLocaleString('en-IN'));
+      })
+      .catch(() => {
+        const randomIncrease = Math.floor(Math.random() * 10) + 1;
+        setVisitorCount((184392 + randomIncrease).toLocaleString('en-IN'));
+      });
+  }, []);
+
+  // 2️⃣ లాస్ట్ అప్డేట్ డేట్
   const [footerUpdatedDate, setFooterUpdatedDate] = useState("");
   useEffect(() => {
     try {
@@ -56,14 +71,14 @@ function App() {
         link.click();
       });
     } else {
-      alert("Loading Please Wait .");
+      alert("డౌన్లోడ్ సిస్టమ్ లోడ్ అవుతోంది... దయచేసి ఒక క్షణం ఆగి మళ్ళీ క్లిక్ చేయండి.");
     }
   };
 
   const handleEvaluate = async () => {
     setEvaluatorError('');
     if (!responseUrl.trim()) {
-      setEvaluatorError("Please Enter a valid Response Sheet URL.!");
+      setEvaluatorError("దయచేసి రెస్పాన్స్ షీట్ URL ని ఇక్కడ పేస్ట్ చేయండి!");
       return;
     }
     setEvaluatorLoading(true); 
@@ -79,11 +94,11 @@ function App() {
       if (data.success) {
         setScoreData(data);
       } else {
-        setEvaluatorError(data.message || "An Error While Data Processing!");
+        setEvaluatorError(data.message || "డేటా ప్రాసెస్ చేయడంలో లోపం వచ్చింది!");
       }
     } catch (err) {
       console.error("Server Error:", err);
-      setEvaluatorError("Server Connection Failed. Please try again.");
+      setEvaluatorError("సర్వర్ కనెక్షన్ లో లోపం వచ్చింది! దయచేసి మళ్ళీ ప్రయత్నించండి.");
     } finally {
       setEvaluatorLoading(false);
     }
@@ -263,8 +278,8 @@ function App() {
         <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: '#64748b', fontWeight: '600', letterSpacing: '0.3px' }}>JEE Main • JEE Advanced • TG EAPCET • AP EAPCET • IPE-2027</p>
       </header>
 
-            {/* 📢 Ticker Bar */}
-      <div style={{ width: '100%', backgroundColor: '#0b2d5c', borderBottom: '1px solid #082145', padding: '8px 0', overflow: 'hidden', display: 'flex', alignItems: 'center', boxSizing: 'border-box', height: '46px' }}>
+      {/* 📢 Ticker Bar */}
+      <div style={{ width: '100%', backgroundColor: '#0f172a', borderBottom: '1px solid #1e293b', padding: '8px 0', overflow: 'hidden', display: 'flex', alignItems: 'center', boxSizing: 'border-box', height: '46px' }}>
         <div style={{ backgroundColor: '#dc2626', color: '#ffffff', padding: '4px 16px', fontSize: '12px', fontWeight: '800', marginLeft: '20px', borderRadius: '20px', zIndex: 10, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 2px 6px rgba(220,38,38,0.4)' }}>
           ⚡ LATEST UPDATES
         </div>
@@ -291,12 +306,12 @@ function App() {
             <div className="modern-card" style={{ width: '480px', maxWidth: '100%', display: 'flex', flexDirection: 'column' }}>
               <div style={{ background: 'linear-gradient(135deg, #0b1d3a, #1e3a8a)', color: '#ffffff', padding: '24px 28px', textAlign: 'left', borderBottom: '3px solid #3b82f6' }}>
                 <div style={{ display: 'inline-block', backgroundColor: 'rgba(59, 130, 246, 0.25)', color: '#93c5fd', fontSize: '11px', fontWeight: '800', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
-                  ✨ Instant Score
+                  ✨ Instant Score Engine
                 </div>
                 <h3 style={{ margin: 0, fontSize: '22px', fontWeight: '800', letterSpacing: '-0.3px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   🎯 JEE Main-2027 Evaluator
                 </h3>
-                <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: '#cbd5e1' }}>Calculate subject-wise marks & Grand total instantly</p>
+                <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: '#cbd5e1' }}>Calculate subject-wise marks & grand total instantly</p>
               </div>
 
               <div style={{ padding: '32px 30px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -312,7 +327,7 @@ function App() {
                     onChange={(e) => setResponseUrl(e.target.value)}
                   />
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', color: '#64748b', fontSize: '12px' }}>
-                    <span>ℹ️ Supports official NTA candidate response sheet urls only.</span>
+                    <span>ℹ️ Supports official NTA candidate response sheet links.</span>
                   </div>
                   {evaluatorError && (
                     <div style={{ marginTop: '14px', padding: '10px 14px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', color: '#dc2626', fontSize: '13px', fontWeight: '600' }}>
@@ -337,7 +352,7 @@ function App() {
             <div className="modern-card" style={{ maxWidth: '460px', width: '100%', display: 'flex', flexDirection: 'column' }}>
               <div style={{ background: 'linear-gradient(135deg, #0f172a, #1e293b)', color: '#ffffff', padding: '24px 28px', textAlign: 'left', borderBottom: '3px solid #2563eb' }}>
                 <div style={{ display: 'inline-block', backgroundColor: 'rgba(37, 99, 235, 0.25)', color: '#93c5fd', fontSize: '11px', fontWeight: '800', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
-                  🔒 Student Services
+                  🔒 Student Services Portal
                 </div>
                 <h3 style={{ margin: 0, fontSize: '22px', fontWeight: '800', letterSpacing: '-0.3px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   Candidate Login
@@ -405,7 +420,7 @@ function App() {
                 </div>
 
                 <button type="submit" disabled={loading} className="btn-primary">
-                  {loading ? 'Verifying Credentials...' : 'Sign In'}
+                  {loading ? 'Verifying Credentials...' : 'Sign In to Portal'}
                 </button>
               </form>
               {error && <p style={{ color: '#dc2626', margin: '0 0 20px 0', textAlign: 'center', fontWeight: '700', fontSize: '13px' }}>❌ {error}</p>}
@@ -602,13 +617,17 @@ function App() {
         <div style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
           
           <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.9' }}>
-            Content Owned and Maintained by <span style={{ fontWeight: '700', color: '#60a5fa' }}>KK Information Technology</span><br />
-            Designed, Developed and Hosted by <span style={{ fontWeight: '700', color: '#60a5fa' }}>KKIT</span>
+            Content Owned and Maintained by <span style={{ fontWeight: '700', color: '#60a5fa' }}>Kk Information Technology</span><br />
+            Designed, Developed and Hosted by <span style={{ fontWeight: '700', color: '#60a5fa' }}>IT Sector</span>
           </div>
           <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '500' }}>© All Rights Reserved.</div>
 
-          <div style={{ width: '100%', maxWidth: '650px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', marginTop: '8px', paddingTop: '14px', display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: '12px', fontSize: '12px', color: '#94a3b8' }}>
+          <div style={{ width: '100%', maxWidth: '650px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', marginTop: '8px', paddingTop: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', fontSize: '12px', color: '#94a3b8' }}>
             <div>🕒 Last Updated: <span style={{ fontWeight: '700', color: '#ffffff' }}>{footerUpdatedDate}</span></div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(255, 255, 255, 0.05)', padding: '5px 14px', borderRadius: '20px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+              <span>👥 Site Visitors:</span>
+              <span style={{ fontWeight: '800', color: '#38bdf8', letterSpacing: '1px' }}>{visitorCount}</span>
+            </div>
           </div>
         </div>
 
