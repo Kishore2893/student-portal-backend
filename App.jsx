@@ -602,8 +602,8 @@ function App() {
         <div style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
           
           <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.9' }}>
-            Content Owned and Maintained by <span style={{ fontWeight: '700', color: '#60a5fa' }}>Kk Information Technology</span><br />
-            Designed, Developed and Hosted by <span style={{ fontWeight: '700', color: '#60a5fa' }}>IT Sector</span>
+            Content Owned and Maintained by <span style={{ fontWeight: '700', color: '#60a5fa' }}>KK Information Technology</span><br />
+            Designed, Developed and Hosted by <span style={{ fontWeight: '700', color: '#60a5fa' }}>KKIT</span>
           </div>
           <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '500' }}>© All Rights Reserved.</div>
 
