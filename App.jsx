@@ -18,22 +18,7 @@ function App() {
   const [evaluatorLoading, setEvaluatorLoading] = useState(false);
   const [evaluatorError, setEvaluatorError] = useState('');
 
-  // 1️⃣ లైవ్ విజిటర్ కౌంటర్ స్టేట్
-  const [visitorCount, setVisitorCount] = useState("Loading...");
-  useEffect(() => {
-    fetch("https://api.counterapi.dev/v1/student-jee-portal/visits/up")
-      .then(res => res.json())
-      .then(data => {
-        const totalVisits = 184392 + data.count;
-        setVisitorCount(totalVisits.toLocaleString('en-IN'));
-      })
-      .catch(() => {
-        const randomIncrease = Math.floor(Math.random() * 10) + 1;
-        setVisitorCount((184392 + randomIncrease).toLocaleString('en-IN'));
-      });
-  }, []);
-
-  // 2️⃣ లాస్ట్ అప్డేట్ డేట్
+ // 2️⃣ లాస్ట్ అప్డేట్ డేట్
   const [footerUpdatedDate, setFooterUpdatedDate] = useState("");
   useEffect(() => {
     try {
@@ -420,7 +405,7 @@ function App() {
                 </div>
 
                 <button type="submit" disabled={loading} className="btn-primary">
-                  {loading ? 'Verifying Credentials...' : 'Sign In to Portal'}
+                  {loading ? 'Verifying Credentials...' : 'Sign In'}
                 </button>
               </form>
               {error && <p style={{ color: '#dc2626', margin: '0 0 20px 0', textAlign: 'center', fontWeight: '700', fontSize: '13px' }}>❌ {error}</p>}
@@ -617,17 +602,13 @@ function App() {
         <div style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
           
           <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.9' }}>
-            Content Owned and Maintained by <span style={{ fontWeight: '700', color: '#60a5fa' }}>Kk Information Technology</span><br />
-            Designed, Developed and Hosted by <span style={{ fontWeight: '700', color: '#60a5fa' }}>IT Sector</span>
+            Content Owned and Maintained by <span style={{ fontWeight: '700', color: '#60a5fa' }}>KK Information Technology</span><br />
+            Designed, Developed and Hosted by <span style={{ fontWeight: '700', color: '#60a5fa' }}>KKIT</span>
           </div>
           <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '500' }}>© All Rights Reserved.</div>
 
           <div style={{ width: '100%', maxWidth: '650px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', marginTop: '8px', paddingTop: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', fontSize: '12px', color: '#94a3b8' }}>
             <div>🕒 Last Updated: <span style={{ fontWeight: '700', color: '#ffffff' }}>{footerUpdatedDate}</span></div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: 'rgba(255, 255, 255, 0.05)', padding: '5px 14px', borderRadius: '20px', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
-              <span>👥 Site Visitors:</span>
-              <span style={{ fontWeight: '800', color: '#38bdf8', letterSpacing: '1px' }}>{visitorCount}</span>
-            </div>
           </div>
         </div>
 
