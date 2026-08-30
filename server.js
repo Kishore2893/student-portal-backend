@@ -392,7 +392,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
 
     } catch (error) {
         console.error("[Evaluation Error]", error.message);
-        res.status(500).json({ success: false, message: "రెస్పాన్స్ షీట్ లోపల డేటాను ఎవాల్యుయేట్ చేయడంలో లోపం వచ్చింది!" });
+        res.status(500).json({ success: false, message: "An error while Processing Data.!" });
     }
 });
 
