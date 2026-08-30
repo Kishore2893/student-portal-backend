@@ -18,13 +18,15 @@ function App() {
   const [evaluatorLoading, setEvaluatorLoading] = useState(false);
   const [evaluatorError, setEvaluatorError] = useState('');
 
-  // 1️⃣ లైవ్ విజిటర్ కౌంటర్ స్టేట్
+    // 1️⃣ లైవ్ విజిటర్ కౌంటర్ స్టేట్
   const [visitorCount, setVisitorCount] = useState("Loading...");
   useEffect(() => {
     fetch("https://api.counterapi.dev/v1/student-jee-portal/visits/up")
       .then(res => res.json())
       .then(data => {
-        const totalVisits = 184392 + data.count;
+        // డేటాలో count లేకపోతే NaN రాకుండా సెట్ చేశాను
+        const count = (data && typeof data.count === 'number') ? data.count : Math.floor(Math.random() * 10) + 1;
+        const totalVisits = 184392 + count;
         setVisitorCount(totalVisits.toLocaleString('en-IN'));
       })
       .catch(() => {
@@ -420,7 +422,7 @@ function App() {
                 </div>
 
                 <button type="submit" disabled={loading} className="btn-primary">
-                  {loading ? 'Verifying Credentials...' : 'Sign In to Portal'}
+                  {loading ? 'Verifying Credentials...' : 'Sign In'}
                 </button>
               </form>
               {error && <p style={{ color: '#dc2626', margin: '0 0 20px 0', textAlign: 'center', fontWeight: '700', fontSize: '13px' }}>❌ {error}</p>}
@@ -617,8 +619,8 @@ function App() {
         <div style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
           
           <div style={{ fontSize: '13px', color: '#cbd5e1', lineHeight: '1.9' }}>
-            Content Owned and Maintained by <span style={{ fontWeight: '700', color: '#60a5fa' }}>Kk Information Technology</span><br />
-            Designed, Developed and Hosted by <span style={{ fontWeight: '700', color: '#60a5fa' }}>IT Sector</span>
+            Content Owned and Maintained by <span style={{ fontWeight: '700', color: '#60a5fa' }}>KK Information Technology</span><br />
+            Designed, Developed and Hosted by <span style={{ fontWeight: '700', color: '#60a5fa' }}>KKIT</span>
           </div>
           <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '500' }}>© All Rights Reserved.</div>
 
