@@ -85,10 +85,11 @@ function App() {
     }
   };
 
-  const handleEvaluate = async () => {
+    const handleEvaluate = async () => {
     setEvaluatorError('');
     if (!responseUrl.trim()) {
-      setEvaluatorError("దయచేసి రెస్పాన్స్ షీట్ URL ని ఇక్కడ పేస్ట్ చేయండి!");
+      // పాత తెలుగు మెసేజ్ తీసేసి ప్రొఫెషనల్ ఇంగ్లీష్ మెసేజ్ పెట్టాను
+      setEvaluatorError("Please enter a valid Candidate Response Sheet URL.");
       return;
     }
     setEvaluatorLoading(true); 
@@ -104,11 +105,13 @@ function App() {
       if (data.success) {
         setScoreData(data);
       } else {
-        setEvaluatorError(data.message || "డేటా ప్రాసెస్ చేయడంలో లోపం వచ్చింది!");
+        // సర్వర్ ఎర్రర్ మెసేజ్ 
+        setEvaluatorError(data.message || "An error occurred while processing the response sheet.");
       }
     } catch (err) {
       console.error("Server Error:", err);
-      setEvaluatorError("సర్వర్ కనెక్షన్ లో లోపం వచ్చింది! దయచేసి మళ్ళీ ప్రయత్నించండి.");
+      // ఇంటర్నెట్ లేదా సర్వర్ కనెక్షన్ ప్రాబ్లం మెసేజ్
+      setEvaluatorError("Server connection failed. Please try again later.");
     } finally {
       setEvaluatorLoading(false);
     }
