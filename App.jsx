@@ -18,18 +18,6 @@ function App() {
   const [evaluatorLoading, setEvaluatorLoading] = useState(false);
   const [evaluatorError, setEvaluatorError] = useState('');
 
-  // 2️⃣ లాస్ట్ అప్డేట్ డేట్
-  const [footerUpdatedDate, setFooterUpdatedDate] = useState("");
-  useEffect(() => {
-    try {
-      const modifiedDate = new Date(document.lastModified);
-      const options = { year: 'numeric', month: 'short', day: 'numeric' };
-      setFooterUpdatedDate(modifiedDate.toLocaleDateString('en-US', options));
-    } catch (e) {
-      setFooterUpdatedDate("Aug 26, 2026");
-    }
-  }, []);
-
   // 3️⃣ ఇమేజ్ డౌన్లోడ్ చేయడానికి html2canvas స్క్రిప్ట్ ఆటోమేటిక్ గా లోడ్ అవుతుంది
   useEffect(() => {
     if (!document.getElementById('html2canvas-script')) {
@@ -167,13 +155,14 @@ function App() {
 
   const examThemes = {
     'JEE Main': 'linear-gradient(135deg, #0d47a1, #1976d2)',        
-    'JEE Advanced': 'linear-gradient(135deg, #2d5a27, #4caf50)',    
+    'JEE Advanced': 'linear-gradient(135deg, #2d5a27, #4caf50)',
+    'BITSAT': 'linear-gradient(135deg, #e65100, #ff8f00)',    
     'TG EAPCET': 'linear-gradient(135deg, #880e4f, #ad1457)',       
     'AP EAPCET': 'linear-gradient(135deg, #004d40, #00695c)',       
     'IPE-2027': 'linear-gradient(135deg, #be8160, #512da8)' 
   };
 
-  const currentThemeColor = activeExam === 'JEE Main' ? '#0043a4' : activeExam === 'JEE Advanced' ? '#2d5a27' : activeExam === 'TG EAPCET' ? '#880e4f' : activeExam === 'AP EAPCET' ? '#00695c' : '#512da8';
+    const currentThemeColor = activeExam === 'JEE Main' ? '#0043a4' : activeExam === 'JEE Advanced' ? '#2d5a27' : activeExam === 'BITSAT' ? '#e65100' : activeExam === 'TG EAPCET' ? '#880e4f' : activeExam === 'AP EAPCET' ? '#00695c' : '#512da8';
 
   useEffect(() => { 
     document.title = "IIT JEE Analysis"; 
@@ -405,7 +394,7 @@ function App() {
                 </div>
 
                 <button type="submit" disabled={loading} className="btn-primary">
-                  {loading ? 'Verifying Credentials...' : 'Sign In'}
+                  {loading ? 'Signing in...' : 'Sign In'}
                 </button>
               </form>
               {error && <p style={{ color: '#dc2626', margin: '0 0 20px 0', textAlign: 'center', fontWeight: '700', fontSize: '13px' }}>❌ {error}</p>}
@@ -606,11 +595,7 @@ function App() {
             Designed, Developed and Hosted by <span style={{ fontWeight: '700', color: '#60a5fa' }}>KKIT</span>
           </div>
           <div style={{ fontSize: '12px', color: '#94a3b8', fontWeight: '500' }}>© All Rights Reserved.</div>
-
-          <div style={{ width: '100%', maxWidth: '650px', borderTop: '1px solid rgba(255, 255, 255, 0.1)', marginTop: '8px', paddingTop: '14px', display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap', gap: '12px', fontSize: '12px', color: '#94a3b8' }}>
-            <div>🕒 Last Updated: <span style={{ fontWeight: '700', color: '#ffffff' }}>{footerUpdatedDate}</span></div>
           </div>
-        </div>
 
         {showTimeoutModal && (
           <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.6)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 99999 }}>
