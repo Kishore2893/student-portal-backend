@@ -51,7 +51,7 @@ function App() {
   const handleEvaluate = async () => {
     setEvaluatorError('');
     if (!responseUrl.trim()) {
-      setEvaluatorError("దయచేసి రెస్పాన్స్ షీట్ URL ని ఇక్కడ పేస్ట్ చేయండి!");
+      setEvaluatorError("Please paste the official Response Sheet URL to proceed!");
       return;
     }
     setEvaluatorLoading(true); 
@@ -316,7 +316,7 @@ function App() {
                     disabled={evaluatorLoading}
                     className="btn-primary"
                   >
-                    {evaluatorLoading ? '⏳ Please Wait...' : '⚡ Calculate Score'}
+                    {evaluatorLoading ? '⏳ Please Wait...' : '⚡ Evaluate Response'}
                   </button>
                 </div>
               </div>
