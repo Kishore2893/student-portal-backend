@@ -316,7 +316,7 @@ function App() {
                     disabled={evaluatorLoading}
                     className="btn-primary"
                   >
-                    {evaluatorLoading ? '⏳ Evaluating Response Sheet...' : '⚡ Calculate Score'}
+                    {evaluatorLoading ? '⏳ Please Wait...' : '⚡ Calculate Score'}
                   </button>
                 </div>
               </div>
@@ -464,7 +464,7 @@ function App() {
                 </div>
                 <div>
                   <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '800', color: '#ffffff', letterSpacing: '0.5px' }}>JEE-Main Response Report</h2>
-                  <div style={{ color: '#94a3b8', fontSize: '12px', fontWeight: '500', marginTop: '2px' }}>Official Subject-Wise Performance Analysis</div>
+                  <div style={{ color: '#94a3b8', fontSize: '12px', fontWeight: '500', marginTop: '2px' }}>Subject-Wise Performance Analysis</div>
                 </div>
               </div>
               
@@ -555,28 +555,31 @@ function App() {
                   </div>
                 </div>
 
-                {/* ✨ టోటల్ మార్క్స్ (కుడి వైపు Congratulations & Chemki) ✨ */}
-                <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '15px', flex: '0.8' }}>
+                                {/* ✨ టోటల్ మార్క్స్ (Premium Minimalist Design) ✨ */}
+                <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '15px', flex: '0.8', display: 'flex', flexDirection: 'column' }}>
                   <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', color: '#0f172a' }}>Total Marks</h3>
-                  <div style={{ background: '#1e293b', borderRadius: '10px', padding: '15px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'white', border: '2px solid #334155', position: 'relative', overflow: 'hidden' }}>
-                    
-                    <div style={{ zIndex: 2 }}>
-                      <div style={{ fontSize: '12px', marginBottom: '4px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '1px' }}>Grand Total</div>
-                      <div style={{ fontSize: '36px', fontWeight: '900', color: '#fbbf24' }}>
-                        {scoreData.totalMarks ?? 0} <span style={{ fontSize: '20px', fontWeight: '600', color: '#64748b' }}>/ 300</span>
+                  <div style={{ 
+                    background: 'linear-gradient(145deg, #0f172a 0%, #1e293b 100%)', 
+                    borderRadius: '10px', 
+                    padding: '20px', 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center', 
+                    color: 'white', 
+                    border: '1px solid #334155', 
+                    boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.05), 0 8px 20px rgba(0,0,0,0.15)',
+                    flex: 1 
+                  }}>
+                    <div style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '2.5px', marginBottom: '8px', fontWeight: '700' }}>
+                        Grand Total Score
                       </div>
+                      <div style={{ fontSize: '46px', fontWeight: '900', color: '#ffffff', letterSpacing: '-1px', display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '6px' }}>
+                        {scoreData.totalMarks ?? 0} 
+                        <span style={{ fontSize: '18px', fontWeight: '600', color: '#64748b', letterSpacing: '0' }}>/ 300</span>
+                      </div>
+                      <div style={{ width: '40px', height: '3px', background: 'linear-gradient(90deg, #3b82f6, #60a5fa)', margin: '12px auto 0 auto', borderRadius: '4px' }}></div>
                     </div>
-                    
-                    {/* రైట్ సైడ్ సింబల్ + Congratulations + Chemki (Sparkles) */}
-                    <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', borderLeft: '1px dashed #475569', paddingLeft: '20px', minWidth: '110px' }}>
-                      <div style={{ position: 'absolute', top: '-5px', left: '10px', fontSize: '14px' }}>✨</div>
-                      <div style={{ position: 'absolute', bottom: '15px', right: '-5px', fontSize: '16px' }}>🌟</div>
-                      <div style={{ position: 'absolute', top: '15px', right: '0px', fontSize: '12px' }}>✨</div>
-                      
-                      <div style={{ fontSize: '32px', filter: 'drop-shadow(0 0 6px rgba(251, 191, 36, 0.4))', marginBottom: '4px' }}>🎯</div>
-                      <div style={{ color: '#fbbf24', fontSize: '11px', fontWeight: '800', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Congratulations!</div>
-                    </div>
-
                   </div>
                 </div>
               </div>
