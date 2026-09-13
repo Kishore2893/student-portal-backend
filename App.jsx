@@ -418,7 +418,7 @@ function App() {
             {/* ✅ మళ్లీ యాడ్ చేసిన 5 Exam Selector Tabs */}
             <div style={{ width: '100%', backgroundColor: '#ffffff', padding: '14px 18px', borderRadius: '16px', border: '1px solid #e2e8f0', boxSizing: 'border-box', marginBottom: '25px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
               <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                {['JEE Main', 'JEE Advanced', 'TG EAPCET', 'AP EAPCET', 'IPE-2027'].map((exam) => (
+                {['JEE Main', 'JEE Advanced', 'BITSAT', 'TG EAPCET', 'AP EAPCET', 'IPE-2027'].map((exam) => (
                   <button
                     key={exam}
                     onClick={() => setActiveExam(exam)}
