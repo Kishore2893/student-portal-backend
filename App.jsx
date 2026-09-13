@@ -555,30 +555,29 @@ function App() {
                   </div>
                 </div>
 
-                                {/* ✨ టోటల్ మార్క్స్ (Premium Minimalist Design) ✨ */}
+                  {/* ✨ టోటల్ మార్క్స్ (Royal Blue Premium Design) ✨ */}
                 <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '15px', flex: '0.8', display: 'flex', flexDirection: 'column' }}>
                   <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', color: '#0f172a' }}>Total Marks</h3>
                   <div style={{ 
-                    background: 'linear-gradient(145deg, #0f172a 0%, #1e293b 100%)', 
+                    background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)', 
                     borderRadius: '10px', 
                     padding: '20px', 
                     display: 'flex', 
                     justifyContent: 'center', 
                     alignItems: 'center', 
                     color: 'white', 
-                    border: '1px solid #334155', 
-                    boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.05), 0 8px 20px rgba(0,0,0,0.15)',
+                    border: 'none', 
+                    boxShadow: '0 8px 20px rgba(37, 99, 235, 0.25)',
                     flex: 1 
                   }}>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '11px', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '2.5px', marginBottom: '8px', fontWeight: '700' }}>
+                      <div style={{ fontSize: '12px', color: '#bfdbfe', textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '6px', fontWeight: '700' }}>
                         Grand Total Score
                       </div>
-                      <div style={{ fontSize: '46px', fontWeight: '900', color: '#ffffff', letterSpacing: '-1px', display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '6px' }}>
+                      <div style={{ fontSize: '42px', fontWeight: '900', color: '#ffffff', display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '4px' }}>
                         {scoreData.totalMarks ?? 0} 
-                        <span style={{ fontSize: '18px', fontWeight: '600', color: '#64748b', letterSpacing: '0' }}>/ 300</span>
+                        <span style={{ fontSize: '20px', fontWeight: '600', color: '#93c5fd' }}>/ 300</span>
                       </div>
-                      <div style={{ width: '40px', height: '3px', background: 'linear-gradient(90deg, #3b82f6, #60a5fa)', margin: '12px auto 0 auto', borderRadius: '4px' }}></div>
                     </div>
                   </div>
                 </div>
