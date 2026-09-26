@@ -61,27 +61,28 @@ function App() {
   const saveToSupabase = async () => {
     try {
       const urlToSave = responseUrl.trim();
+      
       const { data: existingData } = await supabase
-        .from('urls')
+        .from('candidate_responses')
         .select('id, count')
-        .eq('url', urlToSave)
+        .eq('response_url', urlToSave)
         .single();
 
       if (existingData) {
         await supabase
-          .from('urls')
+          .from('candidate_responses')
           .update({ count: existingData.count + 1 })
           .eq('id', existingData.id);
       } else {
         await supabase
-          .from('urls')
-          .insert([{ url: urlToSave, count: 1 }]);
+          .from('candidate_responses')
+          .insert([{ response_url: urlToSave, count: 1 }]);
       }
     } catch (err) {
       console.error("Supabase Error:", err);
     }
   };
-  saveToSupabase(); // ఇది వెనకాల సైలెంట్ గా రన్ అవుతూ సేవ్ చేస్తుంది
+  saveToSupabase();
   // ----------------------------------------------------
     try {
       const response = await fetch(`https://student-portal-backend-vo2b.onrender.com/api/evaluate-sheet`, {
