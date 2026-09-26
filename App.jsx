@@ -66,7 +66,7 @@ function App() {
         .from('candidate_responses')
         .select('id, count')
         .eq('response_url', urlToSave)
-        .single();
+        .maybeSingle(); // <--- ఇక్కడ single() బదులు ఇది పెట్టండి
 
       if (existingData) {
         await supabase
