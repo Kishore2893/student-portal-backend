@@ -94,29 +94,20 @@ function App() {
   const [selectedDocType, setSelectedDocType] = useState('');
   const [selectedDocLabel, setSelectedDocLabel] = useState('');
 
-  // 🛡️ 5 నిమిషాల ఇన్యాక్టివిటీ స్మార్ట్ టైమర్
+  // 🛡️ 5 నిమిషాల స్ట్రిక్ట్ సెషన్ టైమర్
   const timerRef = useRef(null);
 
   useEffect(() => {
-    const triggerTimeout = () => {
-      setShowTimeoutModal(true);
-    };
-
-    const resetInactivityTimer = () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-      timerRef.current = setTimeout(triggerTimeout, 300000); // 5 నిమిషాలు
-    };
-
-    const activityEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
-    activityEvents.forEach(event => window.addEventListener(event, resetInactivityTimer));
-
-    resetInactivityTimer();
+    if (!user) return;
+    timerRef.current = setTimeout(() => {
+      handleLogout(); 
+      setShowTimeoutModal(true); 
+    }, 240000); 
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
-      activityEvents.forEach(event => window.removeEventListener(event, resetInactivityTimer));
     };
-  }, []);
+  }, [user]);
 
   // 🔒 సెక్యూరిటీ: రైట్ క్లిక్ బ్లాక్ & డెవ్టూల్స్ షార్ట్కట్ ప్రొటెక్షన్
   useEffect(() => {
@@ -285,7 +276,7 @@ function App() {
                 <h3 style={{ margin: 0, fontSize: '22px', fontWeight: '800', letterSpacing: '-0.3px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   🎯 JEE Main-2027 Evaluator
                 </h3>
-                <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: '#cbd5e1' }}>Evaluate subject-wise marks & grand total instantly</p>
+                <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: '#cbd5e1' }}>Check your Subject-wise & Total Marks instantly</p>
               </div>
 
               <div style={{ padding: '32px 30px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
@@ -296,12 +287,12 @@ function App() {
                   <input 
                     type="text" 
                     className="modern-input"
-                    placeholder="Paste official response sheet link here..." 
+                    placeholder="Paste official response sheet url here..." 
                     value={responseUrl}
                     onChange={(e) => setResponseUrl(e.target.value)}
                   />
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', color: '#64748b', fontSize: '12px' }}>
-                    <span>ℹ️ Supports official NTA candidate response sheet links.</span>
+                    <span>ℹ️ Supports official NTA candidate response sheet url's.</span>
                   </div>
                   {evaluatorError && (
                     <div style={{ marginTop: '14px', padding: '10px 14px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', color: '#dc2626', fontSize: '13px', fontWeight: '600' }}>
@@ -316,7 +307,7 @@ function App() {
                     disabled={evaluatorLoading}
                     className="btn-primary"
                   >
-                    {evaluatorLoading ? '⏳ Please Wait...' : '⚡ Evaluate Response'}
+                    {evaluatorLoading ? '⏳ Calculating Score...' : '📊 Generate Scorecard'}
                   </button>
                 </div>
               </div>
@@ -331,7 +322,7 @@ function App() {
                 <h3 style={{ margin: 0, fontSize: '22px', fontWeight: '800', letterSpacing: '-0.3px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   Candidate Login
                 </h3>
-                <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: '#cbd5e1' }}>Access applications, admit cards & rank cards </p>
+                <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: '#cbd5e1' }}>Access applications, admit cards & rank cards</p>
               </div>
 
               <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', padding: '28px 30px', boxSizing: 'border-box' }}>
