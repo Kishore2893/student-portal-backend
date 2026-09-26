@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ExamConsole from './ExamConsole.jsx';
 import Modals from './Modals';
-import { supabase } from './supabase';
 
 function App() {
   const [admissionNumber, setAdmissionNumber] = useState('');
@@ -18,7 +17,7 @@ function App() {
   const [scoreData, setScoreData] = useState(null);
   const [evaluatorLoading, setEvaluatorLoading] = useState(false);
   const [evaluatorError, setEvaluatorError] = useState('');
-  
+
   // 3️⃣ ఇమేజ్ డౌన్లోడ్ చేయడానికి html2canvas స్క్రిప్ట్ ఆటోమేటిక్ గా లోడ్ అవుతుంది
   useEffect(() => {
     if (!document.getElementById('html2canvas-script')) {
@@ -57,33 +56,7 @@ function App() {
     }
     setEvaluatorLoading(true); 
     setScoreData(null);
-      // --- సుపాబేస్ లో URL ని కౌంట్ తో సేవ్ చేసే కోడ్ ---
-  const saveToSupabase = async () => {
-    try {
-      const urlToSave = responseUrl.trim();
-      
-      const { data: existingData } = await supabase
-        .from('candidate_responses')
-        .select('id, count')
-        .eq('response_url', urlToSave)
-        .maybeSingle(); // <--- ఇక్కడ single() బదులు ఇది పెట్టండి
 
-      if (existingData) {
-        await supabase
-          .from('candidate_responses')
-          .update({ count: existingData.count + 1 })
-          .eq('id', existingData.id);
-      } else {
-        await supabase
-          .from('candidate_responses')
-          .insert([{ response_url: urlToSave, count: 1 }]);
-      }
-    } catch (err) {
-      console.error("Supabase Error:", err);
-    }
-  };
-  saveToSupabase();
-  // ----------------------------------------------------
     try {
       const response = await fetch(`https://student-portal-backend-vo2b.onrender.com/api/evaluate-sheet`, {
         method: 'POST',
@@ -276,7 +249,7 @@ function App() {
       {/* 🟦 హెడర్ బ్యానర్ */}
       <header style={{ backgroundColor: '#ffffff', padding: '22px 20px', textAlign: 'center', width: '100%', boxSizing: 'border-box', position: 'relative', borderBottom: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
         <h1 style={{ margin: 0, fontSize: '26px', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.5px' }}>NATIONAL ENTRANCE EXAMS</h1>
-        <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: '#64748b', fontWeight: '600', letterSpacing: '0.3px' }}>JEE Main • JEE Adv • Bitsat • AP & TG Eapcet • IPE</p>
+        <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: '#64748b', fontWeight: '600', letterSpacing: '0.3px' }}>JEE Main • JEE Advanced • TG EAPCET • AP EAPCET • IPE-2027</p>
       </header>
 
       {/* 📢 Ticker Bar */}
