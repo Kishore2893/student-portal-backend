@@ -307,7 +307,7 @@ function App() {
                     disabled={evaluatorLoading}
                     className="btn-primary"
                   >
-                    {evaluatorLoading ? '⏳ Calculating Score...' : '📊 Generate Scorecard'}
+                    {evaluatorLoading ? '⏳ Calculating Score...' : '📊 View Result'}
                   </button>
                 </div>
               </div>
