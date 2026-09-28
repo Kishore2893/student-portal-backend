@@ -279,7 +279,7 @@ function App() {
                 <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: '#cbd5e1' }}>Check your Subject-wise & Total Marks instantly</p>
               </div>
 
-              <div style={{ padding: '32px 30px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'centre' }}>
+              <div style={{ padding: '32px 30px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                 <div>
                   <label style={{ display: 'block', fontWeight: '700', marginBottom: '8px', color: '#1e293b', fontSize: '14px' }}>
                     🔗 Candidate Response Sheet URL:
