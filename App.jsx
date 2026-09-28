@@ -279,7 +279,7 @@ function App() {
                 <p style={{ margin: '6px 0 0 0', fontSize: '13px', color: '#cbd5e1' }}>Check your Subject-wise & Total Marks instantly</p>
               </div>
 
-              <div style={{ padding: '32px 30px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div style={{ padding: '32px 30px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'centre' }}>
                 <div>
                   <label style={{ display: 'block', fontWeight: '700', marginBottom: '8px', color: '#1e293b', fontSize: '14px' }}>
                     🔗 Candidate Response Sheet URL:
@@ -314,7 +314,7 @@ function App() {
             </div>
 
             {/* ─── 🔐 Candidate Login Card ─── */}
-            <div className="modern-card" style={{ maxWidth: '460px', width: '100%', display: 'flex', flexDirection: 'column' }}>
+            <div className="modern-card" style={{ maxWidth: '460px', width: '100%', display: 'none', flexDirection: 'column' }}>
               <div style={{ background: 'linear-gradient(135deg, #0f172a, #1e293b)', color: '#ffffff', padding: '24px 28px', textAlign: 'left', borderBottom: '3px solid #2563eb' }}>
                 <div style={{ display: 'inline-block', backgroundColor: 'rgba(37, 99, 235, 0.25)', color: '#93c5fd', fontSize: '11px', fontWeight: '800', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>
                   🔒 Student Services
