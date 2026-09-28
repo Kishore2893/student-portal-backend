@@ -26,6 +26,12 @@ function App() {
       script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
       document.body.appendChild(script);
     }
+     // 🎓 బ్రౌజర్ ట్యాబ్ లోగోను గ్రాడ్యుయేషన్ క్యాప్‌గా మార్చడానికి పక్కా కోడ్
+    const link = document.querySelector("link[rel~='icon']") || document.createElement('link');
+    link.type = 'image/png';
+    link.rel = 'icon';
+    link.href = 'https://icons8.com';
+    document.getElementsByTagName('head')[0].appendChild(link);
   }, []);
 
   // ఇమేజ్ డౌన్లోడ్ ఫంక్షన్
