@@ -26,15 +26,16 @@ function App() {
       script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
       document.body.appendChild(script);
     }
-     // 🎓 క్యాప్ లోగో కోసం ఈ 7 లైన్ల కోడ్‌ను ఇక్కడ యాడ్ చేయండి 👇
+     // 🎓 క్యాప్ లోగో కోసం పక్కా లోకల్ SVG కోడ్
     let link = document.querySelector("link[rel~='icon']");
     if (!link) {
       link = document.createElement('link');
       link.rel = 'icon';
       document.head.appendChild(link);
     }
-    link.type = 'image/png';
-    link.href = 'https://img.icons8.com/?size=48&id=114322&format=png';
+    link.type = 'image/svg+xml';
+    link.rel = 'icon';
+    link.href = `data:image/svg+xml,<svg xmlns=%22http://w3.org viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎓</text></svg>`;
   }, []);
 
   // ఇమేజ్ డౌన్లోడ్ ఫంక్షన్
