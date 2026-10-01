@@ -2,6 +2,78 @@ import React, { useState, useEffect, useRef } from 'react';
 import ExamConsole from './ExamConsole.jsx';
 import Modals from './Modals';
 
+// వెబ్‌సైట్ ఓపెన్ చేయగానే వచ్చే కొత్త Popup Component ('X' బటన్ లేకుండా)
+const AutoPopup = () => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    setIsOpen(true);
+  }, []);
+
+  if (!isOpen) return null;
+
+  return (
+    <>
+      <style>{`
+        .popup-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); z-index: 999999; justify-content: center; align-items: center; font-family: 'Segoe UI', system-ui, sans-serif; padding: 15px; box-sizing: border-box; backdrop-filter: blur(5px); }
+        .popup-overlay.active { display: flex; }
+        .popup-container-box { background: linear-gradient(135deg, #e0e7ff 0%, #ede9fe 100%); padding: 20px; border-radius: 12px; width: 100%; max-width: 950px; position: relative; box-sizing: border-box; }
+        .popup-content-box { background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15); }
+        .popup-header-box { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); padding: 20px 30px; text-align: center; }
+        .popup-badges { display: flex; justify-content: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+        .popup-badge { background: rgba(255, 255, 255, 0.15); color: #ffffff; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+        .popup-header-box h2 { color: #ffffff; font-size: 22px; margin: 0; line-height: 1.3; }
+        .popup-grid-body { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 25px 30px 15px 30px; }
+        @media (max-width: 768px) { .popup-grid-body { grid-template-columns: 1fr; } }
+        .popup-box-blue { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; }
+        .popup-box-green { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 20px; }
+        .popup-box-blue h3 { margin-top: 0; margin-bottom: 15px; font-size: 16px; color: #0f172a; text-align: left;}
+        .popup-box-green h3 { margin-top: 0; margin-bottom: 15px; font-size: 16px; color: #166534; text-align: left; }
+        .popup-list-item { display: flex; margin-bottom: 12px; align-items: flex-start; }
+        .popup-list-item:last-child { margin-bottom: 0; }
+        .popup-step-num { background: #eff6ff; color: #3b82f6; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold; margin-right: 12px; flex-shrink: 0; border: 2px solid #bfdbfe; }
+        .popup-check-icon { color: #22c55e; margin-right: 10px; font-size: 16px; font-weight: bold; flex-shrink: 0; }
+        .popup-item-text { color: #334155; font-size: 14px; line-height: 1.5; font-weight: 500; text-align: left; }
+        .popup-link-text { color: #2563eb; text-decoration: underline; font-weight: 600; }
+        .popup-footer-box { text-align: center; padding: 0 30px 25px 30px; }
+        .popup-start-btn { background: linear-gradient(135deg, #3b82f6 0%, #4f46e5 100%); color: white; border: none; padding: 14px 40px; font-size: 16px; font-weight: 700; border-radius: 30px; cursor: pointer; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3); }
+      `}</style>
+      <div className="popup-overlay active">
+        <div className="popup-container-box">
+          <div className="popup-content-box">
+            <div className="popup-header-box">
+              <div className="popup-badges">
+                <span className="popup-badge">⚡ Instant Result</span>
+                <span className="popup-badge">🎯 Accurate</span>
+                <span className="popup-badge">🔍 Based on NTA Key</span>
+              </div>
+              <h2>Don’t wait for results — know your score in seconds!</h2>
+            </div>
+            <div className="popup-grid-body">
+              <div className="popup-box-blue">
+                <h3>How to get your response sheet URL?</h3>
+                <div className="popup-list-item"><div className="popup-step-num">1</div><div className="popup-item-text">Open your response sheet on the JEE Main website (<a href="https://jeemain.nta.nic.in/" target="_blank" rel="noreferrer" className="popup-link-text">jeemain.nta.nic.in</a>).</div></div>
+                <div className="popup-list-item"><div className="popup-step-num">2</div><div className="popup-item-text">Copy the response sheet URL from your browser’s address bar.</div></div>
+                <div className="popup-list-item"><div className="popup-step-num">3</div><div className="popup-item-text">Paste it into the required field in the calculator.</div></div>
+              </div>
+              <div className="popup-box-green">
+                <h3>Why use the JEE Main Score Calculator?</h3>
+                <div className="popup-list-item"><div className="popup-check-icon">✓</div><div className="popup-item-text">Instantly know your JEE Main score (based on the NTA answer key).</div></div>
+                <div className="popup-list-item"><div className="popup-check-icon">✓</div><div className="popup-item-text">Get a quick and clear overview of your overall JEE Main exam performance.</div></div>
+                <div className="popup-list-item"><div className="popup-check-icon">✓</div><div className="popup-item-text">Analyze subject-wise scores to identify your strengths.</div></div>
+              </div>
+            </div>
+            <div className="popup-footer-box">
+              {/* ఈ బటన్ క్లిక్ చేస్తేనే పాపప్ క్లోజ్ అయ్యి మీ వెబ్‌సైట్ ఓపెన్ అవుతుంది */}
+              <button className="popup-start-btn" onClick={() => setIsOpen(false)}>Calculate Score Now 🚀</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
 function App() {
   const [admissionNumber, setAdmissionNumber] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
@@ -156,7 +228,7 @@ function App() {
     const currentThemeColor = activeExam === 'JEE Main' ? '#0043a4' : activeExam === 'JEE Advanced' ? '#2d5a27' : activeExam === 'BITSAT' ? '#e65100' : activeExam === 'TG EAPCET' ? '#880e4f' : activeExam === 'AP EAPCET' ? '#00695c' : '#512da8';
 
   useEffect(() => { 
-    document.title = "IIT JEE Analysis"; 
+    document.title = "JEE Main 2027 Score Calculator"; 
     generateCaptcha();
   }, []);
 
@@ -237,6 +309,9 @@ function App() {
   return (
     <div style={{ backgroundColor: '#f1f5f9', minHeight: '100vh', width: '100%', fontFamily: '"Segoe UI", Roboto, sans-serif', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
       
+      {/* 🚀 కొత్తగా యాడ్ చేసిన పాపప్ కాంపోనెంట్ */}
+      <AutoPopup />
+
       {/* 🟦 హెడర్ బ్యానర్ */}
       <header style={{ backgroundColor: '#ffffff', padding: '22px 20px', textAlign: 'center', width: '100%', boxSizing: 'border-box', position: 'relative', borderBottom: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
         <h1 style={{ margin: 0, fontSize: '26px', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.5px' }}>NATIONAL ENTRANCE EXAMS</h1>
