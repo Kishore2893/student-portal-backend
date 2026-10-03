@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import ExamConsole from './ExamConsole.jsx';
 import Modals from './Modals';
 
-// వెబ్‌సైట్ ఓపెన్ చేయగానే వచ్చే కొత్త Popup Component ('X' బటన్ లేకుండా)
+// వెబ్సైట్ ఓపెన్ చేయగానే వచ్చే కొత్త Popup Component ('X' బటన్ లేకుండా)
 const AutoPopup = () => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -64,7 +64,7 @@ const AutoPopup = () => {
               </div>
             </div>
             <div className="popup-footer-box">
-              {/* ఈ బటన్ క్లిక్ చేస్తేనే పాపప్ క్లోజ్ అయ్యి మీ వెబ్‌సైట్ ఓపెన్ అవుతుంది */}
+              {/* ఈ బటన్ క్లిక్ చేస్తేనే పాపప్ క్లోజ్ అయ్యి మీ వెబ్సైట్ ఓపెన్ అవుతుంది */}
               <button className="popup-start-btn" onClick={() => setIsOpen(false)}>Calculate Score Now 🚀</button>
             </div>
           </div>
@@ -89,6 +89,9 @@ function App() {
   const [scoreData, setScoreData] = useState(null);
   const [evaluatorLoading, setEvaluatorLoading] = useState(false);
   const [evaluatorError, setEvaluatorError] = useState('');
+
+  // 🔥 (NEWLY ADDED) URL ఎర్రర్ పాపప్ స్టేట్
+  const [showUrlError, setShowUrlError] = useState(false);
 
   // 3️⃣ ఇమేజ్ డౌన్లోడ్ చేయడానికి html2canvas స్క్రిప్ట్ ఆటోమేటిక్ గా లోడ్ అవుతుంది
   useEffect(() => {
@@ -120,12 +123,33 @@ function App() {
     }
   };
 
+  // 🔥 (MODIFIED) ఒక్క అక్షరం టైప్ చేసినా ఎర్రర్ రాదు, పేస్ట్ చేసినప్పుడు మాత్రమే చెక్ చేస్తుంది
+  const handleUrlChange = (e) => {
+    const inputUrl = e.target.value;
+    setResponseUrl(inputUrl);
+
+    // కనీసం 15 అక్షరాలు (పూర్తి లింక్) ఎంటర్ చేశాక కూడా ఆ ఫార్మాట్ లో లేకపోతేనే పాపప్ వస్తుంది
+    if (inputUrl.trim().length > 15 && !inputUrl.startsWith("https://cdn3.digialm.com")) {
+      setShowUrlError(true);
+      setResponseUrl('');
+    }
+  };
+
+  // 🔥 బటన్ నొక్కినప్పుడు కూడా ఒకసారి చెక్ చేస్తుంది
   const handleEvaluate = async () => {
     setEvaluatorError('');
     if (!responseUrl.trim()) {
       setEvaluatorError("Please paste the official Response Sheet URL to proceed!");
       return;
     }
+
+    // యూజర్ తప్పు URL ఇచ్చి బటన్ నొక్కితే పాపప్ చూపించి ప్రాసెస్ ఆపేస్తుంది
+    if (!responseUrl.startsWith("https://cdn3.digialm.com")) {
+      setShowUrlError(true);
+      setResponseUrl('');
+      return;
+    }
+
     setEvaluatorLoading(true); 
     setScoreData(null);
 
@@ -210,7 +234,9 @@ function App() {
     setUserCaptchaInput(''); 
   };
 
+    // LATEST UPDATES దగ్గర స్క్రోల్ అయ్యే టెక్స్ట్ లిస్ట్
   const tickerTextList = [
+    "🚀 JEE Main 2027 Score Evaluator is LIVE Now!",
     "📝 Application form for JEE(Main)-2027 [Session-I] (B.E. / B.Tech)",
     "📌 Admit Card for JEE(Main)-2027 [Session-I] (B.E. / B.Tech)",
     "🎓 Score Card for JEE(Main)-2027 [Session-I] (B.E. / B.Tech)"
@@ -314,8 +340,8 @@ function App() {
 
       {/* 🟦 హెడర్ బ్యానర్ */}
       <header style={{ backgroundColor: '#ffffff', padding: '22px 20px', textAlign: 'center', width: '100%', boxSizing: 'border-box', position: 'relative', borderBottom: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
-        <h1 style={{ margin: 0, fontSize: '26px', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.5px' }}>NATIONAL ENTRANCE EXAMS</h1>
-        <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#64748b', fontWeight: '600', letterSpacing: '0.2px' }}>JEE Main • JEE Advanced • Bitsat • AP Eapcet • TG Eapcet • IPE</p>
+        <h1 style={{ margin: 0, fontSize: '30px', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.5px' }}>NATIONAL ENTRANCE EXAMS</h1>
+        <p style={{ margin: '6px 0 0 0', fontSize: '14px', color: '#64748b', fontWeight: '600', letterSpacing: '0.2px' }}>JEE Main • JEE Advanced • Bitsat • AP Eapcet • TG Eapcet • IPE</p>
       </header>
 
       {/* 📢 Ticker Bar */}
@@ -364,7 +390,7 @@ function App() {
                     className="modern-input"
                     placeholder="Paste official response sheet url here..." 
                     value={responseUrl}
-                    onChange={(e) => setResponseUrl(e.target.value)}
+                    onChange={handleUrlChange} /* 🔥 (MODIFIED) Changed to our custom handler */
                   />
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '8px', color: '#64748b', fontSize: '12px' }}>
                     <span>ℹ️ Supports official NTA candidate response sheet url's.</span>
@@ -649,6 +675,58 @@ function App() {
                 </div>
               </div>
             </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* 🔥 (NEWLY ADDED) URL ఎర్రర్ పాపప్ (With Blur, Red Icon, 3D Shadow, Blue Button) */}
+      {showUrlError && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(6px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 999999, animation: 'fadeIn 0.3s ease-out' }}>
+          <div style={{ backgroundColor: '#ffffff', padding: '30px 25px', borderRadius: '24px', width: '90%', maxWidth: '380px', position: 'relative', textAlign: 'center', 
+            // 3D షాడో ఎఫెక్ట్
+            boxShadow: '0 25px 60px rgba(0,0,0,0.25), 0 10px 25px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.5)' }}>
+            
+            {/* గుండ్రని క్లోజ్ (X) బటన్ */}
+            <button 
+              style={{ position: 'absolute', top: '15px', right: '15px', background: '#f8fafc', border: 'none', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', cursor: 'pointer', color: '#64748b', transition: 'all 0.2s ease' }} 
+              onClick={() => setShowUrlError(false)}
+              onMouseOver={(e) => { e.currentTarget.style.backgroundColor = '#e2e8f0'; e.currentTarget.style.color = '#0f172a'; }}
+              onMouseOut={(e) => { e.currentTarget.style.backgroundColor = '#f8fafc'; e.currentTarget.style.color = '#64748b'; }}
+            >
+              &#10005;
+            </button>
+            
+            {/* రెడ్ ఎర్రర్/వార్నింగ్ SVG ఐకాన్ */}
+            <div style={{ width: '65px', height: '65px', backgroundColor: '#fef2f2', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px auto', boxShadow: '0 0 0 6px #fff1f2' }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+            </div>
+
+            {/* మెయిన్ టెక్స్ట్ */}
+            <h3 style={{ margin: '0 0 10px 0', color: '#0f172a', fontSize: '25px', fontWeight: '800', letterSpacing: '-0.5px' }}>
+              Invalid URL Format!
+            </h3>
+            
+            <p style={{ color: '#475569', fontSize: '14px', lineHeight: '1.6', margin: '0 0 24px 0', fontWeight: '500' }}>
+              Please paste a valid response sheet url that starts with
+              <span style={{ display: 'block', margin: '12px auto 0 auto', padding: '8px 14px', backgroundColor: '#f8fafc', color: '#1d4ed8', borderRadius: '10px', fontWeight: '700', fontSize: '13px', border: '1px solid #e2e8f0', wordBreak: 'break-word' }}>
+                https://cdn3.digialm.com
+              </span>
+            </p>
+
+            {/* మోడ్రన్ బ్లూ బటన్ */}
+            <button 
+              style={{ width: '100%', padding: '14px', background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)', color: 'white', border: 'none', borderRadius: '12px', cursor: 'pointer', fontSize: '16px', fontWeight: '700', boxShadow: '0 8px 16px rgba(37, 99, 235, 0.25)', transition: 'all 0.2s ease' }} 
+              onClick={() => setShowUrlError(false)}
+              onMouseOver={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 20px rgba(37, 99, 235, 0.35)'; }}
+              onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 16px rgba(37, 99, 235, 0.25)'; }}
+            >
+              OK
+            </button>
 
           </div>
         </div>
