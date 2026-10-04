@@ -543,9 +543,10 @@ function App() {
 
       {/* 🎯 🌟 Scorecard Modal (FIXED SCROLL, JPG FIX, CHEMKIS, FULL NAME & SEC-A COLOR) 🌟 🎯 */}
       {scoreData && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 99999, padding: '15px', boxSizing: 'border-box' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(8px)', zIndex: 99999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', boxSizing: 'border-box' }}>
           
-          <div id="scorecard-modal-content" style={{ backgroundColor: '#071022', width: '100%', maxWidth: '1000px', borderRadius: '16px', boxShadow: '0 0 40px rgba(13, 71, 161, 0.4)', border: '1px solid #1e3a8a', overflow: 'hidden', display: 'flex', flexDirection: 'column', fontFamily: '"Segoe UI", sans-serif' }}>
+          <div style={{ width: '100%', maxWidth: '1000px', maxHeight: '92vh', overflowY: 'auto', borderRadius: '16px', boxShadow: '0 0 40px rgba(13, 71, 161, 0.4)' }}>
+            <div id="scorecard-modal-content" style={{ backgroundColor: '#071022', width: '100%', border: '1px solid #1e3a8a', borderRadius: '16px', overflow: 'hidden', display: 'flex', flexDirection: 'column', fontFamily: '"Segoe UI", sans-serif' }}>
             
             <div style={{ padding: '12px 25px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', background: 'linear-gradient(90deg, #071022 0%, #0d234a 50%, #071022 100%)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
@@ -629,31 +630,31 @@ function App() {
               </div>
 
               <div style={{ display: 'flex', gap: '15px' }}>
-                <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '15px', flex: '1.2' }}>
-                  <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', color: '#0f172a' }}>Subject Wise Summary</h3>
-                  <div style={{ display: 'flex', gap: '10px' }}>
-                    <div style={{ flex: 1, backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
+                <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '12px 15px', flex: '1.2', display: 'flex', flexDirection: 'column' }}>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '15px', color: '#0f172a', textTransform: 'uppercase' }}>Subject Wise Marks</h3>
+                  <div style={{ display: 'flex', gap: '10px', flex: 1 }}>
+                    <div style={{ flex: 1, backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                       <div style={{ color: '#1e3a8a', fontSize: '13px', marginBottom: '2px', fontWeight: '600' }}>Maths</div>
-                      <div style={{ fontSize: '24px', fontWeight: '800', color: '#1d4ed8' }}>{scoreData.subjects?.Mathematics?.totalMarks ?? 0}</div>
+                      <div style={{ fontSize: '24px', fontWeight: '800', color: '#1d4ed8', lineHeight: 1 }}>{scoreData.subjects?.Mathematics?.totalMarks ?? 0}</div>
                     </div>
-                    <div style={{ flex: 1, backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
+                    <div style={{ flex: 1, backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                       <div style={{ color: '#14532d', fontSize: '13px', marginBottom: '2px', fontWeight: '600' }}>Physics</div>
-                      <div style={{ fontSize: '24px', fontWeight: '800', color: '#15803d' }}>{scoreData.subjects?.Physics?.totalMarks ?? 0}</div>
+                      <div style={{ fontSize: '24px', fontWeight: '800', color: '#15803d', lineHeight: 1 }}>{scoreData.subjects?.Physics?.totalMarks ?? 0}</div>
                     </div>
-                    <div style={{ flex: 1, backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '10px', textAlign: 'center' }}>
+                    <div style={{ flex: 1, backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                       <div style={{ color: '#78350f', fontSize: '13px', marginBottom: '2px', fontWeight: '600' }}>Chemistry</div>
-                      <div style={{ fontSize: '24px', fontWeight: '800', color: '#b45309' }}>{scoreData.subjects?.Chemistry?.totalMarks ?? 0}</div>
+                      <div style={{ fontSize: '24px', fontWeight: '800', color: '#b45309', lineHeight: 1 }}>{scoreData.subjects?.Chemistry?.totalMarks ?? 0}</div>
                     </div>
                   </div>
                 </div>
 
                   {/* ✨ టోటల్ మార్క్స్ (Royal Blue Premium Design) ✨ */}
-                <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '15px', flex: '0.8', display: 'flex', flexDirection: 'column' }}>
-                  <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', color: '#0f172a' }}>Total Marks</h3>
+                <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '12px 15px', flex: '0.8', display: 'flex', flexDirection: 'column' }}>
+                  <h3 style={{ margin: '0 0 8px 0', fontSize: '15px', color: '#0f172a' }}>Total Marks</h3>
                   <div style={{ 
                     background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)', 
                     borderRadius: '10px', 
-                    padding: '20px', 
+                    padding: '12px', 
                     display: 'flex', 
                     justifyContent: 'center', 
                     alignItems: 'center', 
@@ -663,19 +664,115 @@ function App() {
                     flex: 1 
                   }}>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '12px', color: '#bfdbfe', textTransform: 'uppercase', letterSpacing: '1.5px', marginBottom: '6px', fontWeight: '700' }}>
-                        Grand Total Score
+                      <div style={{ fontSize: '11px', color: '#bfdbfe', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px', fontWeight: '700' }}>
+                        🏆 Grand Total Score
                       </div>
-                      <div style={{ fontSize: '42px', fontWeight: '900', color: '#ffffff', display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '4px' }}>
+                      <div style={{ fontSize: '36px', fontWeight: '900', color: '#ffffff', display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '4px', lineHeight: 1 }}>
                         {scoreData.totalMarks ?? 0} 
-                        <span style={{ fontSize: '20px', fontWeight: '600', color: '#93c5fd' }}>/ 300</span>
+                        <span style={{ fontSize: '18px', fontWeight: '600', color: '#93c5fd' }}>/ 300</span>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
+
+              {/* --- 👇 DETAILED QUESTION-WISE ANALYSIS (NEWLY INTEGRATED) 👇 --- */}
+              <div style={{ display: 'flex', alignItems: 'center', margin: '30px 0 20px' }}>
+                <div style={{ flex: 1, height: '2px', background: 'linear-gradient(to right, transparent, #cbd5e0)' }}></div>
+                <div style={{ padding: '10px 25px', background: '#f0f2f5', border: '1px solid #cbd5e0', borderRadius: '20px', fontWeight: 'bold', fontSize: '15px', color: '#2d3748', textTransform: 'uppercase', letterSpacing: '1px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>Detailed Question-Wise Analysis</div>
+                <div style={{ flex: 1, height: '2px', background: 'linear-gradient(to left, transparent, #cbd5e0)' }}></div>
+              </div>
+              
+              <div style={{ display: 'flex', gap: '15px', marginTop: '25px' }}>
+                {[
+                  { name: 'Mathematics', pill_col: '#3a6fc5', bg: '#fdfdfd' },
+                  { name: 'Physics', pill_col: '#32a852', bg: '#fdfdfd' },
+                  { name: 'Chemistry', pill_col: '#dca826', bg: '#fdfdfd' }
+                ].map((sub, sIdx) => {
+                  
+                  // Extract questions from backend data if available
+                  const questions = scoreData.subjects?.[sub.name]?.questions || [];
+                  
+                  // Calculate correct/wrong from existing positive/negative logic if exact counts are missing
+                  const secAPos = scoreData.subjects?.[sub.name]?.secAPositive || 0;
+                  const secBPos = scoreData.subjects?.[sub.name]?.secBPositive || 0;
+                  const secANeg = scoreData.subjects?.[sub.name]?.secANegative || 0;
+                  const secBNeg = scoreData.subjects?.[sub.name]?.secBNegative || 0;
+                  
+                  const cCount = scoreData.subjects?.[sub.name]?.correct ?? ((secAPos + secBPos) / 4);
+                  const wCount = scoreData.subjects?.[sub.name]?.wrong ?? (Math.abs(secANeg) + Math.abs(secBNeg));
+                  const uCount = scoreData.subjects?.[sub.name]?.unattempted ?? Math.max(0, 25 - (cCount + wCount));
+                  
+                  const c_percent = Math.round((cCount / 25) * 100) || 0;
+                  const w_percent = Math.round((wCount / 25) * 100) || 0;
+                  const u_percent = Math.round((uCount / 25) * 100) || 0;
+
+                  return (
+                    <div key={sIdx} style={{ position: 'relative', flex: 1 }}>
+                      <div style={{ position: 'absolute', top: '-14px', left: '50%', transform: 'translateX(-50%)', color: 'white', fontWeight: 'bold', padding: '4px 30px', borderRadius: '20px', zIndex: 10, fontSize: '14px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)', letterSpacing: '0.5px', background: sub.pill_col }}>
+                        {sub.name}
+                      </div>
+                      <div style={{ borderRadius: '12px', overflow: 'hidden', paddingTop: '15px', background: 'white', border: `2px solid ${sub.pill_col}` }}>
+                        
+                        <div style={{ background: '#fdfdfd', padding: '12px', paddingTop: '20px', borderBottom: '2px solid rgba(0,0,0,0.05)' }}>
+                          <div style={{ height: '20px', background: '#e2e8f0', borderRadius: '4px', margin: '8px 0', display: 'flex', overflow: 'hidden', fontSize: '11px', fontWeight: 'bold', color: 'white' }}>
+                            <div style={{ width: `${c_percent}%`, background: '#48bb78', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{c_percent > 0 ? `${c_percent}%` : ''}</div>
+                            <div style={{ width: `${w_percent}%`, background: '#f56565', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{w_percent > 0 ? `${w_percent}%` : ''}</div>
+                            <div style={{ width: `${u_percent}%`, background: '#718096', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{u_percent > 0 ? `${u_percent}%` : ''}</div>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: '500', color: '#2d3748' }}>
+                            <span><span style={{ color: '#38a169' }}>Correct:</span> {cCount}</span>
+                            <span><span style={{ color: '#e53e3e' }}>Wrong:</span> {wCount}</span>
+                            <span><span style={{ color: '#718096' }}>Unattempted:</span> {uCount}</span>
+                          </div>
+                        </div>
+                        
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px', background: 'rgba(0,0,0,0.02)', fontWeight: 'bold', fontSize: '12px', color: '#4a5568', borderBottom: '2px solid rgba(0,0,0,0.08)' }}>
+                          <span style={{ width: '50px', textAlign: 'center' }}>Q.No</span>
+                          <span style={{ flex: 1, textAlign: 'center' }}>Q.ID</span>
+                          <span style={{ width: '50px', textAlign: 'center' }}>Status</span>
+                        </div>
+                        
+                        <div style={{ padding: '0 8px 8px' }}>
+                          {Array.from({ length: 25 }).map((_, i) => {
+                            const qNum = i + 1;
+                            const rowBg = qNum <= 20 
+                              ? (qNum % 2 !== 0 ? '#f9f9fd' : 'transparent') 
+                              : (qNum % 2 !== 0 ? '#f0fafe' : 'transparent');
+                            
+                            const questionData = questions[i] || {};
+                            const status = questionData.status || 'Unattempted';
+                            const isCorrect = status.toLowerCase() === 'correct';
+                            const isWrong = status.toLowerCase() === 'wrong';
+                            const icon = isCorrect ? '✓' : isWrong ? '✗' : '○';
+                            const statusColor = isCorrect ? '#38a169' : isWrong ? '#e53e3e' : '#718096';
+                            const qId = questionData.questionId || '-';
+
+                            return (
+                              <div key={qNum} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 5px', borderBottom: '1px solid #edf2f7', fontSize: '13px', borderRadius: '4px', marginBottom: '2px', background: rowBg }}>
+                                <span style={{ width: '50px', textAlign: 'center' }}>{qNum}.</span>
+                                <span style={{ flex: 1, textAlign: 'center' }}>{qId}</span>
+                                <span style={{ width: '50px', textAlign: 'center', color: statusColor, fontWeight: 'bold', fontSize: '14px' }}>{icon}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div style={{ marginTop: '15px', padding: '12px', background: '#edf2f7', borderRadius: '8px', textAlign: 'center', fontWeight: '500', color: '#2d3748', fontSize: '13px' }}>
+                <span style={{ color: '#38a169', margin: '0 15px', fontWeight: 'bold' }}>✓ Correct</span>
+                <span style={{ color: '#e53e3e', margin: '0 15px', fontWeight: 'bold' }}>✗ Wrong</span>
+                <span style={{ color: '#718096', margin: '0 15px', fontWeight: 'bold' }}>○ Unattempted</span>
+              </div>
+              {/* --- 👆 END DETAILED QUESTION-WISE ANALYSIS 👆 --- */}
+
             </div>
 
+          </div>
           </div>
         </div>
       )}
