@@ -648,9 +648,8 @@ function App() {
                   </div>
                 </div>
 
-                  {/* ✨ టోటల్ మార్క్స్ (Royal Blue Premium Design) ✨ */}
-                <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '12px 15px', flex: '0.8', display: 'flex', flexDirection: 'column' }}>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '15px', color: '#0f172a' }}>Total Marks</h3>
+                {/* 🏆 GRAND TOTAL బ్లూ కలర్ బాక్స్ 🏆 */}
+                <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '12px', flex: '0.8', display: 'flex', flexDirection: 'column' }}>
                   <div style={{ 
                     background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)', 
                     borderRadius: '10px', 
@@ -664,12 +663,12 @@ function App() {
                     flex: 1 
                   }}>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '11px', color: '#bfdbfe', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px', fontWeight: '700' }}>
+                      <div style={{ fontSize: '13px', color: '#bfdbfe', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontWeight: '800' }}>
                         🏆 Grand Total Score
                       </div>
-                      <div style={{ fontSize: '36px', fontWeight: '900', color: '#ffffff', display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '4px', lineHeight: 1 }}>
+                      <div style={{ fontSize: '46px', fontWeight: '900', color: '#ffffff', display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '4px', lineHeight: 1 }}>
                         {scoreData.totalMarks ?? 0} 
-                        <span style={{ fontSize: '18px', fontWeight: '600', color: '#93c5fd' }}>/ 300</span>
+                        <span style={{ fontSize: '22px', fontWeight: '600', color: '#93c5fd' }}>/ 300</span>
                       </div>
                     </div>
                   </div>
@@ -719,12 +718,12 @@ function App() {
                       {/* Box Border */}
                       <div style={{ borderRadius: '12px', overflow: 'hidden', paddingTop: '15px', background: 'white', border: `2px solid ${sub.pill_col}`, display: 'flex', flexDirection: 'column' }}>
                         
-                        {/* Progress Bar (Fully Rounded & Bigger %) */}
+                        {/* Progress Bar (Fully Rounded & minWidth Adjusted) */}
                         <div style={{ background: '#ffffff', padding: '15px 12px 12px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-                          <div style={{ height: '22px', background: '#e2e8f0', borderRadius: '20px', margin: '8px 0 12px 0', display: 'flex', overflow: 'hidden', fontSize: '13px', fontWeight: '700', color: 'white', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)' }}>
-                            <div style={{ width: `${c_percent}%`, background: '#4ade80', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#064e3b' }}>{c_percent > 0 ? `${c_percent}%` : ''}</div>
-                            <div style={{ width: `${w_percent}%`, background: '#f87171', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7f1d1d' }}>{w_percent > 0 ? `${w_percent}%` : ''}</div>
-                            <div style={{ width: `${u_percent}%`, background: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1e293b' }}>{u_percent > 0 ? `${u_percent}%` : ''}</div>
+                          <div style={{ height: '22px', background: '#e2e8f0', borderRadius: '20px', margin: '8px 0 12px 0', display: 'flex', overflow: 'hidden', fontSize: '12px', fontWeight: '800', color: 'white', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)' }}>
+                            <div style={{ width: `${c_percent}%`, minWidth: c_percent > 0 ? '38px' : '0', background: '#4ade80', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#064e3b' }}>{c_percent > 0 ? `${c_percent}%` : ''}</div>
+                            <div style={{ width: `${w_percent}%`, minWidth: w_percent > 0 ? '38px' : '0', background: '#f87171', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7f1d1d' }}>{w_percent > 0 ? `${w_percent}%` : ''}</div>
+                            <div style={{ width: `${u_percent}%`, minWidth: u_percent > 0 ? '38px' : '0', background: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1e293b' }}>{u_percent > 0 ? `${u_percent}%` : ''}</div>
                           </div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: '600', color: '#475569' }}>
                             <span><span style={{ color: '#16a34a' }}>Correct:</span> {cCount}</span>
