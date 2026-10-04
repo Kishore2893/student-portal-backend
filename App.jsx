@@ -722,9 +722,9 @@ function App() {
                         {/* Progress Bar (Fully Rounded & Bigger %) */}
                         <div style={{ background: '#ffffff', padding: '15px 12px 12px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
                           <div style={{ height: '22px', background: '#e2e8f0', borderRadius: '20px', margin: '8px 0 12px 0', display: 'flex', overflow: 'hidden', fontSize: '13px', fontWeight: '700', color: 'white', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)' }}>
-                            <div style={{ width: `${c_percent}%`, background: '#4ade80', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#064e3b' }}>{c_percent > 8 ? `${c_percent}%` : ''}</div>
-                            <div style={{ width: `${w_percent}%`, background: '#f87171', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7f1d1d' }}>{w_percent > 8 ? `${w_percent}%` : ''}</div>
-                            <div style={{ width: `${u_percent}%`, background: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1e293b' }}>{u_percent > 8 ? `${u_percent}%` : ''}</div>
+                            <div style={{ width: `${c_percent}%`, background: '#4ade80', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#064e3b' }}>{c_percent > 0 ? `${c_percent}%` : ''}</div>
+                            <div style={{ width: `${w_percent}%`, background: '#f87171', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7f1d1d' }}>{w_percent > 0 ? `${w_percent}%` : ''}</div>
+                            <div style={{ width: `${u_percent}%`, background: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1e293b' }}>{u_percent > 0 ? `${u_percent}%` : ''}</div>
                           </div>
                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: '600', color: '#475569' }}>
                             <span><span style={{ color: '#16a34a' }}>Correct:</span> {cCount}</span>
