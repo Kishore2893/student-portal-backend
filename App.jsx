@@ -545,7 +545,7 @@ function App() {
       {scoreData && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(8px)', zIndex: 99999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', boxSizing: 'border-box' }}>
           
-          <div style={{ width: '100%', maxWidth: '1000px', maxHeight: '92vh', overflowY: 'auto', borderRadius: '16px', boxShadow: '0 0 40px rgba(13, 71, 161, 0.4)' }}>
+          <div style={{ width: '100%', maxWidth: '1000px', maxHeight: '92vh', overflowY: 'auto', overflowX: 'hidden', borderRadius: '16px', boxShadow: '0 0 40px rgba(13, 71, 161, 0.4)' }}>
             <div id="scorecard-modal-content" style={{ backgroundColor: '#071022', width: '100%', border: '1px solid #1e3a8a', borderRadius: '16px', overflow: 'hidden', display: 'flex', flexDirection: 'column', fontFamily: '"Segoe UI", sans-serif' }}>
             
             <div style={{ padding: '12px 25px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', background: 'linear-gradient(90deg, #071022 0%, #0d234a 50%, #071022 100%)' }}>
@@ -735,7 +735,7 @@ function App() {
 
                         {/* Questions List */}
                         <div style={{ padding: '0 8px 8px' }}>
-                          {Array.from({ length: 30 }).map((_, i) => {
+                          {Array.from({ length: 25 }).map((_, i) => {
                             const qNum = i + 1;
                             const rowBg = qNum <= 20 
                               ? (qNum % 2 !== 0 ? '#f9f9fd' : 'transparent') 
