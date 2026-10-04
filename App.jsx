@@ -719,17 +719,17 @@ function App() {
                       {/* Box Border */}
                       <div style={{ borderRadius: '12px', overflow: 'hidden', paddingTop: '15px', background: 'white', border: `2px solid ${sub.pill_col}`, display: 'flex', flexDirection: 'column' }}>
                         
-                        {/* Progress Bar (2nd image style) */}
-                        <div style={{ background: '#fdfdfd', padding: '12px', paddingTop: '20px', borderBottom: '2px solid rgba(0,0,0,0.05)' }}>
-                          <div style={{ height: '20px', background: '#e2e8f0', borderRadius: '4px', margin: '8px 0', display: 'flex', overflow: 'hidden', fontSize: '11px', fontWeight: 'bold', color: 'white' }}>
-                            <div style={{ width: `${c_percent}%`, background: '#48bb78', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{c_percent > 0 ? `${c_percent}%` : ''}</div>
-                            <div style={{ width: `${w_percent}%`, background: '#f56565', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{w_percent > 0 ? `${w_percent}%` : ''}</div>
-                            <div style={{ width: `${u_percent}%`, background: '#718096', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{u_percent > 0 ? `${u_percent}%` : ''}</div>
+                        {/* Progress Bar (Fully Rounded & Bigger %) */}
+                        <div style={{ background: '#ffffff', padding: '15px 12px 12px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+                          <div style={{ height: '22px', background: '#e2e8f0', borderRadius: '20px', margin: '8px 0 12px 0', display: 'flex', overflow: 'hidden', fontSize: '13px', fontWeight: '700', color: 'white', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)' }}>
+                            <div style={{ width: `${c_percent}%`, background: '#4ade80', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#064e3b' }}>{c_percent > 8 ? `${c_percent}%` : ''}</div>
+                            <div style={{ width: `${w_percent}%`, background: '#f87171', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7f1d1d' }}>{w_percent > 8 ? `${w_percent}%` : ''}</div>
+                            <div style={{ width: `${u_percent}%`, background: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1e293b' }}>{u_percent > 8 ? `${u_percent}%` : ''}</div>
                           </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: '500', color: '#2d3748' }}>
-                            <span><span style={{ color: '#38a169' }}>Correct:</span> {cCount}</span>
-                            <span><span style={{ color: '#e53e3e' }}>Wrong:</span> {wCount}</span>
-                            <span><span style={{ color: '#718096' }}>Unattempted:</span> {uCount}</span>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: '600', color: '#475569' }}>
+                            <span><span style={{ color: '#16a34a' }}>Correct:</span> {cCount}</span>
+                            <span><span style={{ color: '#dc2626' }}>Wrong:</span> {wCount}</span>
+                            <span><span style={{ color: '#64748b' }}>Unattempted:</span> {uCount}</span>
                           </div>
                         </div>
 
