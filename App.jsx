@@ -683,7 +683,7 @@ function App() {
                 <div style={{ flex: 1, height: '2px', background: 'linear-gradient(to left, transparent, #cbd5e0)' }}></div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px', alignItems: 'start' }}>
+                            <div style={{ display: 'flex', gap: '15px', marginTop: '25px', flexWrap: 'wrap' }}>
                 {[
                   { name: 'Mathematics', pill_col: '#3a6fc5', bg: '#fdfdfd' },
                   { name: 'Physics', pill_col: '#32a852', bg: '#fdfdfd' },
@@ -696,44 +696,51 @@ function App() {
                   // Calculate correct/wrong from existing positive/negative logic if exact counts are missing
                   const secAPos = scoreData.subjects?.[sub.name]?.secAPositive || 0;
                   const secBPos = scoreData.subjects?.[sub.name]?.secBPositive || 0;
+                  const secANeg = scoreData.subjects?.[sub.name]?.secANegative || 0;
+                  const secBNeg = scoreData.subjects?.[sub.name]?.secBNegative || 0;
                   
                   const cCount = scoreData.subjects?.[sub.name]?.correct ?? ((secAPos + secBPos) / 4);
-                  const wCount = scoreData.subjects?.[sub.name]?.wrong ?? (scoreData.subjects?.[sub.name]?.secANegative + scoreData.subjects?.[sub.name]?.secBNegative) ?? 0;
-                  const uCount = scoreData.subjects?.[sub.name]?.unattempted ?? (30 - cCount - wCount);
+                  const wCount = scoreData.subjects?.[sub.name]?.wrong ?? (Math.abs(secANeg) + Math.abs(secBNeg));
+                  const uCount = scoreData.subjects?.[sub.name]?.unattempted ?? Math.max(0, 25 - (cCount + wCount));
                   
-                  const totalQ = 30;
-                  const cPct = Math.round((cCount / totalQ) * 100);
-                  const wPct = Math.round((wCount / totalQ) * 100);
-                  const uPct = 100 - cPct - wPct;
+                  const totalQ = 25;
+                  const c_percent = Math.round((cCount / totalQ) * 100) || 0;
+                  const w_percent = Math.round((wCount / totalQ) * 100) || 0;
+                  const u_percent = Math.round((uCount / totalQ) * 100) || 0;
 
                   return (
-                    <div key={sIdx} style={{ backgroundColor: sub.bg, border: `2px solid ${sub.pill_col}`, borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column' }}>
-                      <div style={{ background: sub.pill_col, color: 'white', padding: '10px', textAlign: 'center', fontWeight: 'bold', fontSize: '15px', borderBottom: `2px solid ${sub.pill_col}` }}>
+                    <div key={sIdx} style={{ position: 'relative', flex: '1 1 300px', marginBottom: '20px' }}>
+                      
+                      {/* 🌟 ఇదిగోండి మీరు అడిగిన 2nd Image Pill Design (సబ్జెక్ట్ పేరు పైకి రౌండ్ గా వస్తుంది) */}
+                      <div style={{ position: 'absolute', top: '-14px', left: '50%', transform: 'translateX(-50%)', color: 'white', fontWeight: 'bold', padding: '4px 30px', borderRadius: '20px', zIndex: 10, fontSize: '14px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)', letterSpacing: '0.5px', background: sub.pill_col }}>
                         {sub.name}
                       </div>
                       
-                      <div style={{ padding: '15px 10px 10px' }}>
-                        <div style={{ display: 'flex', height: '16px', borderRadius: '8px', overflow: 'hidden', marginBottom: '10px' }}>
-                          <div style={{ width: `${cPct}%`, backgroundColor: '#4ade80', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#14532d', fontWeight: 'bold' }}>{cPct > 8 ? `${cPct}%` : ''}</div>
-                          <div style={{ width: `${wPct}%`, backgroundColor: '#f87171', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#7f1d1d', fontWeight: 'bold' }}>{wPct > 8 ? `${wPct}%` : ''}</div>
-                          <div style={{ width: `${uPct}%`, backgroundColor: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#1e293b', fontWeight: 'bold' }}>{uPct > 8 ? `${uPct}%` : ''}</div>
+                      {/* Box Border */}
+                      <div style={{ borderRadius: '12px', overflow: 'hidden', paddingTop: '15px', background: 'white', border: `2px solid ${sub.pill_col}`, display: 'flex', flexDirection: 'column' }}>
+                        
+                        {/* Progress Bar (2nd image style) */}
+                        <div style={{ background: '#fdfdfd', padding: '12px', paddingTop: '20px', borderBottom: '2px solid rgba(0,0,0,0.05)' }}>
+                          <div style={{ height: '20px', background: '#e2e8f0', borderRadius: '4px', margin: '8px 0', display: 'flex', overflow: 'hidden', fontSize: '11px', fontWeight: 'bold', color: 'white' }}>
+                            <div style={{ width: `${c_percent}%`, background: '#48bb78', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{c_percent > 0 ? `${c_percent}%` : ''}</div>
+                            <div style={{ width: `${w_percent}%`, background: '#f56565', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{w_percent > 0 ? `${w_percent}%` : ''}</div>
+                            <div style={{ width: `${u_percent}%`, background: '#718096', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{u_percent > 0 ? `${u_percent}%` : ''}</div>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: '500', color: '#2d3748' }}>
+                            <span><span style={{ color: '#38a169' }}>Correct:</span> {cCount}</span>
+                            <span><span style={{ color: '#e53e3e' }}>Wrong:</span> {wCount}</span>
+                            <span><span style={{ color: '#718096' }}>Unattempted:</span> {uCount}</span>
+                          </div>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', fontWeight: '600', marginBottom: '15px' }}>
-                          <span style={{ color: '#16a34a' }}>Correct: {cCount}</span>
-                          <span style={{ color: '#dc2626' }}>Wrong: {wCount}</span>
-                          <span style={{ color: '#64748b' }}>Unattempted: {uCount}</span>
-                        </div>
-                      </div>
 
-                      {/* Header Row */}
-                      <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
+                        {/* 📋 Q.ID Header Row */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 5px', borderBottom: '2px solid #e2e8f0', borderTop: '1px solid #e2e8f0', fontSize: '13px', fontWeight: '700', color: '#475569', background: '#f8fafc' }}>
                           <span style={{ width: '50px', textAlign: 'center' }}>Q.No</span>
                           <span style={{ flex: 1, textAlign: 'center' }}>Q.ID</span>
                           <span style={{ width: '50px', textAlign: 'center' }}>Status</span>
                         </div>
 
-                        {/* Questions List */}
+                        {/* 📋 25 Questions List */}
                         <div style={{ padding: '0 8px 8px' }}>
                           {Array.from({ length: 25 }).map((_, i) => {
                             const qNum = i + 1;
@@ -758,6 +765,7 @@ function App() {
                             );
                           })}
                         </div>
+
                       </div>
                     </div>
                   );
