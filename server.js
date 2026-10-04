@@ -225,10 +225,11 @@ app.post('/api/evaluate-sheet', async (req, res) => {
         let wrongCount = 0;
         let unattemptedCount = 0;
 
+        // 🔥 కొత్తగా Q.ID అండ్ స్టేటస్ స్టోర్ చేయడానికి 'questions' ఆరే ని యాడ్ చేశాను 🔥
         let subjects = {
-            Mathematics: { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 },
-            Physics: { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 },
-            Chemistry: { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0 }
+            Mathematics: { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0, questions: [], correct: 0, wrong: 0, unattempted: 0 },
+            Physics: { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0, questions: [], correct: 0, wrong: 0, unattempted: 0 },
+            Chemistry: { secAPositive: 0, secANegative: 0, secATotal: 0, secBPositive: 0, secBNegative: 0, secBTotal: 0, totalMarks: 0, questions: [], correct: 0, wrong: 0, unattempted: 0 }
         };
 
         let currentSub = "Mathematics";
@@ -292,6 +293,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                 if (keyInfo.isDrop) {
                     totalMarks += 4;
                     correctCount++;
+                    subjects[currentSub].correct++;
                     if (isSectionB) {
                         subjects[currentSub].secBPositive += 4;
                         subjects[currentSub].secBTotal += 4;
@@ -300,10 +302,13 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                         subjects[currentSub].secATotal += 4;
                     }
                     subjects[currentSub].totalMarks += 4;
+                    
+                    // 🔥 ఒరిజినల్ క్వశ్చన్ ఐడీ మరియు స్టేటస్ సేవ్ చేయడం 🔥
+                    subjects[currentSub].questions.push({ questionId: qId, status: "Correct" });
                     return;
                 }
 
-                // 🌟 2. NTA అటెంప్ట్ రూల్ (Answered లేదా Marked for review with answer రెండూ లెక్కించబడతాయి):
+                // 🌟 2. NTA అటెంప్ట్ రూల్
                 let isAttempted = false;
                 let studentOptionId = '--';
                 let chosenAnswer = '--';
@@ -323,6 +328,10 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                 // అటెంప్ట్ చేయనివి (0 మార్కులు)
                 if (!isAttempted) {
                     unattemptedCount++;
+                    subjects[currentSub].unattempted++;
+                    
+                    // 🔥 ఒరిజినల్ క్వశ్చన్ ఐడీ మరియు స్టేటస్ సేవ్ చేయడం 🔥
+                    subjects[currentSub].questions.push({ questionId: qId, status: "Unattempted" });
                     return;
                 }
 
@@ -356,6 +365,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                 if (isCorrect) {
                     totalMarks += 4;
                     correctCount++;
+                    subjects[currentSub].correct++;
                     if (isSectionB) {
                         subjects[currentSub].secBPositive += 4;
                         subjects[currentSub].secBTotal += 4;
@@ -364,9 +374,13 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                         subjects[currentSub].secATotal += 4;
                     }
                     subjects[currentSub].totalMarks += 4;
+                    
+                    // 🔥 ఒరిజినల్ క్వశ్చన్ ఐడీ మరియు స్టేటస్ సేవ్ చేయడం 🔥
+                    subjects[currentSub].questions.push({ questionId: qId, status: "Correct" });
                 } else {
                     totalMarks -= 1;
                     wrongCount++;
+                    subjects[currentSub].wrong++;
                     if (isSectionB) {
                         subjects[currentSub].secBNegative += 1;
                         subjects[currentSub].secBTotal -= 1;
@@ -375,6 +389,9 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                         subjects[currentSub].secATotal -= 1;
                     }
                     subjects[currentSub].totalMarks -= 1;
+                    
+                    // 🔥 ఒరిజినల్ క్వశ్చన్ ఐడీ మరియు స్టేటస్ సేవ్ చేయడం 🔥
+                    subjects[currentSub].questions.push({ questionId: qId, status: "Wrong" });
                 }
             }
         });
