@@ -123,7 +123,7 @@ function App() {
   const handleUrlChange = (e) => {
     const inputUrl = e.target.value;
     setResponseUrl(inputUrl);
-    if (inputUrl.trim().length > 15 && !inputUrl.startsWith("https://cdn3.digialm.com")) {
+    if (inputUrl.trim().length > 15 && (!inputUrl.startsWith("https://cdn3.digialm.com") || !inputUrl.includes("touchstone/AssessmentQPHTMLMode1") || !inputUrl.endsWith(".html"))) {
       setShowUrlError(true);
       setResponseUrl('');
     }
@@ -135,7 +135,7 @@ function App() {
       setEvaluatorError("Please paste the official Response Sheet URL to proceed!");
       return;
     }
-    if (!responseUrl.startsWith("https://cdn3.digialm.com")) {
+    if (!responseUrl.startsWith("https://cdn3.digialm.com") || !responseUrl.includes("touchstone/AssessmentQPHTMLMode1") || !responseUrl.endsWith(".html")) {
       setShowUrlError(true);
       setResponseUrl('');
       return;
@@ -850,7 +850,7 @@ function App() {
         </div>
       )}
 
-      {/* 🚀 లాగిన్ మోడల్ ఓపెన్ కానప్పుడు, మరియు యూజర్ లాగిన్ అవ్వనప్పుడు మాత్రమే డాష్‌బోర్డ్ కనిపిస్తుంది */}
+      {/* 🚀 లాగిన్ మోడల్ ఓపెన్ కానప్పుడు, మరియు యూజర్ లాగిన్ అవ్వనప్పుడు మాత్రమే డాష్బోర్డ్ కనిపిస్తుంది */}
       {!showLoginModal && !user && (
         <AnalysisDashboard />
       )}
