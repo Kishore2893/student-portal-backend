@@ -95,7 +95,7 @@ function App() {
   // 🚀 కొత్తగా యాడ్ చేసిన Not Available పాప్-అప్ స్టేట్
   const [showNotAvailableModal, setShowNotAvailableModal] = useState(false);
 
-  useEffect(() => {
+    useEffect(() => {
     if (!document.getElementById('html2canvas-script')) {
       const script = document.createElement('script');
       script.id = 'html2canvas-script';
@@ -142,7 +142,7 @@ function App() {
     }
   };
 
-  const handleEvaluate = async () => {
+    const handleEvaluate = async () => {
     setEvaluatorError('');
     if (!responseUrl.trim()) {
       setEvaluatorError("Please paste the official Response Sheet URL to proceed!");
@@ -380,6 +380,7 @@ function App() {
       const response = await fetch(fileUrl);
       
       if (!response.ok) {
+        // ఫైల్ లేకపోతే మన కొత్త పాప్-అప్ ని ఓపెన్ చేస్తుంది
         setShowNotAvailableModal(true);
         return;
       }
@@ -617,66 +618,74 @@ function App() {
 
               <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '15px', marginBottom: '15px' }}>
                 <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', color: '#0f172a' }}>Subject Score Matrix Table</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr 1fr 1fr', gap: '10px' }}>
-                  <div></div>
-                  <div style={{ background: 'linear-gradient(90deg, #1e3a8a, #3b82f6)', color: 'white', textAlign: 'center', padding: '8px', borderRadius: '25px', fontWeight: 'bold', fontSize: '13px' }}>Mathematics</div>
-                  <div style={{ background: 'linear-gradient(90deg, #14532d, #22c55e)', color: 'white', textAlign: 'center', padding: '8px', borderRadius: '25px', fontWeight: 'bold', fontSize: '13px' }}>Physics</div>
-                  <div style={{ background: 'linear-gradient(90deg, #b45309, #eab308)', color: 'white', textAlign: 'center', padding: '8px', borderRadius: '25px', fontWeight: 'bold', fontSize: '13px' }}>Chemistry</div>
+                
+                {/* 🚀 ఇక్కడ నుంచి Grid మార్చి Flex చేశాను 🚀 */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <div style={{ width: '110px', flexShrink: 0 }}></div>
+                    <div style={{ flex: 1, background: 'linear-gradient(90deg, #1e3a8a, #3b82f6)', color: 'white', textAlign: 'center', padding: '8px', borderRadius: '25px', fontWeight: 'bold', fontSize: '13px' }}>Mathematics</div>
+                    <div style={{ flex: 1, background: 'linear-gradient(90deg, #14532d, #22c55e)', color: 'white', textAlign: 'center', padding: '8px', borderRadius: '25px', fontWeight: 'bold', fontSize: '13px' }}>Physics</div>
+                    <div style={{ flex: 1, background: 'linear-gradient(90deg, #b45309, #eab308)', color: 'white', textAlign: 'center', padding: '8px', borderRadius: '25px', fontWeight: 'bold', fontSize: '13px' }}>Chemistry</div>
+                  </div>
 
-                  <div style={{ backgroundColor: '#e0e7ff', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#4338ca', padding: '10px', fontSize: '13px' }}>Section A</div>
-                  {[
-                    { subj: 'Mathematics', sec: 'A' },
-                    { subj: 'Physics', sec: 'A' },
-                    { subj: 'Chemistry', sec: 'A' }
-                  ].map((item, idx) => (
-                    <div key={`A-${idx}`} style={{ backgroundColor: '#eef2ff', borderRadius: '12px', padding: '10px', border: '1px solid #a5b4fc' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '13px' }}><span style={{color: '#4f46e5'}}>Positive (+)</span> <span style={{ fontWeight: 'bold', color: '#16a34a' }}>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Positive`] ?? 0}</span></div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '13px' }}><span style={{color: '#4f46e5'}}>Negative (-)</span> <span style={{ fontWeight: 'bold', color: '#ef4444' }}>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Negative`] ?? 0}</span></div>
-                      <div style={{ borderTop: '1px solid #a5b4fc', margin: '6px 0' }}></div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#312e81', fontWeight: 'bold', fontSize: '14px' }}><span>Total</span> <span>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Total`] ?? 0}</span></div>
-                    </div>
-                  ))}
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <div style={{ width: '110px', flexShrink: 0, backgroundColor: '#e0e7ff', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#4338ca', padding: '10px', fontSize: '13px' }}>Section A</div>
+                    {[
+                      { subj: 'Mathematics', sec: 'A' },
+                      { subj: 'Physics', sec: 'A' },
+                      { subj: 'Chemistry', sec: 'A' }
+                    ].map((item, idx) => (
+                      <div key={`A-${idx}`} style={{ flex: 1, backgroundColor: '#eef2ff', borderRadius: '12px', padding: '10px', border: '1px solid #a5b4fc', boxSizing: 'border-box' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '13px' }}><div style={{color: '#4f46e5', whiteSpace: 'nowrap'}}>Positive (+)</div> <div style={{ fontWeight: 'bold', color: '#16a34a' }}>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Positive`] ?? 0}</div></div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '13px' }}><div style={{color: '#4f46e5', whiteSpace: 'nowrap'}}>Negative (-)</div> <div style={{ fontWeight: 'bold', color: '#ef4444' }}>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Negative`] ?? 0}</div></div>
+                        <div style={{ borderTop: '1px solid #a5b4fc', margin: '6px 0' }}></div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#312e81', fontWeight: 'bold', fontSize: '14px' }}><div>Total</div> <div>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Total`] ?? 0}</div></div>
+                      </div>
+                    ))}
+                  </div>
 
-                  <div style={{ backgroundColor: '#bae6fd', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#0369a1', padding: '10px', fontSize: '13px' }}>Section B</div>
-                  {[
-                    { subj: 'Mathematics', sec: 'B' },
-                    { subj: 'Physics', sec: 'B' },
-                    { subj: 'Chemistry', sec: 'B' }
-                  ].map((item, idx) => (
-                    <div key={`B-${idx}`} style={{ backgroundColor: '#e0f2fe', borderRadius: '12px', padding: '10px', border: '1px solid #7dd3fc' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '13px' }}><span style={{color: '#0369a1'}}>Positive (+)</span> <span style={{ fontWeight: 'bold', color: '#16a34a' }}>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Positive`] ?? 0}</span></div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '13px' }}><span style={{color: '#0369a1'}}>Negative (-)</span> <span style={{ fontWeight: 'bold', color: '#ef4444' }}>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Negative`] ?? 0}</span></div>
-                      <div style={{ borderTop: '1px solid #7dd3fc', margin: '6px 0' }}></div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#0c4a6e', fontWeight: 'bold', fontSize: '14px' }}><span>Total</span> <span>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Total`] ?? 0}</span></div>
-                    </div>
-                  ))}
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <div style={{ width: '110px', flexShrink: 0, backgroundColor: '#bae6fd', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#0369a1', padding: '10px', fontSize: '13px' }}>Section B</div>
+                    {[
+                      { subj: 'Mathematics', sec: 'B' },
+                      { subj: 'Physics', sec: 'B' },
+                      { subj: 'Chemistry', sec: 'B' }
+                    ].map((item, idx) => (
+                      <div key={`B-${idx}`} style={{ flex: 1, backgroundColor: '#e0f2fe', borderRadius: '12px', padding: '10px', border: '1px solid #7dd3fc', boxSizing: 'border-box' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '13px' }}><div style={{color: '#0369a1', whiteSpace: 'nowrap'}}>Positive (+)</div> <div style={{ fontWeight: 'bold', color: '#16a34a' }}>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Positive`] ?? 0}</div></div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '13px' }}><div style={{color: '#0369a1', whiteSpace: 'nowrap'}}>Negative (-)</div> <div style={{ fontWeight: 'bold', color: '#ef4444' }}>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Negative`] ?? 0}</div></div>
+                        <div style={{ borderTop: '1px solid #7dd3fc', margin: '6px 0' }}></div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#0c4a6e', fontWeight: 'bold', fontSize: '14px' }}><div>Total</div> <div>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Total`] ?? 0}</div></div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
               <div style={{ display: 'flex', gap: '15px' }}>
-                <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '12px 15px', flex: '1.2', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '12px 15px', flex: '3', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
                   <h3 style={{ margin: '0 0 8px 0', fontSize: '15px', color: '#0f172a', textTransform: 'uppercase' }}>Subject Wise Marks</h3>
                   <div style={{ display: 'flex', gap: '10px', flex: 1 }}>
                     <div style={{ flex: 1, backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '15px 10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
                     <div style={{ color: '#1e3a8a', fontSize: '13px', marginBottom: '4px', fontWeight: '600' }}>Maths</div>
                     <div style={{ fontSize: '24px', fontWeight: '800', color: '#1d4ed8' }}>{scoreData.subjects?.Mathematics?.totalMarks ?? 0}</div>
-                      </div>
-                    <div style={{ flex: 1, backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '15px 10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-                      <div style={{ color: '#14532d', fontSize: '13px', marginBottom: '4px', fontWeight: '600' }}>Physics</div>
-                      <div style={{ fontSize: '24px', fontWeight: '800', color: '#15803d' }}>{scoreData.subjects?.Physics?.totalMarks ?? 0}</div>
                     </div>
-                    <div style={{ flex: 1, backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '15px 10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-                      <div style={{ color: '#78350f', fontSize: '13px', marginBottom: '4px', fontWeight: '600' }}>Chemistry</div>
-                      <div style={{ fontSize: '24px', fontWeight: '800', color: '#b45309' }}>{scoreData.subjects?.Chemistry?.totalMarks ?? 0}</div>
+                    <div style={{ flex: 1, backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                      <div style={{ color: '#14532d', fontSize: '13px', marginBottom: '2px', fontWeight: '600' }}>Physics</div>
+                      <div style={{ fontSize: '24px', fontWeight: '800', color: '#15803d', lineHeight: 1 }}>{scoreData.subjects?.Physics?.totalMarks ?? 0}</div>
+                    </div>
+                    <div style={{ flex: 1, backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                      <div style={{ color: '#78350f', fontSize: '13px', marginBottom: '2px', fontWeight: '600' }}>Chemistry</div>
+                      <div style={{ fontSize: '24px', fontWeight: '800', color: '#b45309', lineHeight: 1 }}>{scoreData.subjects?.Chemistry?.totalMarks ?? 0}</div>
                     </div>
                   </div>
                 </div>
 
-                <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '12px', flex: '0.8', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '12px', flex: '2', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
                   <div style={{ background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)', borderRadius: '10px', padding: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'white', border: 'none', boxShadow: '0 8px 20px rgba(37, 99, 235, 0.25)', flex: 1 }}>
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontSize: '13px', color: '#bfdbfe', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontWeight: '800' }}>🏆 Grand Total Score</div>
-                      <div style={{ fontSize: '46px', fontWeight: '900', color: '#ffffff', display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '4px' }}>
+                      <div style={{ fontSize: '46px', fontWeight: '900', color: '#ffffff', display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '4px', lineHeight: 1 }}>
                         {scoreData.totalMarks ?? 0} <span style={{ fontSize: '22px', fontWeight: '600', color: '#93c5fd' }}>/ 300</span>
                       </div>
                     </div>
@@ -723,16 +732,17 @@ function App() {
                             <div style={{ width: `${w_percent}%`, minWidth: w_percent > 0 ? '38px' : '0', background: '#f87171', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7f1d1d' }}>{w_percent > 0 ? `${w_percent}%` : ''}</div>
                             <div style={{ width: `${u_percent}%`, minWidth: u_percent > 0 ? '38px' : '0', background: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1e293b' }}>{u_percent > 0 ? `${u_percent}%` : ''}</div>
                           </div>
+                          {/* 🚀 ఇక్కడ spans ని div గా మార్చాను 🚀 */}
                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: '600', color: '#475569' }}>
-                            <span><span style={{ color: '#16a34a' }}>Correct:</span> {cCount}</span>
-                            <span><span style={{ color: '#dc2626' }}>Wrong:</span> {wCount}</span>
-                            <span><span style={{ color: '#64748b' }}>Unattempted:</span> {uCount}</span>
+                            <div><span style={{ color: '#16a34a' }}>Correct:</span> {cCount}</div>
+                            <div><span style={{ color: '#dc2626' }}>Wrong:</span> {wCount}</div>
+                            <div><span style={{ color: '#64748b' }}>Unattempted:</span> {uCount}</div>
                           </div>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 5px', borderBottom: '2px solid #e2e8f0', borderTop: '1px solid #e2e8f0', fontSize: '13px', fontWeight: '700', color: '#475569', background: '#f8fafc' }}>
-                          <span style={{ width: '50px', textAlign: 'center' }}>Q.No</span>
-                          <span style={{ flex: 1, textAlign: 'center' }}>Q.ID</span>
-                          <span style={{ width: '50px', textAlign: 'center' }}>Status</span>
+                          <div style={{ width: '50px', textAlign: 'center' }}>Q.No</div>
+                          <div style={{ flex: 1, textAlign: 'center' }}>Q.ID</div>
+                          <div style={{ width: '50px', textAlign: 'center' }}>Status</div>
                         </div>
                         <div style={{ padding: '0 8px 8px' }}>
                           {Array.from({ length: 25 }).map((_, i) => {
@@ -748,9 +758,9 @@ function App() {
 
                             return (
                               <div key={qNum} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 5px', borderBottom: '1px solid #edf2f7', fontSize: '13px', borderRadius: '4px', marginBottom: '2px', background: rowBg }}>
-                                <span style={{ width: '50px', textAlign: 'center' }}>{qNum}.</span>
-                                <span style={{ flex: 1, textAlign: 'center' }}>{qId}</span>
-                                <span style={{ width: '50px', textAlign: 'center', color: statusColor, fontWeight: 'bold', fontSize: '14px' }}>{icon}</span>
+                                <div style={{ width: '50px', textAlign: 'center' }}>{qNum}.</div>
+                                <div style={{ flex: 1, textAlign: 'center' }}>{qId}</div>
+                                <div style={{ width: '50px', textAlign: 'center', color: statusColor, fontWeight: 'bold', fontSize: '14px' }}>{icon}</div>
                               </div>
                             );
                           })}
