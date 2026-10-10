@@ -95,7 +95,7 @@ function App() {
   // 🚀 కొత్తగా యాడ్ చేసిన Not Available పాప్-అప్ స్టేట్
   const [showNotAvailableModal, setShowNotAvailableModal] = useState(false);
 
-  useEffect(() => {
+    useEffect(() => {
     if (!document.getElementById('html2canvas-script')) {
       const script = document.createElement('script');
       script.id = 'html2canvas-script';
@@ -110,7 +110,17 @@ function App() {
       const actionBtns = document.getElementById('modal-action-buttons');
       if (actionBtns) actionBtns.style.display = 'none';
 
-      window.html2canvas(element, { scale: 2, backgroundColor: '#071022', useCORS: true }).then(canvas => {
+      window.html2canvas(element, { 
+        scale: 2, 
+        backgroundColor: '#071022', 
+        useCORS: true,
+        onclone: (clonedDoc) => {
+          const modal = clonedDoc.getElementById('scorecard-modal-content');
+          if (modal) {
+             modal.style.fontFamily = 'Arial, Helvetica, sans-serif';
+          }
+        }
+      }).then(canvas => {
         if (actionBtns) actionBtns.style.display = 'flex';
         const data = canvas.toDataURL('image/jpeg', 1.0);
         const link = document.createElement('a');
