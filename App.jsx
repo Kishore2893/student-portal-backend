@@ -354,9 +354,9 @@ function App() {
       const examFolder = activeExam.toLowerCase().replace(/\s+/g, '-');
       let docFolder = '';
       if (activeExam !== 'IPE-2027') {
-        if (docType === 'form') docFolder = '/application-form';
-        else if (docType === 'admitCard') docFolder = '/admit-card';
-        else if (docType === 'scoreCard') docFolder = '/score-card';
+        if (docType === 'form') docFolder = '/application-forms';
+        else if (docType === 'admitCard') docFolder = '/admit-cards';
+        else if (docType === 'scoreCard') docFolder = '/rank-cards';
         else docFolder = '/' + String(docType).toLowerCase().replace(/\s+/g, '-');
       }
 
@@ -906,7 +906,7 @@ function App() {
             
             <h3 style={{ margin: '0 0 8px 0', color: '#1e293b', fontSize: '22px', fontWeight: '800' }}>Not Available</h3>
             <p style={{ color: '#64748b', fontSize: '14px', lineHeight: '1.5', margin: '0', fontWeight: '500' }}>
-              We're sorry, this resource is currently unavailable. Please try again later.
+              Currently unavailable. Please try again later.
             </p>
           </div>
         </div>
