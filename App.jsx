@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import ExamConsole from './ExamConsole.jsx';
 import Modals from './Modals';
 import AnalysisDashboard from './AnalysisDashboard'; 
-// 🚀 Supabase కనెక్షన్ ఇక్కడ ఇంపోర్ట్ చేసాము
 import { supabase } from './supabaseClient';
 
 const AutoPopup = () => {
@@ -91,54 +90,147 @@ function App() {
 
   const [showUrlError, setShowUrlError] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
-  
-  // 🚀 కొత్తగా యాడ్ చేసిన Not Available పాప్-అప్ స్టేట్
   const [showNotAvailableModal, setShowNotAvailableModal] = useState(false);
 
-  useEffect(() => {
-    if (!document.getElementById('html2canvas-script')) {
-      const script = document.createElement('script');
-      script.id = 'html2canvas-script';
-      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-      document.body.appendChild(script);
-    }    
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem('examUser');
+    try {
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  const [activeExam, setActiveExam] = useState('JEE Main');
+  const [showTimeoutModal, setShowTimeoutModal] = useState(false);
+  const [showSessionModal, setShowSessionModal] = useState(false);
+  const [showYearModal, setShowYearModal] = useState(false);
+  const [selectedDocType, setSelectedDocType] = useState('');
+  const [selectedDocLabel, setSelectedDocLabel] = useState('');
+
+  const timerRef = useRef(null);
+
+  const generateCaptcha = useCallback(() => {
+    const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setCaptchaText(result);
+    setUserCaptchaInput(''); 
   }, []);
 
-  const handleDownloadJPG = () => {
-    if (window.html2canvas) {
-      const element = document.getElementById('scorecard-modal-content');
-      const actionBtns = document.getElementById('modal-action-buttons');
-      if (actionBtns) actionBtns.style.display = 'none';
+  const handleLogout = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    localStorage.removeItem('examUser');
+    sessionStorage.clear();
+    setUser(null);
+    setAdmissionNumber('');
+    setMobileNumber('');
+    setUserCaptchaInput('');
+    setTimeout(() => generateCaptcha(), 100);
+  }, [generateCaptcha]);
 
-      window.html2canvas(element, { scale: 2, backgroundColor: '#071022', useCORS: true }).then(canvas => {
-        if (actionBtns) actionBtns.style.display = 'flex';
-        const data = canvas.toDataURL('image/jpeg', 1.0);
-        const link = document.createElement('a');
-        link.href = data;
-        link.download = `JEE_Report_${scoreData?.studentInfo?.appNo || 'Student'}.jpg`;
-        link.click();
-      });
-    } else {
-      alert("డౌన్లోడ్ సిస్టమ్ లోడ్ అవుతోంది... దయచేసి ఒక క్షణం ఆగి మళ్ళీ క్లిక్ చేయండి.");
-    }
+  useEffect(() => {
+    if (!user) return;
+    timerRef.current = setTimeout(() => {
+      handleLogout(); 
+      setShowTimeoutModal(true); 
+    }, 240000); 
+
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [user, handleLogout]);
+
+  useEffect(() => {
+    const handleContextMenu = (e) => e.preventDefault();
+    const handleKeyDown = (e) => {
+      if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || (e.ctrlKey && e.key === 'U')) {
+        e.preventDefault();
+        return false;
+      }
+    };
+    document.addEventListener('contextmenu', handleContextMenu);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('contextmenu', handleContextMenu);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  useEffect(() => { 
+    document.title = "JEE Main 2027 Score Calculator"; 
+    generateCaptcha();
+    window.history.scrollRestoration = 'manual';
+    window.scrollTo(0, 0);
+  }, [generateCaptcha]);
+
+  const handleDownloadPDF = () => {
+    const originalElement = document.getElementById('scorecard-modal-content');
+    if (!originalElement) return;
+
+    const printElement = originalElement.cloneNode(true);
+    const actionBtns = printElement.querySelector('#modal-action-buttons');
+    if (actionBtns) actionBtns.remove();
+
+    const printContainer = document.createElement('div');
+    printContainer.id = 'print-container';
+    printContainer.appendChild(printElement);
+    
+    document.body.appendChild(printContainer);
+    
+    const style = document.createElement('style');
+    style.id = 'print-style';
+    style.innerHTML = `
+      @media print {
+        body > *:not(#print-container) { display: none !important; }
+        #print-container { 
+          display: block !important; 
+          position: absolute; 
+          left: 0; 
+          top: 0; 
+          width: 100%; 
+          margin: 0;
+        }
+        * {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+          color-adjust: exact !important;
+        }
+        @page { size: A4 portrait; margin: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+
+    window.print();
+
+    setTimeout(() => {
+      if (document.body.contains(printContainer)) {
+        document.body.removeChild(printContainer);
+      }
+      if (document.head.contains(style)) {
+        document.head.removeChild(style);
+      }
+    }, 1000);
   };
 
   const handleUrlChange = (e) => {
     const inputUrl = e.target.value;
     setResponseUrl(inputUrl);
-    if (inputUrl.trim().length > 15 && (!inputUrl.startsWith("https://cdn3.digialm.com") || !inputUrl.includes("touchstone/AssessmentQPHTMLMode1") || !inputUrl.endsWith(".html"))) {
+    if (inputUrl.trim().length > 15 && !inputUrl.startsWith("https://cdn3.digialm.com")) {
       setShowUrlError(true);
       setResponseUrl('');
     }
   };
 
-    const handleEvaluate = async () => {
+  const handleEvaluate = async () => {
     setEvaluatorError('');
     if (!responseUrl.trim()) {
       setEvaluatorError("Please paste the official Response Sheet URL to proceed!");
       return;
     }
-    if (!responseUrl.startsWith("https://cdn3.digialm.com") || !responseUrl.includes("touchstone/AssessmentQPHTMLMode1") || !responseUrl.endsWith(".html")) {
+    if (!responseUrl.startsWith("https://cdn3.digialm.com")) {
       setShowUrlError(true);
       setResponseUrl('');
       return;
@@ -204,84 +296,6 @@ function App() {
     }
   };
 
-  const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('examUser');
-    try {
-      return savedUser ? JSON.parse(savedUser) : null;
-    } catch (e) {
-      return null;
-    }
-  });
-
-  const [activeExam, setActiveExam] = useState('JEE Main');
-  const [showTimeoutModal, setShowTimeoutModal] = useState(false);
-  const [showSessionModal, setShowSessionModal] = useState(false);
-  const [showYearModal, setShowYearModal] = useState(false);
-  const [selectedDocType, setSelectedDocType] = useState('');
-  const [selectedDocLabel, setSelectedDocLabel] = useState('');
-
-  const timerRef = useRef(null);
-
-  useEffect(() => {
-    if (!user) return;
-    timerRef.current = setTimeout(() => {
-      handleLogout(); 
-      setShowTimeoutModal(true); 
-    }, 240000); 
-
-    return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
-    };
-  }, [user]);
-
-  useEffect(() => {
-    const handleContextMenu = (e) => e.preventDefault();
-    const handleKeyDown = (e) => {
-      if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J')) || (e.ctrlKey && e.key === 'U')) {
-        e.preventDefault();
-        return false;
-      }
-    };
-    document.addEventListener('contextmenu', handleContextMenu);
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('contextmenu', handleContextMenu);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
-
-  const generateCaptcha = () => {
-    const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    let result = '';
-    for (let i = 0; i < 6; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    setCaptchaText(result);
-    setUserCaptchaInput(''); 
-  };
-
-  const tickerTextList = [
-    "🚀 JEE Main 2027 Score Evaluator is LIVE Now!",    
-  ];
-
-  const examThemes = {
-    'JEE Main': 'linear-gradient(135deg, #0d47a1, #1976d2)',        
-    'JEE Advanced': 'linear-gradient(135deg, #2d5a27, #4caf50)',
-    'BITSAT': 'linear-gradient(135deg, #e65100, #ff8f00)',    
-    'TG EAPCET': 'linear-gradient(135deg, #880e4f, #ad1457)',       
-    'AP EAPCET': 'linear-gradient(135deg, #004d40, #00695c)',       
-    'IPE-2027': 'linear-gradient(135deg, #be8160, #512da8)' 
-  };
-
-  const currentThemeColor = activeExam === 'JEE Main' ? '#0043a4' : activeExam === 'JEE Advanced' ? '#2d5a27' : activeExam === 'BITSAT' ? '#e65100' : activeExam === 'TG EAPCET' ? '#880e4f' : activeExam === 'AP EAPCET' ? '#00695c' : '#512da8';
-
-  useEffect(() => { 
-    document.title = "JEE Main 2027 Score Calculator"; 
-    generateCaptcha();
-    window.history.scrollRestoration = 'manual';
-    window.scrollTo(0, 0);
-  }, []);
-
   const handleLogin = async (e) => {
     e.preventDefault(); 
     setError(''); 
@@ -316,15 +330,48 @@ function App() {
     }
   };
 
-  const handleLogout = () => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    localStorage.removeItem('examUser');
-    sessionStorage.clear();
-    setUser(null);
-    setAdmissionNumber('');
-    setMobileNumber('');
-    setUserCaptchaInput('');
-    setTimeout(() => generateCaptcha(), 100);
+  const downloadDocument = async (docType, subOption = null) => {
+    setShowSessionModal(false); 
+    setShowYearModal(false);
+  
+    try {
+      const examFolder = activeExam.toLowerCase().replace(/\s+/g, '-');
+      let docFolder = '';
+      if (activeExam !== 'IPE-2027') {
+        if (docType === 'form') docFolder = '/application-forms';
+        else if (docType === 'admit' || docType === 'hall') docFolder = '/admit-cards';
+        else if (docType === 'score') docFolder = '/rank-cards';
+        else docFolder = '/' + String(docType).toLowerCase().replace(/\s+/g, '-');
+      }
+
+      let subFolder = '';
+      if (subOption) {
+         subFolder = '/' + String(subOption).toLowerCase().replace(/\s+/g, '-'); 
+      }
+
+      const fileUrl = `https://student-portal-backend-vo2b.onrender.com/${examFolder}${docFolder}${subFolder}/${user?.admissionNumber}.pdf`;
+      
+      const response = await fetch(fileUrl);
+      
+      if (!response.ok) {
+        setShowNotAvailableModal(true);
+        return;
+      }
+      
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `${user?.admissionNumber}.pdf`; 
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+      
+    } catch (err) {
+      console.error("Download error occurred:", err);
+      setShowNotAvailableModal(true);
+    }
   };
 
   const handleDocClick = (docType, docLabel, session = null) => {
@@ -345,51 +392,20 @@ function App() {
     }
   };
 
-  // 🚀 కొత్తగా మార్చిన డౌన్‌లోడ్ ఫంక్షన్
-  const downloadDocument = async (docType, subOption = null) => {
-    setShowSessionModal(false); 
-    setShowYearModal(false);
-  
-    try {
-      const examFolder = activeExam.toLowerCase().replace(/\s+/g, '-');
-      let docFolder = '';
-      if (activeExam !== 'IPE-2027') {
-        if (docType === 'form') docFolder = '/application-form';
-        else if (docType === 'admitCard') docFolder = '/admit-card';
-        else if (docType === 'scoreCard') docFolder = '/score-card';
-        else docFolder = '/' + String(docType).toLowerCase().replace(/\s+/g, '-');
-      }
+  const tickerTextList = [
+    "🚀 JEE Main 2027 Score Evaluator is LIVE Now!",    
+  ];
 
-      let subFolder = '';
-      if (subOption) {
-         subFolder = '/' + String(subOption).toLowerCase().replace(/\s+/g, '-'); 
-      }
-
-      const fileUrl = `https://student-portal-backend-vo2b.onrender.com/${examFolder}${docFolder}${subFolder}/${user.admissionNumber}.pdf`;
-      
-      const response = await fetch(fileUrl);
-      
-      if (!response.ok) {
-        // ఫైల్ లేకపోతే మన కొత్త పాప్-అప్ ని ఓపెన్ చేస్తుంది
-        setShowNotAvailableModal(true);
-        return;
-      }
-      
-      const blob = await response.blob();
-      const blobUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = blobUrl;
-      link.download = `${user.admissionNumber}.pdf`; 
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(blobUrl);
-      
-    } catch (err) {
-      console.error("డౌన్లోడ్ లోపం వచ్చింది:", err);
-      setShowNotAvailableModal(true);
-    }
+  const examThemes = {
+    'JEE Main': 'linear-gradient(135deg, #0d47a1, #1976d2)',        
+    'JEE Advanced': 'linear-gradient(135deg, #2d5a27, #4caf50)',
+    'BITSAT': 'linear-gradient(135deg, #e65100, #ff8f00)',    
+    'TG EAPCET': 'linear-gradient(135deg, #880e4f, #ad1457)',       
+    'AP EAPCET': 'linear-gradient(135deg, #004d40, #00695c)',       
+    'IPE-2027': 'linear-gradient(135deg, #be8160, #512da8)' 
   };
+
+  const currentThemeColor = activeExam === 'JEE Main' ? '#0043a4' : activeExam === 'JEE Advanced' ? '#2d5a27' : activeExam === 'BITSAT' ? '#e65100' : activeExam === 'TG EAPCET' ? '#880e4f' : activeExam === 'AP EAPCET' ? '#00695c' : '#512da8';
 
   return (
     <div style={{ backgroundColor: '#f1f5f9', minHeight: '100vh', width: '100%', fontFamily: '"Segoe UI", Roboto, sans-serif', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
@@ -404,17 +420,12 @@ function App() {
         .btn-primary { padding: 14px; background: linear-gradient(135deg, #1d4ed8, #2563eb); color: #ffffff; border: none; border-radius: 10px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35); }
         .btn-primary:hover:not(:disabled) { background: linear-gradient(135deg, #1e40af, #1d4ed8); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45); }
         .btn-primary:disabled { opacity: 0.65; cursor: not-allowed; }
-        
         .evaluator-card { display: flex; flex-direction: row; width: 100%; max-width: 1200px; margin: 0 auto; }
-        
         .evaluator-left { flex: 1.1; border-right: 3px solid #3b82f6; }
         .evaluator-right { flex: 1; }
-        
         .evaluator-input-group { display: flex; flex-direction: column; gap: 12px; }
         .evaluator-btn { width: 100%; }
-        
         .login-btn-top { position: absolute; right: 30px; top: 65%; transform: translateY(-50%); }
-        
         @media (max-width: 768px) {
           .evaluator-card { flex-direction: column; }
           .evaluator-left { border-right: none; border-bottom: 3px solid #3b82f6; }
@@ -422,15 +433,12 @@ function App() {
         }
       `}</style>
 
-      {/* 🟦 హెడర్ బ్యానర్ */}
       <header style={{ backgroundColor: '#ffffff', padding: '18px 20px', width: '100%', boxSizing: 'border-box', position: 'relative', borderBottom: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
         <div className="header-content-wrapper" style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          
           <div style={{ textAlign: 'center' }}>
             <h1 style={{ margin: 0, fontSize: '30px', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.5px' }}>JEE MAIN 2027 SCORE EVALUATOR</h1>
             <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#64748b', fontWeight: '600', letterSpacing: '0.2px' }}>Don’t wait for results — know your score in seconds!</p>
           </div>
-
         </div>
 
         {!user && (
@@ -444,7 +452,6 @@ function App() {
         )}
       </header>
 
-      {/* 📢 Ticker Bar */}
       <div style={{ width: '100%', backgroundColor: '#0b2d5c', borderBottom: '1px solid #082145', padding: '8px 0', overflow: 'hidden', display: 'flex', alignItems: 'center', boxSizing: 'border-box', height: '46px' }}>
         <div style={{ backgroundColor: '#dc2626', color: '#ffffff', padding: '4px 16px', fontSize: '12px', fontWeight: '800', marginLeft: '20px', borderRadius: '20px', zIndex: 10, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 2px 6px rgba(220,38,38,0.4)' }}>
           ⚡ LATEST UPDATES
@@ -456,9 +463,7 @@ function App() {
 
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         {!user ? (
-          
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'stretch', padding: '25px 4% 15px 4%', width: '100%', boxSizing: 'border-box' }}>
-            
             <div className="modern-card evaluator-card">
               <div className="evaluator-left" style={{ background: 'linear-gradient(135deg, #0b1d3a, #1e3a8a)', color: '#ffffff', padding: '35px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
                 <div style={{ display: 'inline-block', backgroundColor: 'rgba(59, 130, 246, 0.25)', color: '#93c5fd', fontSize: '11px', fontWeight: '800', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '12px' }}>
@@ -508,11 +513,8 @@ function App() {
                   </button>
                 </div>
               </div>
-
             </div>
-
           </div>
-
         ) : (
           <div style={{ maxWidth: '1020px', width: '100%', margin: '30px auto', padding: '0 20px', boxSizing: 'border-box' }}>
             <div style={{ background: `linear-gradient(135deg, #0b1d3a, ${currentThemeColor})`, color: 'white', padding: '26px 30px', borderRadius: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', boxShadow: '0 12px 30px -8px rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)' }}>
@@ -562,7 +564,6 @@ function App() {
 
       {scoreData && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(8px)', zIndex: 99999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', boxSizing: 'border-box' }}>
-          
           <div style={{ width: '100%', maxWidth: '1000px', maxHeight: '92vh', overflowY: 'auto', overflowX: 'hidden', borderRadius: '16px', boxShadow: '0 0 40px rgba(13, 71, 161, 0.4)' }}>
             <div id="scorecard-modal-content" style={{ backgroundColor: '#071022', width: '100%', border: '1px solid #1e3a8a', borderRadius: '16px', overflow: 'hidden', display: 'flex', flexDirection: 'column', fontFamily: '"Segoe UI", sans-serif' }}>
             
@@ -580,7 +581,7 @@ function App() {
               </div>
               
               <div id="modal-action-buttons" style={{ display: 'flex', gap: '10px' }}>
-                <button onClick={handleDownloadJPG} style={{ backgroundColor: '#2563eb', color: '#ffffff', border: '1px solid #1d4ed8', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }} title="Download as JPG">
+                <button onClick={handleDownloadPDF} style={{ backgroundColor: '#2563eb', color: '#ffffff', border: '1px solid #1d4ed8', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }} title="Download as PDF">
                   <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                   Download
                 </button>
@@ -758,8 +759,6 @@ function App() {
                 <span style={{ color: '#718096', margin: '0 15px', fontWeight: 'bold' }}>○ Unattempted</span>
               </div>
             </div>
-
-          </div>
           </div>
         </div>
       )}
@@ -793,12 +792,9 @@ function App() {
         </div>
       )}
 
-      {/* 🚀 CANDIDATE LOGIN MODAL 🚀 */}
       {showLoginModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(5px)', zIndex: 999999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', boxSizing: 'border-box' }}>
-          
           <div className="modern-card" style={{ maxWidth: '460px', width: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-            
             <button 
               onClick={() => setShowLoginModal(false)}
               style={{ position: 'absolute', top: '15px', right: '15px', background: 'white', color: '#0f172a', border: 'none', width: '32px', height: '32px', borderRadius: '50%', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', zIndex: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(0,0,0,0.15)' }}
@@ -817,7 +813,6 @@ function App() {
             </div>
 
             <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', padding: '28px 30px', boxSizing: 'border-box' }}>
-              
               <div style={{ marginBottom: '18px' }}>
                 <label style={{ display: 'block', marginBottom: '6px', fontWeight: '700', color: '#1e293b', fontSize: '13px' }}>
                   🆔 Admn Number:
@@ -883,35 +878,30 @@ function App() {
         </div>
       )}
 
-      {/* 🚀 లాగిన్ మోడల్ ఓపెన్ కానప్పుడు, మరియు యూజర్ లాగిన్ అవ్వనప్పుడు మాత్రమే డాష్బోర్డ్ కనిపిస్తుంది */}
       {!showLoginModal && !user && (
         <AnalysisDashboard />
       )}
       
-      {/* 🚀 కొత్తగా యాడ్ చేసిన Not Available పాప్-అప్ (OK బటన్ లేకుండా) */}
       {showNotAvailableModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(6px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 999999, animation: 'fadeIn 0.3s ease-out' }}>
           <div style={{ backgroundColor: '#ffffff', padding: '30px 25px 25px 25px', borderRadius: '16px', width: '90%', maxWidth: '320px', position: 'relative', textAlign: 'center', boxShadow: '0 25px 60px rgba(0,0,0,0.25), 0 10px 25px rgba(0,0,0,0.15)' }}>
-            
             <button 
               style={{ position: 'absolute', top: '10px', right: '10px', background: 'transparent', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#64748b', transition: 'all 0.2s ease', padding: '5px' }} 
               onClick={() => setShowNotAvailableModal(false)}
             >
               &#10005;
             </button>
-            
             <div style={{ width: '60px', height: '60px', backgroundColor: '#ef4444', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 15px auto', color: 'white', fontSize: '32px', fontWeight: 'bold' }}>
               ✕
             </div>
-            
             <h3 style={{ margin: '0 0 8px 0', color: '#1e293b', fontSize: '22px', fontWeight: '800' }}>Not Available</h3>
             <p style={{ color: '#64748b', fontSize: '14px', lineHeight: '1.5', margin: '0', fontWeight: '500' }}>
-              We're sorry, this resource is currently unavailable. Please try again later.
+              Please try again later.
             </p>
           </div>
         </div>
       )}
-      
+
       <footer style={{ 
         width: '100%', 
         backgroundColor: '#05080f', 
@@ -921,15 +911,12 @@ function App() {
         padding: '30px 20px', 
         boxSizing: 'border-box'
       }}>
-        {/* ఎట్రాక్టివ్ గ్రేడియంట్ బార్డర్ */}
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '2px', background: 'linear-gradient(90deg, transparent, #38bdf8, #818cf8, transparent)' }}></div>
 
         <div style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center' }}>
-          
           <div style={{ fontSize: '14.5px', color: '#cbd5e1', letterSpacing: '0.5px' }}>
-            Copyright © KIT 2026. All Rights Reserved.
+            Copyright © KKIT 2026. All Rights Reserved.
           </div>
-          
         </div>
 
         {showTimeoutModal && (
