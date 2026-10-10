@@ -355,8 +355,8 @@ function App() {
       let docFolder = '';
       if (activeExam !== 'IPE-2027') {
         if (docType === 'form') docFolder = '/application-forms';
-        else if (docType === 'admitCard') docFolder = '/admit-cards';
-        else if (docType === 'scoreCard') docFolder = '/rank-cards';
+        else if (docType === 'admit' || docType === 'hall') docFolder = '/admit-cards';
+        else if (docType === 'score') docFolder = '/rank-cards';
         else docFolder = '/' + String(docType).toLowerCase().replace(/\s+/g, '-');
       }
 
