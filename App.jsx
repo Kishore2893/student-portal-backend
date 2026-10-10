@@ -91,6 +91,9 @@ function App() {
 
   const [showUrlError, setShowUrlError] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  
+  // 🚀 కొత్తగా యాడ్ చేసిన Not Available పాప్-అప్ స్టేట్
+  const [showNotAvailableModal, setShowNotAvailableModal] = useState(false);
 
   useEffect(() => {
     if (!document.getElementById('html2canvas-script')) {
@@ -153,8 +156,6 @@ function App() {
       const data = await response.json(); 
       
       if (data.success) {
-        
-        // 🚀 Calculate correct, wrong, and unattempted counts
         const getCounts = (sub) => {
           const pos = (sub?.secAPositive || 0) + (sub?.secBPositive || 0);
           const neg = Math.abs(sub?.secANegative || 0) + Math.abs(sub?.secBNegative || 0);
@@ -168,7 +169,6 @@ function App() {
         const p = getCounts(data.subjects?.Physics);
         const ch = getCounts(data.subjects?.Chemistry);
 
-        // 🚀 Save data to Supabase (including C/W/U counts)
         try {
           const { error: sbError } = await supabase
             .from('jee_results')
@@ -275,7 +275,7 @@ function App() {
 
   const currentThemeColor = activeExam === 'JEE Main' ? '#0043a4' : activeExam === 'JEE Advanced' ? '#2d5a27' : activeExam === 'BITSAT' ? '#e65100' : activeExam === 'TG EAPCET' ? '#880e4f' : activeExam === 'AP EAPCET' ? '#00695c' : '#512da8';
 
-    useEffect(() => { 
+  useEffect(() => { 
     document.title = "JEE Main 2027 Score Calculator"; 
     generateCaptcha();
     window.history.scrollRestoration = 'manual';
@@ -345,15 +345,49 @@ function App() {
     }
   };
 
+  // 🚀 కొత్తగా మార్చిన డౌన్‌లోడ్ ఫంక్షన్
   const downloadDocument = async (docType, subOption = null) => {
     setShowSessionModal(false); 
     setShowYearModal(false);
   
     try {
-      const fileUrl = `https://student-portal-backend-vo2b.onrender.com/${user.admissionNumber}.pdf`;
-      window.open(fileUrl, '_blank');
+      const examFolder = activeExam.toLowerCase().replace(/\s+/g, '-');
+      let docFolder = '';
+      if (activeExam !== 'IPE-2027') {
+        if (docType === 'form') docFolder = '/application-form';
+        else if (docType === 'admitCard') docFolder = '/admit-card';
+        else if (docType === 'scoreCard') docFolder = '/score-card';
+        else docFolder = '/' + String(docType).toLowerCase().replace(/\s+/g, '-');
+      }
+
+      let subFolder = '';
+      if (subOption) {
+         subFolder = '/' + String(subOption).toLowerCase().replace(/\s+/g, '-'); 
+      }
+
+      const fileUrl = `https://student-portal-backend-vo2b.onrender.com/${examFolder}${docFolder}${subFolder}/${user.admissionNumber}.pdf`;
+      
+      const response = await fetch(fileUrl);
+      
+      if (!response.ok) {
+        // ఫైల్ లేకపోతే మన కొత్త పాప్-అప్ ని ఓపెన్ చేస్తుంది
+        setShowNotAvailableModal(true);
+        return;
+      }
+      
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `${user.admissionNumber}.pdf`; 
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+      
     } catch (err) {
       console.error("డౌన్లోడ్ లోపం వచ్చింది:", err);
+      setShowNotAvailableModal(true);
     }
   };
 
@@ -459,7 +493,6 @@ function App() {
                     <span>ℹ️ Supports official NTA candidate response sheet url's.</span>
                   </div>
 
-                  {/* 🚀 ఎర్రర్ మెసేజ్ కేవలం ఇక్కడ (బటన్ పైన) మాత్రమే వస్తుంది */}
                   {evaluatorError && (
                     <div style={{ padding: '10px 14px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '8px', color: '#dc2626', fontSize: '13px', fontWeight: '600' }}>
                       ⚠️ {evaluatorError}
@@ -855,7 +888,31 @@ function App() {
         <AnalysisDashboard />
       )}
       
-            <footer style={{ 
+      {/* 🚀 కొత్తగా యాడ్ చేసిన Not Available పాప్-అప్ (OK బటన్ లేకుండా) */}
+      {showNotAvailableModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(6px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 999999, animation: 'fadeIn 0.3s ease-out' }}>
+          <div style={{ backgroundColor: '#ffffff', padding: '30px 25px 25px 25px', borderRadius: '16px', width: '90%', maxWidth: '320px', position: 'relative', textAlign: 'center', boxShadow: '0 25px 60px rgba(0,0,0,0.25), 0 10px 25px rgba(0,0,0,0.15)' }}>
+            
+            <button 
+              style={{ position: 'absolute', top: '10px', right: '10px', background: 'transparent', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#64748b', transition: 'all 0.2s ease', padding: '5px' }} 
+              onClick={() => setShowNotAvailableModal(false)}
+            >
+              &#10005;
+            </button>
+            
+            <div style={{ width: '60px', height: '60px', backgroundColor: '#ef4444', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 15px auto', color: 'white', fontSize: '32px', fontWeight: 'bold' }}>
+              ✕
+            </div>
+            
+            <h3 style={{ margin: '0 0 8px 0', color: '#1e293b', fontSize: '22px', fontWeight: '800' }}>Not Available</h3>
+            <p style={{ color: '#64748b', fontSize: '14px', lineHeight: '1.5', margin: '0', fontWeight: '500' }}>
+              We're sorry, this resource is currently unavailable. Please try again later.
+            </p>
+          </div>
+        </div>
+      )}
+      
+      <footer style={{ 
         width: '100%', 
         backgroundColor: '#05080f', 
         position: 'relative',
@@ -870,7 +927,7 @@ function App() {
         <div style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center' }}>
           
           <div style={{ fontSize: '14.5px', color: '#cbd5e1', letterSpacing: '0.5px' }}>
-            Copyright © KKIT 2026. All Rights Reserved.
+            Copyright © KIT 2026. All Rights Reserved.
           </div>
           
         </div>
