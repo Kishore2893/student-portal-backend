@@ -95,7 +95,7 @@ function App() {
   // 🚀 కొత్తగా యాడ్ చేసిన Not Available పాప్-అప్ స్టేట్
   const [showNotAvailableModal, setShowNotAvailableModal] = useState(false);
 
-    useEffect(() => {
+  useEffect(() => {
     if (!document.getElementById('html2canvas-script')) {
       const script = document.createElement('script');
       script.id = 'html2canvas-script';
@@ -142,7 +142,7 @@ function App() {
     }
   };
 
-    const handleEvaluate = async () => {
+  const handleEvaluate = async () => {
     setEvaluatorError('');
     if (!responseUrl.trim()) {
       setEvaluatorError("Please paste the official Response Sheet URL to proceed!");
@@ -355,7 +355,7 @@ function App() {
     }
   };
 
-  // 🚀 కొత్తగా మార్చిన డౌన్‌లోడ్ ఫంక్షన్
+  // 🚀 కొత్తగా మార్చిన డౌన్లోడ్ ఫంక్షన్
   const downloadDocument = async (docType, subOption = null) => {
     setShowSessionModal(false); 
     setShowYearModal(false);
@@ -380,7 +380,6 @@ function App() {
       const response = await fetch(fileUrl);
       
       if (!response.ok) {
-        // ఫైల్ లేకపోతే మన కొత్త పాప్-అప్ ని ఓపెన్ చేస్తుంది
         setShowNotAvailableModal(true);
         return;
       }
@@ -609,10 +608,10 @@ function App() {
                   { label: "Test Date:", value: scoreData.studentInfo?.examDate || "N/A", flex: '1' },
                   { label: "Test Time:", value: scoreData.studentInfo?.examShift === 'Shift2' ? '3:00 PM - 6:00 PM' : '9:00 AM - 12:00 PM', flex: '1.2' }
                 ].map((info, idx) => (
-                  <div key={idx} style={{ backgroundColor: '#475569', borderRadius: '8px', padding: '6px 10px', flex: info.flex, minWidth: '0', border: '1px solid #64748b' }}>
-                    <div style={{ color: '#cbd5e1', fontSize: '10px', marginBottom: '2px', whiteSpace: 'nowrap' }}>{info.label}</div>
-                    <div style={{ color: '#ffffff', fontSize: '12px', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{info.value}</div>
-                  </div>
+                  <div key={idx} style={{ backgroundColor: '#475569', borderRadius: '8px', padding: '10px 10px', flex: info.flex, minWidth: '0', border: '1px solid #64748b', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <div style={{ color: '#cbd5e1', fontSize: '10px', marginBottom: '4px', whiteSpace: 'nowrap' }}>{info.label}</div>
+                  <div style={{ color: '#ffffff', fontSize: '12px', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', paddingBottom: '2px' }}>{info.value}</div>
+                </div>
                 ))}
               </div>
 
@@ -658,17 +657,17 @@ function App() {
                 <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '12px 15px', flex: '1.2', display: 'flex', flexDirection: 'column' }}>
                   <h3 style={{ margin: '0 0 8px 0', fontSize: '15px', color: '#0f172a', textTransform: 'uppercase' }}>Subject Wise Marks</h3>
                   <div style={{ display: 'flex', gap: '10px', flex: 1 }}>
-                    <div style={{ flex: 1, backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-                      <div style={{ color: '#1e3a8a', fontSize: '13px', marginBottom: '2px', fontWeight: '600' }}>Maths</div>
-                      <div style={{ fontSize: '24px', fontWeight: '800', color: '#1d4ed8', lineHeight: 1 }}>{scoreData.subjects?.Mathematics?.totalMarks ?? 0}</div>
+                    <div style={{ flex: 1, backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '15px 10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                    <div style={{ color: '#1e3a8a', fontSize: '13px', marginBottom: '4px', fontWeight: '600' }}>Maths</div>
+                    <div style={{ fontSize: '24px', fontWeight: '800', color: '#1d4ed8' }}>{scoreData.subjects?.Mathematics?.totalMarks ?? 0}</div>
+                      </div>
+                    <div style={{ flex: 1, backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '15px 10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                      <div style={{ color: '#14532d', fontSize: '13px', marginBottom: '4px', fontWeight: '600' }}>Physics</div>
+                      <div style={{ fontSize: '24px', fontWeight: '800', color: '#15803d' }}>{scoreData.subjects?.Physics?.totalMarks ?? 0}</div>
                     </div>
-                    <div style={{ flex: 1, backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-                      <div style={{ color: '#14532d', fontSize: '13px', marginBottom: '2px', fontWeight: '600' }}>Physics</div>
-                      <div style={{ fontSize: '24px', fontWeight: '800', color: '#15803d', lineHeight: 1 }}>{scoreData.subjects?.Physics?.totalMarks ?? 0}</div>
-                    </div>
-                    <div style={{ flex: 1, backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-                      <div style={{ color: '#78350f', fontSize: '13px', marginBottom: '2px', fontWeight: '600' }}>Chemistry</div>
-                      <div style={{ fontSize: '24px', fontWeight: '800', color: '#b45309', lineHeight: 1 }}>{scoreData.subjects?.Chemistry?.totalMarks ?? 0}</div>
+                    <div style={{ flex: 1, backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '15px 10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                      <div style={{ color: '#78350f', fontSize: '13px', marginBottom: '4px', fontWeight: '600' }}>Chemistry</div>
+                      <div style={{ fontSize: '24px', fontWeight: '800', color: '#b45309' }}>{scoreData.subjects?.Chemistry?.totalMarks ?? 0}</div>
                     </div>
                   </div>
                 </div>
@@ -677,7 +676,7 @@ function App() {
                   <div style={{ background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)', borderRadius: '10px', padding: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'white', border: 'none', boxShadow: '0 8px 20px rgba(37, 99, 235, 0.25)', flex: 1 }}>
                     <div style={{ textAlign: 'center' }}>
                       <div style={{ fontSize: '13px', color: '#bfdbfe', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontWeight: '800' }}>🏆 Grand Total Score</div>
-                      <div style={{ fontSize: '46px', fontWeight: '900', color: '#ffffff', display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '4px', lineHeight: 1 }}>
+                      <div style={{ fontSize: '46px', fontWeight: '900', color: '#ffffff', display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '4px' }}>
                         {scoreData.totalMarks ?? 0} <span style={{ fontSize: '22px', fontWeight: '600', color: '#93c5fd' }}>/ 300</span>
                       </div>
                     </div>
