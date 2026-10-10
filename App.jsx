@@ -95,6 +95,44 @@ function App() {
   // 🚀 కొత్తగా యాడ్ చేసిన Not Available పాప్-అప్ స్టేట్
   const [showNotAvailableModal, setShowNotAvailableModal] = useState(false);
 
+  useEffect(() => {
+    if (!document.getElementById('html2canvas-script')) {
+      const script = document.createElement('script');
+      script.id = 'html2canvas-script';
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+      document.body.appendChild(script);
+    }
+    if (!document.getElementById('jspdf-script')) {
+      const script2 = document.createElement('script');
+      script2.id = 'jspdf-script';
+      script2.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      document.body.appendChild(script2);
+    }
+  }, []);
+
+  const handleDownloadPDF = () => {
+    if (window.html2canvas && window.jspdf) {
+      const element = document.getElementById('scorecard-modal-content');
+      const actionBtns = document.getElementById('modal-action-buttons');
+      if (actionBtns) actionBtns.style.display = 'none';
+
+      window.html2canvas(element, { scale: 2, backgroundColor: '#071022', useCORS: true }).then(canvas => {
+        if (actionBtns) actionBtns.style.display = 'flex';
+        const imgData = canvas.toDataURL('image/png');
+        
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`JEE_Report_${scoreData?.studentInfo?.appNo || 'Student'}.pdf`);
+      });
+    } else {
+      alert("డౌన్లోడ్ సిస్టమ్ లోడ్ అవుతోంది... దయచేసి ఒక క్షణం ఆగి మళ్ళీ క్లిక్ చేయండి.");
+    }
+  };
+
   const handleUrlChange = (e) => {
     const inputUrl = e.target.value;
     setResponseUrl(inputUrl);
@@ -550,7 +588,14 @@ function App() {
                 </div>
               </div>
               
+              {/* PDF Button & Close Report Button Container */}
               <div id="modal-action-buttons" style={{ display: 'flex', gap: '10px' }}>
+                {/* PDF Button */}
+                <button onClick={handleDownloadPDF} style={{ backgroundColor: '#2563eb', color: '#ffffff', border: '1px solid #1d4ed8', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '6px' }} title="Download as PDF">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  PDF
+                </button>
+                {/* Close Report Button */}
                 <button onClick={() => setScoreData(null)} style={{ backgroundColor: '#dc2626', color: '#ffffff', border: '1px solid #b91c1c', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>
                   Close Report ✕
                 </button>
