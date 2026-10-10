@@ -906,7 +906,7 @@ function App() {
             
             <h3 style={{ margin: '0 0 8px 0', color: '#1e293b', fontSize: '22px', fontWeight: '800' }}>Not Available</h3>
             <p style={{ color: '#64748b', fontSize: '14px', lineHeight: '1.5', margin: '0', fontWeight: '500' }}>
-              Currently unavailable. Please try again later.
+              Please try again later.
             </p>
           </div>
         </div>
