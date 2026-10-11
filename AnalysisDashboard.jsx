@@ -36,8 +36,8 @@ const AnalysisDashboard = () => {
           const calcStats = (cArr, wArr, uArr) => {
             const avgC = Math.round(avg(cArr));
             const avgW = Math.round(avg(wArr));
-            const avgU = Math.round(avg(uArr));
-            const total = (avgC + avgW + avgU) || 1;
+            const avgU = Math.max(0, 25 - (avgC + avgW));
+            const total = 25;
             const cP = Math.round((avgC / total) * 100);
             const wP = Math.round((avgW / total) * 100);
             return { c: avgC, w: avgW, u: avgU, cP, wP, uP: Math.max(0, 100 - cP - wP) };
