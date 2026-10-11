@@ -95,6 +95,115 @@ function App() {
   // 🚀 కొత్తగా యాడ్ చేసిన Not Available పాప్-అప్ స్టేట్
   const [showNotAvailableModal, setShowNotAvailableModal] = useState(false);
 
+  // 📥 ఇమేజ్ డౌన్లోడ్ స్టేట్ & html2canvas ఆటోమేటిక్ లోడ్
+  const [downloading, setDownloading] = useState(false);
+
+  useEffect(() => {
+    if (!document.getElementById('html-to-image-script')) {
+      const script = document.createElement('script');
+      script.id = 'html-to-image-script';
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js';
+      script.crossOrigin = 'anonymous';
+      document.body.appendChild(script);
+    }
+    if (!document.getElementById('html2canvas-script')) {
+      const script2 = document.createElement('script');
+      script2.id = 'html2canvas-script';
+      script2.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+      script2.crossOrigin = 'anonymous';
+      document.body.appendChild(script2);
+    }
+  }, []);
+
+  // 🔥 100% పర్ఫెక్ట్ JPG డౌన్లోడ్ ఫంక్షన్ (స్క్రీన్ కదలకుండా, టెక్స్ట్ ఏదీ సెలెక్ట్ కాకుండా పర్ఫెక్ట్ క్యాప్చర్)
+  const handleDownloadJPG = async () => {
+    const element = document.getElementById('scorecard-modal-content');
+    if (!element) return;
+
+    setDownloading(true);
+
+    try {
+      // htmlToImage లోడ్ అయ్యే వరకు ఖచ్చితంగా వెయిట్ చేస్తుంది
+      if (!window.htmlToImage) {
+        await new Promise((resolve) => {
+          let count = 0;
+          const check = setInterval(() => {
+            count++;
+            if (window.htmlToImage) {
+              clearInterval(check);
+              resolve();
+            } else if (count > 40) {
+              clearInterval(check);
+              resolve();
+            }
+          }, 100);
+        });
+      }
+
+      // ఫాంట్స్ లోడ్ అయ్యే వరకు వెయిట్ చేస్తుంది
+      if (document.fonts) {
+        await document.fonts.ready;
+      }
+
+      const fullWidth = element.offsetWidth || element.scrollWidth;
+      const fullHeight = element.scrollHeight;
+
+      // స్క్రీన్ లేదా పేరెంట్ మోడల్ అస్సలు కదలకుండా, కిందకి జరగకుండా డైరెక్ట్ గా ఫుల్ హైట్ క్యాప్చర్
+      let imgData;
+      if (window.htmlToImage) {
+        imgData = await window.htmlToImage.toJpeg(element, {
+          quality: 0.98,
+          pixelRatio: 2,
+          width: fullWidth,
+          height: fullHeight,
+          canvasWidth: fullWidth,
+          canvasHeight: fullHeight,
+          backgroundColor: '#071022',
+          filter: (node) => node.id !== 'modal-action-buttons',
+        });
+      } else if (window.html2canvas) {
+        const actionBtns = document.getElementById('modal-action-buttons');
+        if (actionBtns) actionBtns.style.visibility = 'hidden';
+
+        const canvas = await window.html2canvas(element, {
+          scale: 2,
+          width: fullWidth,
+          height: fullHeight,
+          windowWidth: fullWidth,
+          windowHeight: fullHeight,
+          backgroundColor: '#071022',
+          useCORS: true,
+          allowTaint: true,
+          logging: false,
+          scrollY: 0,
+          scrollX: 0
+        });
+
+        if (actionBtns) actionBtns.style.visibility = 'visible';
+        imgData = canvas.toDataURL('image/jpeg', 0.95);
+      } else {
+        throw new Error("Image generation library not available");
+      }
+
+      // JPG ఫార్మాట్ లో డౌన్లోడ్ - ఫైల్ నేమ్: JEE_Report_SURYANSHU_MISHRA.jpg
+      const link = document.createElement('a');
+      const studentName = (scoreData?.studentInfo?.name || 'STUDENT')
+        .trim()
+        .replace(/[^a-zA-Z0-9]/g, '_')
+        .replace(/_+/g, '_');
+      link.download = `JEE_Report_${studentName}.jpg`;
+      link.href = imgData;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error("JPG Download Error:", err);
+      alert("డౌన్లోడ్ చేయడంలో లోపం వచ్చింది. దయచేసి మళ్ళీ ప్రయత్నించండి.");
+    } finally {
+      setDownloading(false);
+    }
+  };
+
   const handleUrlChange = (e) => {
     const inputUrl = e.target.value;
     setResponseUrl(inputUrl);
@@ -104,7 +213,7 @@ function App() {
     }
   };
 
-    const handleEvaluate = async () => {
+  const handleEvaluate = async () => {
     setEvaluatorError('');
     if (!responseUrl.trim()) {
       setEvaluatorError("Please paste the official Response Sheet URL to proceed!");
@@ -128,12 +237,13 @@ function App() {
       const data = await response.json(); 
       
       if (data.success) {
+        // 🔥 ప్రతి సబ్జెక్టుకు ఖచ్చితంగా 25 కి సరిపోయేలా అప్‌డేట్ చేసాము
         const getCounts = (sub) => {
           const pos = (sub?.secAPositive || 0) + (sub?.secBPositive || 0);
           const neg = Math.abs(sub?.secANegative || 0) + Math.abs(sub?.secBNegative || 0);
           const c = sub?.correct ?? (pos / 4);
           const w = sub?.wrong ?? neg;
-          const u = sub?.unattempted ?? Math.max(0, 25 - (c + w));
+          const u = Math.max(0, 25 - (c + w));
           return { c, w, u };
         };
         
@@ -535,7 +645,15 @@ function App() {
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(8px)', zIndex: 99999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', boxSizing: 'border-box' }}>
           
           <div style={{ width: '100%', maxWidth: '1000px', maxHeight: '92vh', overflowY: 'auto', overflowX: 'hidden', borderRadius: '16px', boxShadow: '0 0 40px rgba(13, 71, 161, 0.4)' }}>
-            <div id="scorecard-modal-content" style={{ backgroundColor: '#071022', width: '100%', border: '1px solid #1e3a8a', borderRadius: '16px', overflow: 'hidden', display: 'flex', flexDirection: 'column', fontFamily: '"Segoe UI", sans-serif' }}>
+            <div id="scorecard-modal-content" style={{ backgroundColor: '#071022', width: '100%', border: '1px solid #1e3a8a', borderRadius: '16px', overflow: 'hidden', display: 'flex', flexDirection: 'column', fontFamily: '"Segoe UI", sans-serif', userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none' }}>
+              <style>{`
+                #scorecard-modal-content, #scorecard-modal-content * {
+                  -webkit-user-select: none !important;
+                  -moz-user-select: none !important;
+                  -ms-user-select: none !important;
+                  user-select: none !important;
+                }
+              `}</style>
             
             <div style={{ padding: '12px 25px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', background: 'linear-gradient(90deg, #071022 0%, #0d234a 50%, #071022 100%)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
@@ -551,6 +669,27 @@ function App() {
               </div>
               
               <div id="modal-action-buttons" style={{ display: 'flex', gap: '10px' }}>
+                <button 
+                  onClick={handleDownloadJPG} 
+                  disabled={downloading}
+                  style={{ 
+                    backgroundColor: downloading ? '#1d4ed8' : '#2563eb', 
+                    color: '#ffffff', 
+                    border: '1px solid #1d4ed8', 
+                    padding: '6px 14px', 
+                    borderRadius: '6px', 
+                    cursor: downloading ? 'not-allowed' : 'pointer', 
+                    fontWeight: '600', 
+                    fontSize: '13px', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '6px' 
+                  }} 
+                  title="Download as JPG"
+                >
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  {downloading ? 'Downloading...' : 'Download'}
+                </button>
                 <button onClick={() => setScoreData(null)} style={{ backgroundColor: '#dc2626', color: '#ffffff', border: '1px solid #b91c1c', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>
                   Close Report ✕
                 </button>
@@ -566,9 +705,9 @@ function App() {
                   { label: "Test Date:", value: scoreData.studentInfo?.examDate || "N/A", flex: '1' },
                   { label: "Test Time:", value: scoreData.studentInfo?.examShift === 'Shift2' ? '3:00 PM - 6:00 PM' : '9:00 AM - 12:00 PM', flex: '1.2' }
                 ].map((info, idx) => (
-                  <div key={idx} style={{ backgroundColor: '#475569', borderRadius: '8px', padding: '6px 10px', flex: info.flex, minWidth: '0', border: '1px solid #64748b' }}>
-                    <div style={{ color: '#cbd5e1', fontSize: '10px', marginBottom: '2px', whiteSpace: 'nowrap' }}>{info.label}</div>
-                    <div style={{ color: '#ffffff', fontSize: '12px', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{info.value}</div>
+                  <div key={idx} style={{ backgroundColor: '#475569', borderRadius: '8px', padding: '8px 10px', flex: info.flex, minWidth: '0', border: '1px solid #64748b' }}>
+                    <div style={{ color: '#cbd5e1', fontSize: '10px', marginBottom: '3px', whiteSpace: 'nowrap', lineHeight: '1.2' }}>{info.label}</div>
+                    <div style={{ color: '#ffffff', fontSize: '12px', fontWeight: '700', whiteSpace: 'nowrap', lineHeight: '1.4' }}>{info.value}</div>
                   </div>
                 ))}
               </div>
@@ -633,9 +772,9 @@ function App() {
                 <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '12px', flex: '0.8', display: 'flex', flexDirection: 'column' }}>
                   <div style={{ background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)', borderRadius: '10px', padding: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'white', border: 'none', boxShadow: '0 8px 20px rgba(37, 99, 235, 0.25)', flex: 1 }}>
                     <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '13px', color: '#bfdbfe', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px', fontWeight: '800' }}>🏆 Grand Total Score</div>
-                      <div style={{ fontSize: '46px', fontWeight: '900', color: '#ffffff', display: 'flex', alignItems: 'baseline', justifyContent: 'center', gap: '4px', lineHeight: 1 }}>
-                        {scoreData.totalMarks ?? 0} <span style={{ fontSize: '22px', fontWeight: '600', color: '#93c5fd' }}>/ 300</span>
+                      <div style={{ fontSize: '13px', color: '#bfdbfe', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px', fontWeight: '800' }}>🏆 Grand Total Score</div>
+                      <div style={{ fontSize: '36px', fontWeight: '900', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', lineHeight: '1.2' }}>
+                        {scoreData.totalMarks ?? 0} <span style={{ fontSize: '18px', fontWeight: '600', color: '#93c5fd', lineHeight: '1.2' }}>/ 300</span>
                       </div>
                     </div>
                   </div>
@@ -662,12 +801,12 @@ function App() {
                   
                   const cCount = scoreData.subjects?.[sub.name]?.correct ?? ((secAPos + secBPos) / 4);
                   const wCount = scoreData.subjects?.[sub.name]?.wrong ?? (Math.abs(secANeg) + Math.abs(secBNeg));
-                  const uCount = scoreData.subjects?.[sub.name]?.unattempted ?? Math.max(0, 25 - (cCount + wCount));
+                  const uCount = Math.max(0, 25 - (cCount + wCount));
                   
                   const totalQ = 25;
                   const c_percent = Math.round((cCount / totalQ) * 100) || 0;
                   const w_percent = Math.round((wCount / totalQ) * 100) || 0;
-                  const u_percent = Math.round((uCount / totalQ) * 100) || 0;
+                  const u_percent = Math.max(0, 100 - (c_percent + w_percent));
 
                   return (
                     <div key={sIdx} style={{ position: 'relative', flex: '1 1 300px', marginBottom: '20px' }}>
