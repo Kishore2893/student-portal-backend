@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import ExamConsole from './ExamConsole.jsx';
 import Modals from './Modals';
 import AnalysisDashboard from './AnalysisDashboard'; 
-// 🚀 Supabase కనెక్షన్ ఇక్కడ ఇంపోర్ట్ చేసాము
 import { supabase } from './supabaseClient';
 
 const AutoPopup = () => {
@@ -75,6 +74,66 @@ const AutoPopup = () => {
   );
 };
 
+const renderExamIcon = (exam, isActive) => {
+  const iconColor = isActive ? '#ffffff' : '#64748b';
+  switch (exam) {
+    case 'JEE Main':
+      return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+          <circle cx="12" cy="12" r="10" fill="#f8fafc" stroke="#cbd5e1" strokeWidth="1"/>
+          <path d="M4.5 12a7.5 7.5 0 0 1 15 0c0-1.5-3.5-3.5-7.5-1.5s-7.5 1.5-7.5 1.5z" fill="#f97316"/>
+          <path d="M4.5 12a7.5 7.5 0 0 0 15 0c0 1.5-3.5 3.5-7.5 1.5s-7.5-1.5-7.5-1.5z" fill="#16a34a"/>
+          <circle cx="12" cy="12" r="3.2" fill="#ffffff"/>
+          <path d="M10.5 12l1.2 1.2 2.3-2.3" stroke="#0f172a" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      );
+    case 'JEE Advanced':
+      return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={iconColor} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+        </svg>
+      );
+    case 'BITSAT':
+      return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+          <circle cx="12" cy="12" r="10" fill="#6b21a8" stroke="#f59e0b" strokeWidth="1.2"/>
+          <circle cx="12" cy="12" r="7" fill="#ffffff"/>
+          <path d="M12 7v5m-2-3l2-2 2 2m-2.5 5h3m-1.5 0v2.5" stroke="#b91c1c" strokeWidth="1.4" strokeLinecap="round"/>
+        </svg>
+      );
+    case 'TG EAPCET':
+      return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+          <circle cx="12" cy="12" r="10" fill="#15803d" stroke="#facc15" strokeWidth="1.2"/>
+          <circle cx="12" cy="7.5" fill="#ffffff"/>
+          <path d="M8 14.5V11a4 4 0 0 1 8 0v3.5M10 14.5v-3a2 2 0 0 1 4 0v3" stroke="#15803d" strokeWidth="1.2" strokeLinecap="round"/>
+          <circle cx="12" cy="9" r="1" fill="#dc2626"/>
+        </svg>
+      );
+    case 'AP EAPCET':
+      return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+          <circle cx="12" cy="12" r="10" fill="#047857" stroke="#fbbf24" strokeWidth="1.2"/>
+          <circle cx="12" cy="7.5" fill="#f0fdf4"/>
+          <circle cx="12" cy="12" r="4.5" fill="#ffffff" stroke="#047857" strokeWidth="1"/>
+          <path d="M12 8v2m-2-1h4m-3 3h2v3h-2z" stroke="#b45309" strokeWidth="1.2" strokeLinecap="round"/>
+        </svg>
+      );
+    case 'IPE-2027':
+      return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" style={{ flexShrink: 0 }}>
+          <path d="M15 2H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7l-5-5z" fill="#fef3c7" stroke="#d97706" strokeWidth="1.4"/>
+          <path d="M14 2v4a1 1 0 0 0 1 1h4" stroke="#d97706" strokeWidth="1.4"/>
+          <line x1="8" y1="11" x2="16" y2="11" stroke="#92400e" strokeWidth="1.4" strokeLinecap="round"/>
+          <line x1="8" y1="15" x2="13" y2="15" stroke="#92400e" strokeWidth="1.4" strokeLinecap="round"/>
+          <circle cx="15.5" cy="17.5" r="2.5" fill="#dc2626"/>
+        </svg>
+      );
+    default:
+      return <span style={{ fontSize: '16px', flexShrink: 0 }}>📄</span>;
+  }
+};
+
 function App() {
   const [admissionNumber, setAdmissionNumber] = useState('');
   const [mobileNumber, setMobileNumber] = useState('');
@@ -92,10 +151,8 @@ function App() {
   const [showUrlError, setShowUrlError] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   
-  // 🚀 కొత్తగా యాడ్ చేసిన Not Available పాప్-అప్ స్టేట్
   const [showNotAvailableModal, setShowNotAvailableModal] = useState(false);
 
-  // 📥 ఇమేజ్ డౌన్లోడ్ స్టేట్ & html2canvas ఆటోమేటిక్ లోడ్
   const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
@@ -115,7 +172,6 @@ function App() {
     }
   }, []);
 
-  // 🔥 100% పర్ఫెక్ట్ JPG డౌన్లోడ్ ఫంక్షన్ (స్క్రీన్ కదలకుండా, టెక్స్ట్ ఏదీ సెలెక్ట్ కాకుండా పర్ఫెక్ట్ క్యాప్చర్)
   const handleDownloadJPG = async () => {
     const element = document.getElementById('scorecard-modal-content');
     if (!element) return;
@@ -123,7 +179,6 @@ function App() {
     setDownloading(true);
 
     try {
-      // htmlToImage లోడ్ అయ్యే వరకు ఖచ్చితంగా వెయిట్ చేస్తుంది
       if (!window.htmlToImage) {
         await new Promise((resolve) => {
           let count = 0;
@@ -140,7 +195,6 @@ function App() {
         });
       }
 
-      // ఫాంట్స్ లోడ్ అయ్యే వరకు వెయిట్ చేస్తుంది
       if (document.fonts) {
         await document.fonts.ready;
       }
@@ -148,7 +202,6 @@ function App() {
       const fullWidth = element.offsetWidth || element.scrollWidth;
       const fullHeight = element.scrollHeight;
 
-      // స్క్రీన్ లేదా పేరెంట్ మోడల్ అస్సలు కదలకుండా, కిందకి జరగకుండా డైరెక్ట్ గా ఫుల్ హైట్ క్యాప్చర్
       let imgData;
       if (window.htmlToImage) {
         imgData = await window.htmlToImage.toJpeg(element, {
@@ -185,7 +238,6 @@ function App() {
         throw new Error("Image generation library not available");
       }
 
-      // JPG ఫార్మాట్ లో డౌన్లోడ్ - ఫైల్ నేమ్: JEE_Report_SURYANSHU_MISHRA.jpg
       const link = document.createElement('a');
       const studentName = (scoreData?.studentInfo?.name || 'STUDENT')
         .trim()
@@ -237,7 +289,6 @@ function App() {
       const data = await response.json(); 
       
       if (data.success) {
-        // 🔥 ప్రతి సబ్జెక్టుకు ఖచ్చితంగా 25 కి సరిపోయేలా అప్‌డేట్ చేసాము
         const getCounts = (sub) => {
           const pos = (sub?.secAPositive || 0) + (sub?.secBPositive || 0);
           const neg = Math.abs(sub?.secANegative || 0) + Math.abs(sub?.secBNegative || 0);
@@ -427,7 +478,6 @@ function App() {
     }
   };
 
-  // 🚀 కొత్తగా మార్చిన డౌన్లోడ్ ఫంక్షన్
   const downloadDocument = async (docType, subOption = null) => {
     setShowSessionModal(false); 
     setShowYearModal(false);
@@ -503,7 +553,6 @@ function App() {
         }
       `}</style>
 
-      {/* 🟦 హెడర్ బ్యానర్ */}
       <header style={{ backgroundColor: '#ffffff', padding: '18px 20px', width: '100%', boxSizing: 'border-box', position: 'relative', borderBottom: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.03)' }}>
         <div className="header-content-wrapper" style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           
@@ -518,14 +567,28 @@ function App() {
           <button 
             onClick={() => setShowLoginModal(true)} 
             className="login-btn-top"
-            style={{ backgroundColor: '#1e293b', color: 'white', padding: '10px 22px', borderRadius: '8px', fontWeight: '700', border: 'none', cursor: 'pointer', boxShadow: '0 4px 12px rgba(15,23,42,0.2)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', transition: 'all 0.2s' }}
+            style={{ 
+              backgroundColor: '#1e293b', 
+              color: 'white', 
+              padding: '10px 24px', 
+              borderRadius: '50px', 
+              fontWeight: '700', 
+              border: '1px solid #162032', 
+              cursor: 'pointer', 
+              boxShadow: '0 6px 16px rgba(15,23,42,0.35), inset 0 1.5px 1px rgba(255,255,255,0.25), inset 0 -2px 4px rgba(0,0,0,0.4)', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '8px', 
+              fontSize: '14px', 
+              transition: 'all 0.2s ease',
+              letterSpacing: '0.2px'
+            }}
           >
             Candidate Login 🔐
           </button>
         )}
       </header>
 
-      {/* 📢 Ticker Bar */}
       <div style={{ width: '100%', backgroundColor: '#0b2d5c', borderBottom: '1px solid #082145', padding: '8px 0', overflow: 'hidden', display: 'flex', alignItems: 'center', boxSizing: 'border-box', height: '46px' }}>
         <div style={{ backgroundColor: '#dc2626', color: '#ffffff', padding: '4px 16px', fontSize: '12px', fontWeight: '800', marginLeft: '20px', borderRadius: '20px', zIndex: 10, whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '6px', boxShadow: '0 2px 6px rgba(220,38,38,0.4)' }}>
           ⚡ LATEST UPDATES
@@ -596,7 +659,7 @@ function App() {
 
         ) : (
           <div style={{ maxWidth: '1020px', width: '100%', margin: '30px auto', padding: '0 20px', boxSizing: 'border-box' }}>
-            <div style={{ background: `linear-gradient(135deg, #0b1d3a, ${currentThemeColor})`, color: 'white', padding: '26px 30px', borderRadius: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', boxShadow: '0 12px 30px -8px rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ background: `linear-gradient(135deg, #0b1d3a, ${currentThemeColor})`, color: 'white', padding: '24px 30px', borderRadius: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', boxShadow: '0 12px 30px -8px rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)' }}>
               <div>
                 <div style={{ display: 'inline-block', backgroundColor: 'rgba(255, 255, 255, 0.15)', color: '#ffffff', fontSize: '11px', fontWeight: '800', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '6px' }}>
                   🎓 Verified Candidate Profile
@@ -604,35 +667,86 @@ function App() {
                 <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '800', letterSpacing: '-0.3px' }}>Welcome, {user.studentName}! 👋</h2>
                 <p style={{ margin: '4px 0 0 0', fontSize: '13.5px', color: '#cbd5e1' }}>Admission ID: <strong style={{ color: '#ffffff' }}>{user.admissionNumber}</strong></p>
               </div>
-              <button onClick={handleLogout} style={{ padding: '11px 22px', backgroundColor: '#dc2626', color: 'white', border: 'none', borderRadius: '10px', cursor: 'pointer', fontWeight: '700', fontSize: '13.5px', boxShadow: '0 4px 14px rgba(220,38,38,0.4)', transition: 'all 0.2s ease', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>LOGOUT</span> 🚪
+              
+              <button 
+                onClick={handleLogout} 
+                title="Logout"
+                style={{ 
+                  width: '44px', 
+                  height: '44px', 
+                  backgroundColor: '#ef4444', 
+                  background: 'linear-gradient(135deg, #f87171 0%, #dc2626 100%)', 
+                  border: '2px solid rgba(255, 255, 255, 0.3)', 
+                  borderRadius: '50%', 
+                  cursor: 'pointer', 
+                  boxShadow: '0 6px 16px rgba(220, 38, 38, 0.45)', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  justifyContent: 'center', 
+                  padding: 0, 
+                  transition: 'all 0.2s ease',
+                  flexShrink: 0
+                }}
+              >
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+                  <line x1="12" y1="2" x2="12" y2="12"></line>
+                </svg>
               </button>
             </div>
 
-            <div style={{ width: '100%', backgroundColor: '#ffffff', padding: '14px 18px', borderRadius: '16px', border: '1px solid #e2e8f0', boxSizing: 'border-box', marginBottom: '25px', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
-              <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
-                {['JEE Main', 'JEE Advanced', 'BITSAT', 'TG EAPCET', 'AP EAPCET', 'IPE-2027'].map((exam) => (
-                  <button
-                    key={exam}
-                    onClick={() => setActiveExam(exam)}
-                    style={{
-                      padding: '12px 22px',
-                      background: activeExam === exam ? examThemes[exam] : '#f8fafc',
-                      color: activeExam === exam ? '#ffffff' : '#475569',
-                      border: activeExam === exam ? 'none' : '1.5px solid #e2e8f0',
-                      borderRadius: '30px',
-                      cursor: 'pointer',
-                      fontWeight: '700',
-                      fontSize: '13.5px',
-                      boxShadow: activeExam === exam ? '0 8px 20px rgba(0,0,0,0.18)' : 'none',
-                      transform: activeExam === exam ? 'scale(1.02)' : 'none',
-                      transition: 'all 0.25s ease'
-                    }}
-                  >
-                    {exam}
-                  </button>
-                ))}
-              </div>
+            <div style={{ 
+              width: '100%', 
+              backgroundColor: '#e5e9f0', 
+              padding: '6px', 
+              borderRadius: '50px', 
+              border: '1.5px solid #d8dfeb', 
+              boxSizing: 'border-box', 
+              marginBottom: '25px', 
+              boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.06)',
+              display: 'flex',
+              alignItems: 'center',
+              overflowX: 'auto',
+              scrollbarWidth: 'none'
+            }}>
+              {['JEE Main', 'JEE Advanced', 'BITSAT', 'TG EAPCET', 'AP EAPCET', 'IPE-2027'].map((exam, idx, arr) => {
+                const isActive = activeExam === exam;
+                const nextIsActive = arr[idx + 1] === activeExam;
+                const showDivider = idx < arr.length - 1 && !isActive && !nextIsActive;
+
+                return (
+                  <div key={exam} style={{ flex: 1, minWidth: 'max-content', display: 'flex', alignItems: 'center', position: 'relative' }}>
+                    <button
+                      onClick={() => setActiveExam(exam)}
+                      style={{
+                        width: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        padding: '11px 18px',
+                        background: isActive ? examThemes[exam] : 'transparent',
+                        color: isActive ? '#ffffff' : '#475569',
+                        border: 'none',
+                        borderRadius: '40px',
+                        cursor: 'pointer',
+                        fontWeight: '700',
+                        fontSize: '13.5px',
+                        boxShadow: isActive ? '0 6px 18px rgba(0,0,0,0.2)' : 'none',
+                        transform: isActive ? 'scale(1.02)' : 'none',
+                        transition: 'all 0.22s ease',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      {renderExamIcon(exam, isActive)}
+                      <span>{exam}</span>
+                    </button>
+                    {showDivider && (
+                      <div style={{ position: 'absolute', right: 0, height: '22px', width: '1px', backgroundColor: '#cbd5e1' }} />
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
             <ExamConsole user={user} activeExam={activeExam} setActiveExam={setActiveExam} examThemes={examThemes} currentThemeColor={currentThemeColor} handleDocClick={handleDocClick} />
@@ -899,7 +1013,6 @@ function App() {
         </div>
       )}
 
-      {/* 🚀 CANDIDATE LOGIN MODAL 🚀 */}
       {showLoginModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(5px)', zIndex: 999999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', boxSizing: 'border-box' }}>
           
@@ -989,12 +1102,10 @@ function App() {
         </div>
       )}
 
-      {/* 🚀 లాగిన్ మోడల్ ఓపెన్ కానప్పుడు, మరియు యూజర్ లాగిన్ అవ్వనప్పుడు మాత్రమే డాష్బోర్డ్ కనిపిస్తుంది */}
       {!showLoginModal && !user && (
         <AnalysisDashboard />
       )}
       
-      {/* 🚀 కొత్తగా యాడ్ చేసిన Not Available పాప్-అప్ (OK బటన్ లేకుండా) */}
       {showNotAvailableModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(6px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 999999, animation: 'fadeIn 0.3s ease-out' }}>
           <div style={{ backgroundColor: '#ffffff', padding: '30px 25px 25px 25px', borderRadius: '16px', width: '90%', maxWidth: '320px', position: 'relative', textAlign: 'center', boxShadow: '0 25px 60px rgba(0,0,0,0.25), 0 10px 25px rgba(0,0,0,0.15)' }}>
@@ -1027,7 +1138,6 @@ function App() {
         padding: '30px 20px', 
         boxSizing: 'border-box'
       }}>
-        {/* ఎట్రాక్టివ్ గ్రేడియంట్ బార్డర్ */}
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '2px', background: 'linear-gradient(90deg, transparent, #38bdf8, #818cf8, transparent)' }}></div>
 
         <div style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center' }}>
