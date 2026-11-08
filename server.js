@@ -5,6 +5,7 @@ const fs = require('fs');
 const xlsx = require('xlsx');
 const axios = require('axios');
 const cheerio = require('cheerio');
+const pathDuplicate = require('path');
 
 const app = express();
 
@@ -23,6 +24,27 @@ app.use('/tg-eapcet', express.static(path.join(__dirname, 'tg-eapcet')));
 app.use('/ap-eapcet', express.static(path.join(__dirname, 'ap-eapcet')));
 app.use('/ipe-2027', express.static(path.join(__dirname, 'ipe-2027')));
 app.use('/public-docs', express.static(path.join(__dirname, 'public-docs')));
+app.use('/photos', express.static(path.join(__dirname, 'photos')));
+app.use('/Signature', express.static(path.join(__dirname, 'Signature')));
+
+// 📷 ✍️ Photos & Signatures (Capital/Small letters & Folder Name variations support)
+app.use('/photos', express.static(path.join(__dirname, 'Photos')));
+app.use('/Photos', express.static(path.join(__dirname, 'photos')));
+app.use('/Photos', express.static(path.join(__dirname, 'Photos')));
+
+app.use('/signatures', express.static(path.join(__dirname, 'Signature')));
+app.use('/signatures', express.static(path.join(__dirname, 'signatures')));
+app.use('/Signatures', express.static(path.join(__dirname, 'Signature')));
+app.use('/Signatures', express.static(path.join(__dirname, 'signatures')));
+app.use('/signature', express.static(path.join(__dirname, 'Signature')));
+app.use('/signature', express.static(path.join(__dirname, 'signature')));
+app.use('/Signature', express.static(path.join(__dirname, 'signatures')));
+
+// ఒకవేళ Signature ఫైల్ 'photos' లో ఉన్నా లేదా 'Signature' ఫోల్డర్ లో ఉన్నా ఆటోమేటిక్ గా దొరికేలా:
+app.use('/photos', express.static(path.join(__dirname, 'Signature')));
+app.use('/photos', express.static(path.join(__dirname, 'signatures')));
+app.use('/Signature', express.static(path.join(__dirname, 'photos')));
+app.use('/signatures', express.static(path.join(__dirname, 'photos')));
 
 // 3. ఎక్సెల్ నుండి విద్యార్థుల డేటాను లోడ్ చేసే ఫంక్షన్
 function loadStudentDatabase() {
