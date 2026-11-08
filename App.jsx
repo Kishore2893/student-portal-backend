@@ -765,14 +765,12 @@ function App() {
                 onClick={handleLogout} 
                 title="Logout"
                 style={{ 
-                  width: '44px', 
-                  height: '44px', 
-                  backgroundColor: '#ef4444', 
-                  background: 'linear-gradient(135deg, #f87171 0%, #dc2626 100%)', 
-                  border: '2px solid rgba(255, 255, 255, 0.3)', 
-                  borderRadius: '50%', 
+                  width: '40px', 
+                  height: '40px', 
+                  backgroundColor: 'rgba(255, 255, 255, 0.12)', 
+                  border: '1px solid rgba(255, 255, 255, 0.2)', 
+                  borderRadius: '10px', 
                   cursor: 'pointer', 
-                  boxShadow: '0 6px 16px rgba(220, 38, 38, 0.45)', 
                   display: 'flex', 
                   alignItems: 'center', 
                   justifyContent: 'center', 
@@ -780,10 +778,19 @@ function App() {
                   transition: 'all 0.2s ease',
                   flexShrink: 0
                 }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.22)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.12)';
+                  e.currentTarget.style.transform = 'none';
+                }}
               >
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
-                  <line x1="12" y1="2" x2="12" y2="12"></line>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                  <polyline points="16 17 21 12 16 7"></polyline>
+                  <line x1="21" y1="12" x2="9" y2="12"></line>
                 </svg>
               </button>
             </div>
