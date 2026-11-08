@@ -392,7 +392,7 @@ function App() {
     timerRef.current = setTimeout(() => {
       handleLogout(); 
       setShowTimeoutModal(true); 
-    }, 240000); 
+    }, 600000); 
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
