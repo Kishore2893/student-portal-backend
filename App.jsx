@@ -183,7 +183,7 @@ function App() {
       setSignAvailable(true);
       const backendBase = 'https://student-portal-backend-vo2b.onrender.com';
       const pUrl = user?.photoUrl || user?.photo || (backendBase + '/photos/' + user.admissionNumber + '_Photo.jpg');
-      const sUrl = user?.signatureUrl || user?.signUrl || user?.sign || (backendBase + '/photos/' + user.admissionNumber + '_Sign.jpg');
+      const sUrl = user?.signatureUrl || user?.signUrl || user?.sign || (backendBase + '/Signatures/' + user.admissionNumber + '_Sign.jpg');
       setPhotoSrc(pUrl.startsWith('http') ? pUrl : (backendBase + pUrl));
       setSignSrc(sUrl.startsWith('http') ? sUrl : (backendBase + sUrl));
     } else {
@@ -392,7 +392,7 @@ function App() {
     timerRef.current = setTimeout(() => {
       handleLogout(); 
       setShowTimeoutModal(true); 
-    }, 300000); 
+    }, 240000); 
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -426,8 +426,7 @@ function App() {
   };
 
   const tickerTextList = [
-    "📝 Application form for JEE(Main)-2027 [Session-I] (B.E. / B.Tech)",
-    "🖼️ Candidate Photo & Signature Available Now!"    
+    "🚀 JEE Main 2027 Score Evaluator is LIVE Now!",    
   ];
 
   const examThemes = {
@@ -874,10 +873,10 @@ function App() {
                   </div>
                   <div>
                     <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.3px' }}>
-                      Candidate Identity Attachments
+                      Official Candidate Identity Attachments
                     </h2>
                     <p style={{ margin: '3px 0 0 0', fontSize: '13px', color: '#64748b', fontWeight: '500' }}>
-                      Photo & Signature
+                      Verified JPEG files registered with examination board
                     </p>
                   </div>
                 </div>
@@ -1015,7 +1014,7 @@ function App() {
                               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                             </div>
                             <div style={{ fontSize: '14px', fontWeight: '700', color: '#64748b' }}>Photo Not Available</div>
-                            <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>File not found</div>
+                            <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>File not found on server</div>
                           </div>
                         )}
                       </div>
@@ -1109,16 +1108,17 @@ function App() {
                             onError={() => {
                               const adm = user?.admissionNumber;
                               if (!adm) { setSignAvailable(false); return; }
-                              if (signSrc.includes('/photos/' + adm + '_Sign.jpg')) {
-                                setSignSrc('https://student-portal-backend-vo2b.onrender.com/Photos/' + adm + '_Sign.jpg');
-                              } else if (signSrc.includes('/Photos/' + adm + '_Sign.jpg')) {
-                                setSignSrc('https://student-portal-backend-vo2b.onrender.com/signatures/' + adm + '_Sign.jpg');
+                              const base = 'https://student-portal-backend-vo2b.onrender.com';
+                              if (signSrc.includes('/Signatures/' + adm + '_Sign.jpg')) {
+                                setSignSrc(base + '/signatures/' + adm + '_Sign.jpg');
                               } else if (signSrc.includes('/signatures/' + adm + '_Sign.jpg')) {
-                                setSignSrc('https://student-portal-backend-vo2b.onrender.com/Signatures/' + adm + '_Sign.jpg');
-                              } else if (signSrc.includes('/Signatures/' + adm + '_Sign.jpg')) {
-                                setSignSrc('https://student-portal-backend-vo2b.onrender.com/photos/' + adm + '_sign.jpg');
-                              } else if (signSrc.includes('/photos/' + adm + '_sign.jpg')) {
-                                setSignSrc('https://student-portal-backend-vo2b.onrender.com/photos/' + adm + '.jpg');
+                                setSignSrc(base + '/Signature/' + adm + '_Sign.jpg');
+                              } else if (signSrc.includes('/Signature/' + adm + '_Sign.jpg')) {
+                                setSignSrc(base + '/photos/' + adm + '_Sign.jpg');
+                              } else if (signSrc.includes('/photos/' + adm + '_Sign.jpg')) {
+                                setSignSrc(base + '/Photos/' + adm + '_Sign.jpg');
+                              } else if (signSrc.includes('/Photos/' + adm + '_Sign.jpg')) {
+                                setSignSrc(base + '/Signatures/' + adm + '.jpg');
                               } else {
                                 setSignAvailable(false);
                               }
@@ -1136,7 +1136,7 @@ function App() {
                               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 2 4 4-14 14H4v-4L18 2z"/><path d="m14.5 5.5 4 4"/></svg>
                             </div>
                             <div style={{ fontSize: '14px', fontWeight: '700', color: '#64748b' }}>Signature Not Available</div>
-                            <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>File not found</div>
+                            <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>File not found on server</div>
                           </div>
                         )}
                       </div>
