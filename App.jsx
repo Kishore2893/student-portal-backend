@@ -129,6 +129,13 @@ const renderExamIcon = (exam, isActive) => {
           <circle cx="15.5" cy="17.5" r="2.5" fill="#dc2626"/>
         </svg>
       );
+    case 'Photo & Sign':
+      return (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={iconColor} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}>
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      );
     default:
       return <span style={{ fontSize: '16px', flexShrink: 0 }}>📄</span>;
   }
@@ -154,6 +161,38 @@ function App() {
   const [showNotAvailableModal, setShowNotAvailableModal] = useState(false);
 
   const [downloading, setDownloading] = useState(false);
+
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem('examUser');
+    try {
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch (e) {
+      return null;
+    }
+  });
+
+  // Photo & Signature State & Availability Check
+  const [photoSrc, setPhotoSrc] = useState('');
+  const [signSrc, setSignSrc] = useState('');
+  const [photoAvailable, setPhotoAvailable] = useState(true);
+  const [signAvailable, setSignAvailable] = useState(true);
+
+  useEffect(() => {
+    if (user?.admissionNumber) {
+      setPhotoAvailable(true);
+      setSignAvailable(true);
+      const backendBase = 'https://student-portal-backend-vo2b.onrender.com';
+      const pUrl = user?.photoUrl || user?.photo || (backendBase + '/photos/' + user.admissionNumber + '_Photo.jpg');
+      const sUrl = user?.signatureUrl || user?.signUrl || user?.sign || (backendBase + '/photos/' + user.admissionNumber + '_Sign.jpg');
+      setPhotoSrc(pUrl.startsWith('http') ? pUrl : (backendBase + pUrl));
+      setSignSrc(sUrl.startsWith('http') ? sUrl : (backendBase + sUrl));
+    } else {
+      setPhotoSrc('');
+      setSignSrc('');
+      setPhotoAvailable(false);
+      setSignAvailable(false);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (!document.getElementById('html-to-image-script')) {
@@ -337,14 +376,7 @@ function App() {
     }
   };
 
-  const [user, setUser] = useState(() => {
-    const savedUser = localStorage.getItem('examUser');
-    try {
-      return savedUser ? JSON.parse(savedUser) : null;
-    } catch (e) {
-      return null;
-    }
-  });
+
 
   const [activeExam, setActiveExam] = useState('JEE Main');
   const [showTimeoutModal, setShowTimeoutModal] = useState(false);
@@ -360,7 +392,7 @@ function App() {
     timerRef.current = setTimeout(() => {
       handleLogout(); 
       setShowTimeoutModal(true); 
-    }, 240000); 
+    }, 300000); 
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -394,7 +426,8 @@ function App() {
   };
 
   const tickerTextList = [
-    "🚀 JEE Main 2027 Score Evaluator is LIVE Now!",    
+    "📝 Application form for JEE(Main)-2027 [Session-I] (B.E. / B.Tech)",
+    "🖼️ Candidate Photo & Signature Available Now!"    
   ];
 
   const examThemes = {
@@ -403,10 +436,11 @@ function App() {
     'BITSAT': 'linear-gradient(135deg, #e65100, #ff8f00)',    
     'TG EAPCET': 'linear-gradient(135deg, #880e4f, #ad1457)',       
     'AP EAPCET': 'linear-gradient(135deg, #004d40, #00695c)',       
-    'IPE-2027': 'linear-gradient(135deg, #be8160, #512da8)' 
+    'IPE-2027': 'linear-gradient(135deg, #be8160, #512da8)',
+    'Photo & Sign': 'linear-gradient(135deg, #1d4ed8, #2563eb)'
   };
 
-  const currentThemeColor = activeExam === 'JEE Main' ? '#0043a4' : activeExam === 'JEE Advanced' ? '#2d5a27' : activeExam === 'BITSAT' ? '#e65100' : activeExam === 'TG EAPCET' ? '#880e4f' : activeExam === 'AP EAPCET' ? '#00695c' : '#512da8';
+  const currentThemeColor = activeExam === 'JEE Main' ? '#0043a4' : activeExam === 'JEE Advanced' ? '#2d5a27' : activeExam === 'BITSAT' ? '#e65100' : activeExam === 'TG EAPCET' ? '#880e4f' : activeExam === 'AP EAPCET' ? '#00695c' : activeExam === 'Photo & Sign' ? '#1d4ed8' : '#512da8';
 
   useEffect(() => { 
     document.title = "JEE Main 2027 Score Calculator"; 
@@ -457,6 +491,8 @@ function App() {
     setAdmissionNumber('');
     setMobileNumber('');
     setUserCaptchaInput('');
+    setPhotoSrc('');
+    setSignSrc('');
     setTimeout(() => generateCaptcha(), 100);
   };
 
@@ -518,6 +554,64 @@ function App() {
       
     } catch (err) {
       console.error("డౌన్లోడ్ లోపం వచ్చింది:", err);
+      setShowNotAvailableModal(true);
+    }
+  };
+
+  // 📷 ✍️ Download Photo & Signature Handler (Names: Photo.jpg & Signature.jpg)
+  const handleDownloadJpgDoc = async (type) => {
+    try {
+      const isPhoto = type === 'Photo';
+      const initialUrl = isPhoto ? photoSrc : signSrc;
+      const downloadFileName = isPhoto ? 'Photo.jpg' : 'Signature.jpg';
+
+      let response;
+      try {
+        response = await fetch(initialUrl);
+      } catch (e) {
+        // network / CORS error
+      }
+
+      if (!response || !response.ok) {
+        const fallbackUrls = isPhoto 
+          ? [
+              `https://student-portal-backend-vo2b.onrender.com/photos/${user?.admissionNumber}_Photo.jpg`,
+              `https://student-portal-backend-vo2b.onrender.com/photos/${user?.admissionNumber}.jpg`,
+              `https://student-portal-backend-vo2b.onrender.com/photo/${user?.admissionNumber}_Photo.jpg`,
+              `https://student-portal-backend-vo2b.onrender.com/photos/${user?.admissionNumber}_photo.jpg`
+            ]
+          : [
+              `https://student-portal-backend-vo2b.onrender.com/photos/${user?.admissionNumber}_Sign.jpg`,
+              `https://student-portal-backend-vo2b.onrender.com/signatures/${user?.admissionNumber}_Sign.jpg`,
+              `https://student-portal-backend-vo2b.onrender.com/photos/${user?.admissionNumber}_sign.jpg`,
+              `https://student-portal-backend-vo2b.onrender.com/signatures/${user?.admissionNumber}.jpg`,
+              `https://student-portal-backend-vo2b.onrender.com/signatures/${user?.admissionNumber}_sign.jpg`
+            ];
+
+        for (const url of fallbackUrls) {
+          try {
+            response = await fetch(url);
+            if (response && response.ok) break;
+          } catch (e) {}
+        }
+      }
+
+      if (!response || !response.ok) {
+        setShowNotAvailableModal(true);
+        return;
+      }
+
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = downloadFileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error("Image Download Error:", err);
       setShowNotAvailableModal(true);
     }
   };
@@ -664,7 +758,7 @@ function App() {
                 <div style={{ display: 'inline-block', backgroundColor: 'rgba(255, 255, 255, 0.15)', color: '#ffffff', fontSize: '11px', fontWeight: '800', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '6px' }}>
                   🎓 Verified Candidate Profile
                 </div>
-                <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '800', letterSpacing: '-0.3px' }}>Welcome, {user.studentName}! 👋</h2>
+                <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '800', letterSpacing: '-0.3px' }}>Welcome, {user?.studentName}! 👋</h2>
                 <p style={{ margin: '4px 0 0 0', fontSize: '13.5px', color: '#cbd5e1' }}>Admission ID: <strong style={{ color: '#ffffff' }}>{user.admissionNumber}</strong></p>
               </div>
               
@@ -709,7 +803,7 @@ function App() {
               overflowX: 'auto',
               scrollbarWidth: 'none'
             }}>
-              {['JEE Main', 'JEE Advanced', 'BITSAT', 'TG EAPCET', 'AP EAPCET', 'IPE-2027'].map((exam, idx, arr) => {
+              {['JEE Main', 'JEE Advanced', 'BITSAT', 'TG EAPCET', 'AP EAPCET', 'IPE-2027', 'Photo & Sign'].map((exam, idx, arr) => {
                 const isActive = activeExam === exam;
                 const nextIsActive = arr[idx + 1] === activeExam;
                 const showDivider = idx < arr.length - 1 && !isActive && !nextIsActive;
@@ -749,8 +843,352 @@ function App() {
               })}
             </div>
 
-            <ExamConsole user={user} activeExam={activeExam} setActiveExam={setActiveExam} examThemes={examThemes} currentThemeColor={currentThemeColor} handleDocClick={handleDocClick} />
-            <Modals showSessionModal={showSessionModal} setShowSessionModal={setShowSessionModal} showYearModal={showYearModal} setShowYearModal={setShowYearModal} selectedDocType={selectedDocType} selectedDocLabel={selectedDocLabel} downloadDocument={downloadDocument} />
+            {/* 📸 ✍️ Photo & Sign Content Area */}
+            {activeExam === 'Photo & Sign' ? (
+              <div style={{
+                backgroundColor: '#ffffff',
+                borderRadius: '18px',
+                border: '1px solid #e2e8f0',
+                padding: '24px 28px',
+                boxSizing: 'border-box',
+                width: '100%',
+                boxShadow: '0 4px 16px -2px rgba(0, 0, 0, 0.04)'
+              }}>
+                {/* ─── Top Header Section ─── */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
+                  <div style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '10px',
+                    backgroundColor: '#eff6ff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    marginTop: '2px'
+                  }}>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                      <path d="m9 12 2 2 4-4" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.3px' }}>
+                      Candidate Identity Attachments
+                    </h2>
+                    <p style={{ margin: '3px 0 0 0', fontSize: '13px', color: '#64748b', fontWeight: '500' }}>
+                      Photo & Signature
+                    </p>
+                  </div>
+                </div>
+
+                {/* 🌟 Dynamic Status Badge */}
+                {photoAvailable && signAvailable ? (
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', padding: '4px 12px', borderRadius: '20px', color: '#166534', fontSize: '12.5px', fontWeight: '700' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e' }}></span>
+                    <span>Both Records Active</span>
+                  </div>
+                ) : photoAvailable && !signAvailable ? (
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', padding: '4px 12px', borderRadius: '20px', color: '#1d4ed8', fontSize: '12.5px', fontWeight: '700' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#3b82f6' }}></span>
+                    <span>Photo Available Only</span>
+                  </div>
+                ) : !photoAvailable && signAvailable ? (
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: '#faf5ff', border: '1px solid #e9d5ff', padding: '4px 12px', borderRadius: '20px', color: '#7e22ce', fontSize: '12.5px', fontWeight: '700' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#a855f7' }}></span>
+                    <span>Signature Available Only</span>
+                  </div>
+                ) : (
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', padding: '4px 12px', borderRadius: '20px', color: '#dc2626', fontSize: '12.5px', fontWeight: '700' }}>
+                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444' }}></span>
+                    <span>No Records Available</span>
+                  </div>
+                )}
+
+                <div style={{ height: '1px', backgroundColor: '#f1f5f9', margin: '18px 0 24px 0' }}></div>
+
+                {/* ─── Compact Cards Grid (Photo & Signature) ─── */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 340px))', justifyContent: 'center', gap: '24px', width: '100%', boxSizing: 'border-box' }}>
+                  
+                  {/* ─── Card 1: Passport Size Photo ─── */}
+                  <div style={{
+                    backgroundColor: '#ffffff',
+                    border: '1.5px solid #e2e8f0',
+                    borderRadius: '16px',
+                    padding: '20px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    boxSizing: 'border-box',
+                    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.03)'
+                  }}>
+                    <div>
+                      {/* Card Header */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                            <circle cx="9" cy="7" r="4" />
+                            <polyline points="16 11 18 13 22 9" />
+                          </svg>
+                          <span style={{ fontSize: '16px', fontWeight: '700', color: '#1e293b' }}>Passport Size Photo</span>
+                        </div>
+                        <span style={{ backgroundColor: '#e0f2fe', color: '#0284c7', fontSize: '11px', fontWeight: '800', padding: '2px 8px', borderRadius: '6px' }}>
+                          .JPG
+                        </span>
+                      </div>
+
+                      {/* Photo Frame */}
+                      <div style={{
+                        border: '1.5px solid #e2e8f0',
+                        borderRadius: '12px',
+                        overflow: 'hidden',
+                        backgroundColor: '#f8fafc',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        height: '240px',
+                        padding: '12px',
+                        boxSizing: 'border-box'
+                      }}>
+                        {photoAvailable ? (
+                          <>
+                            <div style={{
+                              flex: 1,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              width: '100%',
+                              overflow: 'hidden'
+                            }}>
+                              <img 
+                                src={photoSrc} 
+                                alt="Candidate Photo" 
+                                onLoad={() => setPhotoAvailable(true)}
+                                onError={() => {
+                                  const adm = user?.admissionNumber;
+                                  if (!adm) { setPhotoAvailable(false); return; }
+                                  if (photoSrc.includes('/photos/' + adm + '_Photo.jpg')) {
+                                    setPhotoSrc('https://student-portal-backend-vo2b.onrender.com/Photos/' + adm + '_Photo.jpg');
+                                  } else if (photoSrc.includes('/Photos/' + adm + '_Photo.jpg')) {
+                                    setPhotoSrc('https://student-portal-backend-vo2b.onrender.com/photos/' + adm + '.jpg');
+                                  } else if (photoSrc.includes('/photos/' + adm + '.jpg')) {
+                                    setPhotoSrc('https://student-portal-backend-vo2b.onrender.com/photos/' + adm + '_Photo.jpeg');
+                                  } else if (photoSrc.includes(adm + '_Photo.jpeg')) {
+                                    setPhotoSrc('https://student-portal-backend-vo2b.onrender.com/photos/' + adm + '_Photo.png');
+                                  } else {
+                                    setPhotoAvailable(false);
+                                  }
+                                }}
+                                style={{
+                                  width: '125px',
+                                  height: '155px',
+                                  objectFit: 'cover',
+                                  borderRadius: '6px',
+                                  border: '1px solid #cbd5e1',
+                                  boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
+                                  backgroundColor: '#ffffff',
+                                  display: 'block'
+                                }}
+                              />
+                            </div>
+                            <div style={{
+                              width: '100%',
+                              padding: '8px 4px 2px 4px',
+                              fontSize: '12px',
+                              fontWeight: '800',
+                              color: '#1e293b',
+                              textAlign: 'center',
+                              letterSpacing: '0.4px',
+                              textTransform: 'uppercase',
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis'
+                            }}>
+                              {user.studentName}
+                            </div>
+                          </>
+                        ) : (
+                          <div style={{ textAlign: 'center', color: '#94a3b8' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px auto', border: '1px solid #e2e8f0' }}>
+                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            </div>
+                            <div style={{ fontSize: '14px', fontWeight: '700', color: '#64748b' }}>Photo Not Available</div>
+                            <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>File not found</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Download Button */}
+                    <button
+                      onClick={() => {
+                        if (!photoAvailable) {
+                          setShowNotAvailableModal(true);
+                          return;
+                        }
+                        handleDownloadJpgDoc('Photo');
+                      }}
+                      disabled={!photoAvailable}
+                      style={{
+                        marginTop: '18px',
+                        width: '100%',
+                        padding: '11px 18px',
+                        background: !photoAvailable ? '#94a3b8' : 'linear-gradient(90deg, #1d4ed8 0%, #2563eb 100%)',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '25px',
+                        fontSize: '14px',
+                        fontWeight: '700',
+                        cursor: !photoAvailable ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        boxShadow: !photoAvailable ? 'none' : '0 4px 12px rgba(37, 99, 235, 0.3)',
+                        opacity: !photoAvailable ? 0.7 : 1,
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                      </svg>
+                      {!photoAvailable ? 'Photo Not Available' : 'Download Photo'}
+                    </button>
+                  </div>
+
+                  {/* ─── Card 2: Specimen Signature ─── */}
+                  <div style={{
+                    backgroundColor: '#ffffff',
+                    border: '1.5px solid #e2e8f0',
+                    borderRadius: '16px',
+                    padding: '20px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    boxSizing: 'border-box',
+                    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.03)'
+                  }}>
+                    <div>
+                      {/* Card Header */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9333ea" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="m12 19 7-7 3 3-7 7-3-3z" />
+                            <path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
+                            <path d="m2 2 7.586 7.586" />
+                            <circle cx="11" cy="11" r="2" />
+                          </svg>
+                          <span style={{ fontSize: '16px', fontWeight: '700', color: '#1e293b' }}>Specimen Signature</span>
+                        </div>
+                        <span style={{ backgroundColor: '#f3e8ff', color: '#9333ea', fontSize: '11px', fontWeight: '800', padding: '2px 8px', borderRadius: '6px' }}>
+                          .JPG
+                        </span>
+                      </div>
+
+                      {/* Signature Frame */}
+                      <div style={{
+                        border: '1.5px solid #e2e8f0',
+                        borderRadius: '12px',
+                        backgroundColor: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        height: '240px',
+                        padding: '16px',
+                        boxSizing: 'border-box'
+                      }}>
+                        {signAvailable ? (
+                          <img 
+                            src={signSrc} 
+                            alt="Candidate Signature" 
+                            onLoad={() => setSignAvailable(true)}
+                            onError={() => {
+                              const adm = user?.admissionNumber;
+                              if (!adm) { setSignAvailable(false); return; }
+                              if (signSrc.includes('/photos/' + adm + '_Sign.jpg')) {
+                                setSignSrc('https://student-portal-backend-vo2b.onrender.com/Photos/' + adm + '_Sign.jpg');
+                              } else if (signSrc.includes('/Photos/' + adm + '_Sign.jpg')) {
+                                setSignSrc('https://student-portal-backend-vo2b.onrender.com/signatures/' + adm + '_Sign.jpg');
+                              } else if (signSrc.includes('/signatures/' + adm + '_Sign.jpg')) {
+                                setSignSrc('https://student-portal-backend-vo2b.onrender.com/Signatures/' + adm + '_Sign.jpg');
+                              } else if (signSrc.includes('/Signatures/' + adm + '_Sign.jpg')) {
+                                setSignSrc('https://student-portal-backend-vo2b.onrender.com/photos/' + adm + '_sign.jpg');
+                              } else if (signSrc.includes('/photos/' + adm + '_sign.jpg')) {
+                                setSignSrc('https://student-portal-backend-vo2b.onrender.com/photos/' + adm + '.jpg');
+                              } else {
+                                setSignAvailable(false);
+                              }
+                            }}
+                            style={{
+                              maxWidth: '85%',
+                              maxHeight: '85px',
+                              objectFit: 'contain',
+                              display: 'block'
+                            }}
+                          />
+                        ) : (
+                          <div style={{ textAlign: 'center', color: '#94a3b8' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px auto', border: '1px solid #e2e8f0' }}>
+                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 2 4 4-14 14H4v-4L18 2z"/><path d="m14.5 5.5 4 4"/></svg>
+                            </div>
+                            <div style={{ fontSize: '14px', fontWeight: '700', color: '#64748b' }}>Signature Not Available</div>
+                            <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>File not found</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Download Button */}
+                    <button
+                      onClick={() => {
+                        if (!signAvailable) {
+                          setShowNotAvailableModal(true);
+                          return;
+                        }
+                        handleDownloadJpgDoc('Sign');
+                      }}
+                      disabled={!signAvailable}
+                      style={{
+                        marginTop: '18px',
+                        width: '100%',
+                        padding: '11px 18px',
+                        background: !signAvailable ? '#94a3b8' : 'linear-gradient(90deg, #7e22ce 0%, #2563eb 100%)',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '25px',
+                        fontSize: '14px',
+                        fontWeight: '700',
+                        cursor: !signAvailable ? 'not-allowed' : 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '8px',
+                        boxShadow: !signAvailable ? 'none' : '0 4px 12px rgba(126, 34, 206, 0.3)',
+                        opacity: !signAvailable ? 0.7 : 1,
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                      </svg>
+                      {!signAvailable ? 'Signature Not Available' : 'Download Signature'}
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            ) : (
+              <>
+                <ExamConsole user={user} activeExam={activeExam} setActiveExam={setActiveExam} examThemes={examThemes} currentThemeColor={currentThemeColor} handleDocClick={handleDocClick} />
+                <Modals showSessionModal={showSessionModal} setShowSessionModal={setShowSessionModal} showYearModal={showYearModal} setShowYearModal={setShowYearModal} selectedDocType={selectedDocType} selectedDocLabel={selectedDocLabel} downloadDocument={downloadDocument} />
+              </>
+            )}
           </div>
         )}
       </div>
