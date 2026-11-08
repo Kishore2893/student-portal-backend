@@ -426,7 +426,9 @@ function App() {
   };
 
   const tickerTextList = [
-    "🚀 JEE Main 2027 Score Evaluator is LIVE Now!",    
+    "📝 Application Form for JEE(Main)-2027 [Session-I] (B.E. / B.Tech) is Available Now!",
+    "🖼️ Candidate Photo & Signature are Available Now!"  
+    
   ];
 
   const examThemes = {
@@ -787,7 +789,7 @@ function App() {
                   e.currentTarget.style.transform = 'none';
                 }}
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                   <polyline points="16 17 21 12 16 7"></polyline>
                   <line x1="21" y1="12" x2="9" y2="12"></line>
@@ -880,10 +882,10 @@ function App() {
                   </div>
                   <div>
                     <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.3px' }}>
-                      Official Candidate Identity Attachments
+                      Candidate Identity Attachments
                     </h2>
                     <p style={{ margin: '3px 0 0 0', fontSize: '13px', color: '#64748b', fontWeight: '500' }}>
-                      Verified JPEG files registered with examination board
+                      Photo & Signature
                     </p>
                   </div>
                 </div>
