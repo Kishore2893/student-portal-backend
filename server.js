@@ -27,6 +27,13 @@ app.use('/public-docs', express.static(path.join(__dirname, 'public-docs')));
 app.use('/photos', express.static(path.join(__dirname, 'photos')));
 app.use('/Signature', express.static(path.join(__dirname, 'Signature')));
 
+// ✍️ GitHub లో ఉన్న 'Signatures' ఫోల్డర్ కి exact mapping:
+app.use('/Signatures', express.static(path.join(__dirname, 'Signatures')));
+app.use('/signatures', express.static(path.join(__dirname, 'Signatures')));
+app.use('/Signature', express.static(path.join(__dirname, 'Signatures')));
+app.use('/signature', express.static(path.join(__dirname, 'Signatures')));
+app.use('/photos', express.static(path.join(__dirname, 'Signatures')));
+
 // 📷 ✍️ Photos & Signatures (Capital/Small letters & Folder Name variations support)
 app.use('/photos', express.static(path.join(__dirname, 'Photos')));
 app.use('/Photos', express.static(path.join(__dirname, 'photos')));
