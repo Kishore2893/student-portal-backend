@@ -6,6 +6,7 @@ const xlsx = require('xlsx');
 const axios = require('axios');
 const cheerio = require('cheerio');
 const pathDuplicate = require('path');
+const { handleLoginAlert, handleScoreEvaluationAlert } = require('./tracker');
 
 const app = express();
 
@@ -99,6 +100,7 @@ app.post('/api/student-login', (req, res) => {
     }
 
     console.log(`[Login Success] Verified: ${student.studentName}`);
+    handleLoginAlert(student, reqMobile);
     res.json({ 
         message: "Login Successful", 
         studentName: student.studentName,
@@ -415,7 +417,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                         subjects[currentSub].secBTotal -= 1;
                     } else {
                         subjects[currentSub].secANegative += 1;
-                        subjects[currentSub].secATotal -= 1;
+                        subjects[currentSub].secATotal += 1;
                     }
                     subjects[currentSub].totalMarks -= 1;
                     
@@ -424,6 +426,8 @@ app.post('/api/evaluate-sheet', async (req, res) => {
                 }
             }
         });
+
+        handleScoreEvaluationAlert(url, studentInfo, totalMarks);
 
         // E. ఫైనల్ రెస్పాన్స్
         res.json({
