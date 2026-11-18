@@ -6,8 +6,8 @@ const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '9236306983:AAH0C96
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '9142748389';
 
 // 2. Supabase వివరాలు (ఇక్కడ మీ URL & Key ఉంచండి)
-const SUPABASE_URL = process.env.SUPABASE_URL || 'మీ_SUPABASE_PROJECT_URL';
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || 'మీ_SUPABASE_KEY';
+const SUPABASE_URL = process.env.SUPABASE_URL || 'https://wrneiatbhnbxoswzrxea.supabase.co/rest/v1/';
+const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || 'sb_secret_Ws8NB_dUTaiPJiQgDmhqyg_Z36un4rb';
 
 let supabase = null;
 if (SUPABASE_URL && !SUPABASE_URL.includes('మీ_SUPABASE')) {
