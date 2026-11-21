@@ -392,7 +392,7 @@ function App() {
     timerRef.current = setTimeout(() => {
       handleLogout(); 
       setShowTimeoutModal(true); 
-    }, 600000); 
+    }, 240000); 
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -767,33 +767,40 @@ function App() {
                 onClick={handleLogout} 
                 title="Logout"
                 style={{ 
-                  width: '40px', 
-                  height: '40px', 
-                  backgroundColor: 'rgba(255, 255, 255, 0.12)', 
-                  border: '1px solid rgba(255, 255, 255, 0.2)', 
+                  backgroundColor: '#ffffff', 
+                  border: '1.5px solid #a84a58', 
+                  color: '#a84a58',
                   borderRadius: '10px', 
                   cursor: 'pointer', 
-                  display: 'flex', 
+                  display: 'inline-flex', 
                   alignItems: 'center', 
                   justifyContent: 'center', 
-                  padding: 0, 
+                  gap: '6px',
+                  padding: '7px 14px', 
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  lineHeight: '1',
                   transition: 'all 0.2s ease',
-                  flexShrink: 0
+                  flexShrink: 0,
+                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.22)';
+                  e.currentTarget.style.backgroundColor = '#fff0f2';
+                  e.currentTarget.style.borderColor = '#933c49';
                   e.currentTarget.style.transform = 'translateY(-1px)';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.12)';
+                  e.currentTarget.style.backgroundColor = '#ffffff';
+                  e.currentTarget.style.borderColor = '#a84a58';
                   e.currentTarget.style.transform = 'none';
                 }}
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a84a58" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                   <polyline points="16 17 21 12 16 7"></polyline>
                   <line x1="21" y1="12" x2="9" y2="12"></line>
                 </svg>
+                <span>Logout</span>
               </button>
             </div>
 
