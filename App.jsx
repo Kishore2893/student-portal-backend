@@ -392,7 +392,7 @@ function App() {
     timerRef.current = setTimeout(() => {
       handleLogout(); 
       setShowTimeoutModal(true); 
-    }, 240000); 
+    }, 600000); 
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -663,23 +663,29 @@ function App() {
             onClick={() => setShowLoginModal(true)} 
             className="login-btn-top"
             style={{ 
-              backgroundColor: '#1e293b', 
-              color: 'white', 
-              padding: '10px 24px', 
-              borderRadius: '50px', 
+              background: 'radial-gradient(rgba(255, 255, 255, 0.25) 1.2px, transparent 1.2px), linear-gradient(135deg, #1d4ed8 0%, #1e40af 100%)',
+              backgroundSize: '12px 12px, 100% 100%',
+              color: '#ffffff', 
+              padding: '9px 24px', 
+              borderRadius: '9999px', 
               fontWeight: '700', 
-              border: '1px solid #162032', 
+              border: '1.5px solid rgba(255, 255, 255, 0.3)', 
               cursor: 'pointer', 
-              boxShadow: '0 6px 16px rgba(15,23,42,0.35), inset 0 1.5px 1px rgba(255,255,255,0.25), inset 0 -2px 4px rgba(0,0,0,0.4)', 
-              display: 'flex', 
+              boxShadow: '0 4px 14px rgba(29, 78, 216, 0.35)', 
+              display: 'inline-flex', 
               alignItems: 'center', 
               gap: '8px', 
               fontSize: '14px', 
-              transition: 'all 0.2s ease',
-              letterSpacing: '0.2px'
+              letterSpacing: '0.2px',
+              transition: 'all 0.2s ease'
             }}
           >
-            Candidate Login 🔐
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span>Candidate Login</span>
+            <span style={{ fontSize: '16px', lineHeight: 1 }}>🔐</span>
           </button>
         )}
       </header>
@@ -754,7 +760,21 @@ function App() {
 
         ) : (
           <div style={{ maxWidth: '1020px', width: '100%', margin: '30px auto', padding: '0 20px', boxSizing: 'border-box' }}>
-            <div style={{ background: `linear-gradient(135deg, #0b1d3a, ${currentThemeColor})`, color: 'white', padding: '24px 30px', borderRadius: '18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px', boxShadow: '0 12px 30px -8px rgba(0,0,0,0.2)', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <div style={{ 
+              background: `radial-gradient(rgba(255, 255, 255, 0.16) 1.2px, transparent 1.2px), linear-gradient(135deg, #0b1d3a, ${currentThemeColor})`, 
+              backgroundSize: '16px 16px, 100% 100%',
+              color: 'white', 
+              padding: '24px 30px', 
+              borderRadius: '18px', 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              alignItems: 'center', 
+              flexWrap: 'wrap',
+              gap: '16px',
+              marginBottom: '25px', 
+              boxShadow: '0 12px 30px -8px rgba(0,0,0,0.2)', 
+              border: '1px solid rgba(255,255,255,0.1)' 
+            }}>
               <div>
                 <div style={{ display: 'inline-block', backgroundColor: 'rgba(255, 255, 255, 0.15)', color: '#ffffff', fontSize: '11px', fontWeight: '800', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '6px' }}>
                   🎓 Verified Candidate Profile
@@ -765,24 +785,23 @@ function App() {
               
               <button 
                 onClick={handleLogout} 
-                title="Logout"
                 style={{ 
                   backgroundColor: '#ffffff', 
                   border: '1.5px solid #a84a58', 
                   color: '#a84a58',
-                  borderRadius: '10px', 
+                  borderRadius: '9999px', 
                   cursor: 'pointer', 
                   display: 'inline-flex', 
                   alignItems: 'center', 
                   justifyContent: 'center', 
-                  gap: '6px',
-                  padding: '7px 14px', 
+                  gap: '8px',
+                  padding: '9px 24px', 
                   fontSize: '14px',
-                  fontWeight: '600',
+                  fontWeight: '700',
                   lineHeight: '1',
                   transition: 'all 0.2s ease',
                   flexShrink: 0,
-                  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)'
+                  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.08)'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = '#fff0f2';
@@ -795,7 +814,7 @@ function App() {
                   e.currentTarget.style.transform = 'none';
                 }}
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a84a58" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#a84a58" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                   <polyline points="16 17 21 12 16 7"></polyline>
                   <line x1="21" y1="12" x2="9" y2="12"></line>
