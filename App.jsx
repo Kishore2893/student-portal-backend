@@ -16,16 +16,17 @@ const AutoPopup = () => {
   return (
     <>
       <style>{`
-        .popup-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); z-index: 999999; justify-content: center; align-items: center; font-family: 'Segoe UI', system-ui, sans-serif; padding: 15px; box-sizing: border-box; backdrop-filter: blur(5px); }
+        .popup-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.7); z-index: 999999; justify-content: center; align-items: flex-start; overflow-y: auto; -webkit-overflow-scrolling: touch; font-family: 'Segoe UI', system-ui, sans-serif; padding: 20px 15px; box-sizing: border-box; backdrop-filter: blur(5px); }
         .popup-overlay.active { display: flex; }
-        .popup-container-box { background: linear-gradient(135deg, #e0e7ff 0%, #ede9fe 100%); padding: 20px; border-radius: 12px; width: 100%; max-width: 950px; position: relative; box-sizing: border-box; }
+        .popup-container-box { margin: auto; background: linear-gradient(135deg, #e0e7ff 0%, #ede9fe 100%); padding: 20px; border-radius: 12px; width: 100%; max-width: 950px; position: relative; box-sizing: border-box; }
         .popup-content-box { background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15); }
-        .popup-header-box { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); padding: 20px 30px; text-align: center; }
+        .popup-header-box { position: relative; background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); padding: 20px 30px; text-align: center; }
+        .popup-close-btn { position: absolute; top: 14px; right: 16px; width: 34px; height: 34px; border-radius: 50%; background-color: #ffffff; color: #1e293b; border: none; font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); transition: all 0.2s ease; z-index: 20; }
+        .popup-close-btn:hover { transform: scale(1.08); background-color: #f8fafc; color: #0f172a; }
         .popup-badges { display: flex; justify-content: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
         .popup-badge { background: rgba(255, 255, 255, 0.15); color: #ffffff; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
         .popup-header-box h2 { color: #ffffff; font-size: 22px; margin: 0; line-height: 1.3; }
         .popup-grid-body { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 25px 30px 15px 30px; }
-        @media (max-width: 768px) { .popup-grid-body { grid-template-columns: 1fr; } }
         .popup-box-blue { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; }
         .popup-box-green { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 16px; padding: 20px; }
         .popup-box-blue h3 { margin-top: 0; margin-bottom: 15px; font-size: 16px; color: #0f172a; text-align: left;}
@@ -38,11 +39,42 @@ const AutoPopup = () => {
         .popup-link-text { color: #2563eb; text-decoration: underline; font-weight: 600; }
         .popup-footer-box { text-align: center; padding: 0 30px 25px 30px; }
         .popup-start-btn { background: linear-gradient(135deg, #3b82f6 0%, #4f46e5 100%); color: white; border: none; padding: 14px 40px; font-size: 16px; font-weight: 700; border-radius: 30px; cursor: pointer; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3); }
+
+        @media (max-width: 768px) {
+          .popup-overlay { padding: 12px 8px; }
+          .popup-container-box { padding: 10px; border-radius: 14px; }
+          .popup-content-box { border-radius: 14px; }
+          .popup-header-box { padding: 16px 14px; }
+          .popup-header-box h2 { font-size: 17px; }
+          .popup-close-btn { top: 10px; right: 10px; width: 30px; height: 30px; font-size: 14px; }
+          .popup-badges { gap: 6px; margin-bottom: 8px; }
+          .popup-badge { font-size: 11px; padding: 4px 8px; }
+          .popup-grid-body { grid-template-columns: 1fr; gap: 12px; padding: 14px 12px 10px 12px; }
+          .popup-box-blue, .popup-box-green { padding: 14px 12px; border-radius: 12px; }
+          .popup-box-blue h3, .popup-box-green h3 { font-size: 14.5px; margin-bottom: 10px; }
+          .popup-item-text { font-size: 13px; }
+          .popup-footer-box { padding: 10px 14px 18px 14px; }
+          .popup-start-btn { width: 100%; padding: 12px 20px; font-size: 15px; }
+        }
       `}</style>
-      <div className="popup-overlay active">
+      <div 
+        className="popup-overlay active"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            setIsOpen(false);
+          }
+        }}
+      >
         <div className="popup-container-box">
           <div className="popup-content-box">
             <div className="popup-header-box">
+              <button 
+                className="popup-close-btn" 
+                onClick={() => setIsOpen(false)} 
+                aria-label="Close"
+              >
+                ✕
+              </button>
               <div className="popup-badges">
                 <span className="popup-badge">⚡ Instant Result</span>
                 <span className="popup-badge">🎯 Accurate</span>
@@ -289,7 +321,7 @@ function App() {
       document.body.removeChild(link);
     } catch (err) {
       console.error("JPG Download Error:", err);
-      alert("డౌన్లోడ్ చేయడంలో లోపం వచ్చింది. దయచేసి మళ్ళీ ప్రయత్నించండి.");
+      alert("Download failed. Please try again.");
     } finally {
       setDownloading(false);
     }
@@ -392,7 +424,7 @@ function App() {
     timerRef.current = setTimeout(() => {
       handleLogout(); 
       setShowTimeoutModal(true); 
-    }, 600000); 
+    }, 420000); 
 
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
@@ -425,11 +457,10 @@ function App() {
     setUserCaptchaInput(''); 
   };
 
-  const tickerTextList = [
+  const [tickerTextList, setTickerTextList] = useState([
     "📝 Application Form for JEE(Main)-2027 [Session-I] (B.E. / B.Tech) is Available Now!",
     "🖼️ Candidate Photo & Signature are Available Now!"  
-    
-  ];
+  ]);
 
   const examThemes = {
     'JEE Main': 'linear-gradient(135deg, #0d47a1, #1976d2)',        
@@ -448,6 +479,24 @@ function App() {
     generateCaptcha();
     window.history.scrollRestoration = 'manual';
     window.scrollTo(0, 0);
+
+    // 📡 Fetch live ticker news from Supabase
+    const fetchTickerNews = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('ticker_news')
+          .select('news_text')
+          .eq('is_active', true)
+          .order('display_order', { ascending: true });
+        
+        if (!error && data && data.length > 0) {
+          setTickerTextList(data.map(item => item.news_text));
+        }
+      } catch (err) {
+        console.error("Ticker fetch error:", err);
+      }
+    };
+    fetchTickerNews();
   }, []);
 
   const handleLogin = async (e) => {
@@ -1470,7 +1519,7 @@ function App() {
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
             </div>
             <h3 style={{ margin: '0 0 10px 0', color: '#0f172a', fontSize: '25px', fontWeight: '800', letterSpacing: '-0.5px' }}>Invalid URL Format!</h3>
-            <p style={{ color: '#475569', fontSize: '14px', lineHeight: '1.6', margin: '0 0 24px 0', fontWeight: '500' }}>
+            <p style={{ color: '#475569', fontSize: '10px', lineHeight: '1.6', margin: '0 0 24px 0', fontWeight: '500' }}>
               Please paste a valid response sheet url that starts with
               <span style={{ display: 'block', margin: '12px auto 0 auto', padding: '8px 14px', backgroundColor: '#f8fafc', color: '#1d4ed8', borderRadius: '10px', fontWeight: '700', fontSize: '13px', border: '1px solid #e2e8f0', wordBreak: 'break-word' }}>
                 https://cdn3.digialm.com
@@ -1512,7 +1561,7 @@ function App() {
               
               <div style={{ marginBottom: '18px' }}>
                 <label style={{ display: 'block', marginBottom: '6px', fontWeight: '700', color: '#1e293b', fontSize: '13px' }}>
-                  🆔 Admn Number:
+                  🆔 Admission Number:
                 </label>
                 <input 
                   type="text" 
