@@ -1,6 +1,9 @@
 const axios = require('axios');
 const { createClient } = require('@supabase/supabase-js');
 
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://wrneiatbhnbxoswzrxea.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || 'sb_publishable_qbKANnxOuYauUT3vW7Pu6Q_9qHLa8vw';
 
