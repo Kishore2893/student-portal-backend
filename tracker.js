@@ -1,9 +1,6 @@
 const axios = require('axios');
 const { createClient } = require('@supabase/supabase-js');
 
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '9236306983:AAH0C96LdloGux1HOq82o154P_WGmEOFsmw';
-const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '9142748389';
-
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://wrneiatbhnbxoswzrxea.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || 'sb_publishable_qbKANnxOuYauUT3vW7Pu6Q_9qHLa8vw';
 
