@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://iitjee-service.vercel.app/sitemap.xml
