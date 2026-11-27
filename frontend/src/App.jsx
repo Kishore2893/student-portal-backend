@@ -197,7 +197,8 @@ function App() {
 
   const [visitorCount, setVisitorCount] = useState(() => {
     const saved = localStorage.getItem('portal_visitor_count');
-    return saved ? parseInt(saved, 10) : 15358;
+    const parsed = saved ? parseInt(saved, 10) : 0;
+    return (parsed >= 111 && parsed < 15000) ? parsed : 111;
   });
 
   useEffect(() => {
@@ -211,7 +212,7 @@ function App() {
       })
       .catch(() => {
         setVisitorCount(prev => {
-          const next = prev + 1;
+          const next = (prev >= 111 && prev < 15000) ? prev + 1 : 111;
           localStorage.setItem('portal_visitor_count', next.toString());
           return next;
         });
