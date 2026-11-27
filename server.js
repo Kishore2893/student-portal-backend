@@ -529,10 +529,10 @@ app.post('/api/evaluate-sheet', async (req, res) => {
     }
 });
 
-// 9. Real-time Persistent Visitor Counter API (Supabase Cloud DB + Local Disk Sync)
+// 9. Real-time Persistent Visitor Counter API (Cloud Key-Value + Local Disk Sync - Zero DB Rows)
 const VISITOR_FILE = path.join(__dirname, 'visitor_stats.json');
-const SB_URL = process.env.SUPABASE_URL || 'https://wrneiatbhnbxoswzrxea.supabase.co';
-const SB_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_KEY || 'sb_publishable_qbKANnxOuYauUT3vW7Pu6Q_9qHLa8vw';
+const KV_APP_KEY = 'cehdzg7o';
+const KV_BASE_URL = 'https://keyvalue.immanuel.co/api/KeyVal';
 
 let visitorCount = 111; // Starting baseline count (111)
 
@@ -548,22 +548,17 @@ try {
     console.error("[Visitor Counter Disk Error]", e.message);
 }
 
-// 2. Sync with Supabase Cloud DB on server startup (Render Ephemeral Disk Protection)
+// 2. Sync with Cloud Key-Value on server startup (Render Ephemeral Disk Protection - 0 DB rows!)
 async function syncVisitorCountFromCloud() {
     try {
-        const response = await axios.get(`${SB_URL}/rest/v1/portal_activity_logs?action_type=eq.SITE_VISIT_COUNTER&order=id.desc&limit=1`, {
-            headers: {
-                'apikey': SB_KEY,
-                'Authorization': `Bearer ${SB_KEY}`
-            },
-            timeout: 6000
-        });
-        if (response.data && response.data.length > 0 && response.data[0].check_count) {
-            const cloudCount = Number(response.data[0].check_count);
-            if (cloudCount >= 111) {
+        const response = await axios.get(`${KV_BASE_URL}/GetValue/${KV_APP_KEY}/visitor_count`, { timeout: 6000 });
+        if (response.data) {
+            const rawVal = typeof response.data === 'string' ? response.data.replace(/["']/g, '') : response.data;
+            const cloudCount = parseInt(rawVal, 10);
+            if (!isNaN(cloudCount) && cloudCount >= 111) {
                 visitorCount = Math.max(visitorCount, cloudCount);
                 try { fs.writeFileSync(VISITOR_FILE, JSON.stringify({ count: visitorCount })); } catch (e) {}
-                console.log(`[Visitor Counter] Successfully synced from Supabase: ${visitorCount}`);
+                console.log(`[Visitor Counter] Successfully synced from Cloud KV: ${visitorCount}`);
             }
         }
     } catch (err) {
@@ -572,25 +567,14 @@ async function syncVisitorCountFromCloud() {
 }
 syncVisitorCountFromCloud();
 
-// 3. Debounced saving to Supabase Cloud DB
+// 3. Debounced saving to Cloud KV (Stores only a SINGLE value, 0 rows in database!)
 let saveVisitorTimeout = null;
 function persistVisitorCountToCloud(count) {
     if (saveVisitorTimeout) clearTimeout(saveVisitorTimeout);
     saveVisitorTimeout = setTimeout(async () => {
         try {
-            await axios.post(`${SB_URL}/rest/v1/portal_activity_logs`, {
-                action_type: 'SITE_VISIT_COUNTER',
-                candidate_name: 'VISITOR_STATS',
-                check_count: count
-            }, {
-                headers: {
-                    'apikey': SB_KEY,
-                    'Authorization': `Bearer ${SB_KEY}`,
-                    'Content-Type': 'application/json'
-                },
-                timeout: 6000
-            });
-            console.log(`[Visitor Counter] Cloud DB updated: ${count}`);
+            await axios.post(`${KV_BASE_URL}/UpdateValue/${KV_APP_KEY}/visitor_count/${count}`, {}, { timeout: 6000 });
+            console.log(`[Visitor Counter] Cloud KV updated to: ${count}`);
         } catch (err) {
             console.error("[Visitor Counter Cloud Save Error]:", err.message);
         }
