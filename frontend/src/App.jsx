@@ -211,18 +211,15 @@ function App() {
         }
       })
       .catch(async () => {
-        // ☁️ Direct Supabase Cloud Fallback if backend is asleep or restarting
+        // ☁️ Direct Cloud KV Fallback if backend is asleep or restarting (Zero DB rows!)
         try {
-          const sbRes = await fetch('https://wrneiatbhnbxoswzrxea.supabase.co/rest/v1/portal_activity_logs?action_type=eq.SITE_VISIT_COUNTER&order=id.desc&limit=1', {
-            headers: {
-              'apikey': 'sb_publishable_qbKANnxOuYauUT3vW7Pu6Q_9qHLa8vw',
-              'Authorization': 'Bearer sb_publishable_qbKANnxOuYauUT3vW7Pu6Q_9qHLa8vw'
-            }
-          });
-          const sbData = await sbRes.json();
-          if (Array.isArray(sbData) && sbData[0]?.check_count) {
+          const kvRes = await fetch('https://keyvalue.immanuel.co/api/KeyVal/GetValue/cehdzg7o/visitor_count');
+          const kvText = await kvRes.text();
+          const rawVal = kvText ? kvText.replace(/["']/g, '') : '';
+          const kvCount = parseInt(rawVal, 10);
+          if (!isNaN(kvCount) && kvCount >= 111) {
             setVisitorCount(prev => {
-              const next = Math.max(Number(sbData[0].check_count), prev || 0);
+              const next = Math.max(kvCount, prev || 0);
               localStorage.setItem('portal_visitor_count', next.toString());
               return next;
             });
