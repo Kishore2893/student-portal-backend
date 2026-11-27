@@ -198,7 +198,7 @@ function App() {
   const [visitorCount, setVisitorCount] = useState(() => {
     const saved = localStorage.getItem('portal_visitor_count');
     const parsed = saved ? parseInt(saved, 10) : 0;
-    return (parsed >= 111 && parsed < 15000) ? parsed : 111;
+    return (parsed >= 111 && parsed < 1000000) ? parsed : 111;
   });
 
   useEffect(() => {
@@ -210,9 +210,29 @@ function App() {
           localStorage.setItem('portal_visitor_count', data.count.toString());
         }
       })
-      .catch(() => {
+      .catch(async () => {
+        // ☁️ Direct Supabase Cloud Fallback if backend is asleep or restarting
+        try {
+          const sbRes = await fetch('https://wrneiatbhnbxoswzrxea.supabase.co/rest/v1/portal_activity_logs?action_type=eq.SITE_VISIT_COUNTER&order=id.desc&limit=1', {
+            headers: {
+              'apikey': 'sb_publishable_qbKANnxOuYauUT3vW7Pu6Q_9qHLa8vw',
+              'Authorization': 'Bearer sb_publishable_qbKANnxOuYauUT3vW7Pu6Q_9qHLa8vw'
+            }
+          });
+          const sbData = await sbRes.json();
+          if (Array.isArray(sbData) && sbData[0]?.check_count) {
+            setVisitorCount(prev => {
+              const next = Math.max(Number(sbData[0].check_count), prev || 0);
+              localStorage.setItem('portal_visitor_count', next.toString());
+              return next;
+            });
+            return;
+          }
+        } catch (e) {}
+
+        // Local fallback increment
         setVisitorCount(prev => {
-          const next = (prev >= 111 && prev < 15000) ? prev + 1 : 111;
+          const next = prev + 1;
           localStorage.setItem('portal_visitor_count', next.toString());
           return next;
         });
@@ -1222,7 +1242,7 @@ function App() {
                               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                             </div>
                             <div style={{ fontSize: '14px', fontWeight: '700', color: '#64748b' }}>Photo Not Available</div>
-                            <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>File not found on server</div>
+                            <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>No Attachment</div>
                           </div>
                         )}
                       </div>
@@ -1327,7 +1347,7 @@ function App() {
                               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 2 4 4-14 14H4v-4L18 2z"/><path d="m14.5 5.5 4 4"/></svg>
                             </div>
                             <div style={{ fontSize: '14px', fontWeight: '700', color: '#64748b' }}>Signature Not Available</div>
-                            <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>File not found on server</div>
+                            <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>No Attachment</div>
                           </div>
                         )}
                       </div>
