@@ -81,6 +81,100 @@ function loadStudentDatabase() {
 let studentDatabase = loadStudentDatabase();
 console.log(`[Database] Success: Loaded ${studentDatabase.length} students from Excel.`);
 
+// 3.1 JEE Master Key in-memory RAM caching with automatic file modification detection
+let MASTER_KEY_MAP = {};
+let lastKeyFileMtime = 0;
+
+function checkAndLoadMasterKey() {
+    try {
+        const excelPath = path.join(__dirname, 'JEE_Master_Key.xlsx');
+        if (!fs.existsSync(excelPath)) {
+            console.log("[Master Key Warning] JEE_Master_Key.xlsx file not found on server!");
+            return MASTER_KEY_MAP;
+        }
+
+        const stats = fs.statSync(excelPath);
+        const currentMtime = stats.mtimeMs;
+
+        // If file modified timestamp changed, automatically reload into RAM and clear old cache
+        if (currentMtime !== lastKeyFileMtime) {
+            console.log(`[Master Key] Detected updated file on disk. Reloading key into RAM...`);
+            
+            const workbook = xlsx.readFile(excelPath);
+            const targetSheetName = workbook.SheetNames.find(name => {
+                const rows = xlsx.utils.sheet_to_json(workbook.Sheets[name]);
+                return rows.length > 0;
+            }) || workbook.SheetNames[0];
+
+            const sheetData = xlsx.utils.sheet_to_json(workbook.Sheets[targetSheetName]);
+
+            const keyMap = {};
+            sheetData.forEach(row => {
+                const rawQId = (row['Question ID'] || row['QuestionID'] || row['QID'])?.toString().trim();
+                if (rawQId) {
+                    const uniqueKeys = [
+                        row['OptionID1'] || row['NTA KEY1'] || row['CorrectOptionID'],
+                        row['OptionID2'] || row['NTA KEY2'],
+                        row['OptionID3'] || row['NTA KEY3'],
+                        row['OptionID4'] || row['NTA KEY4']
+                    ].map(v => v?.toString().trim()).filter(Boolean);
+
+                    keyMap[rawQId] = {
+                        keys: [...new Set(uniqueKeys)],
+                        isDrop: uniqueKeys.some(k => k.toUpperCase() === 'DROP')
+                    };
+                }
+            });
+
+            // Replace old key with new key in RAM
+            MASTER_KEY_MAP = keyMap;
+            lastKeyFileMtime = currentMtime;
+
+            // Automatically clear old evaluations cache so all scores re-evaluate with the new key
+            evaluationCache.clear();
+            if (fs.existsSync(EVAL_CACHE_FILE)) {
+                try { fs.unlinkSync(EVAL_CACHE_FILE); } catch (e) {}
+            }
+
+            console.log(`[Master Key] Success: Reloaded ${Object.keys(MASTER_KEY_MAP).length} questions into RAM. Old cache cleared.`);
+        }
+    } catch (error) {
+        console.error("[Master Key Error] Excel Parsing Error:", error.message);
+    }
+    return MASTER_KEY_MAP;
+}
+
+// 3.2 Instant 0-second evaluation cache (In-Memory + Disk Persistence)
+const EVAL_CACHE_FILE = path.join(__dirname, 'evaluations_cache.json');
+let evaluationCache = new Map();
+
+function loadEvaluationCache() {
+    try {
+        if (fs.existsSync(EVAL_CACHE_FILE)) {
+            const raw = fs.readFileSync(EVAL_CACHE_FILE, 'utf-8');
+            const data = JSON.parse(raw);
+            evaluationCache = new Map(Object.entries(data));
+            console.log(`[Cache] Success: Loaded ${evaluationCache.size} previous evaluations from disk.`);
+        }
+    } catch (e) {
+        console.error("[Cache] Failed to load cache file:", e.message);
+    }
+}
+loadEvaluationCache();
+
+// Initial load of master key into RAM
+checkAndLoadMasterKey();
+
+function saveEvaluationToCache(url, result) {
+    try {
+        evaluationCache.set(url, result);
+        const obj = Object.fromEntries(evaluationCache);
+        fs.writeFileSync(EVAL_CACHE_FILE, JSON.stringify(obj, null, 2));
+    } catch (e) {
+        console.error("[Cache] Failed to save cache file:", e.message);
+    }
+}
+
 // 4. విద్యార్థి లాగిన్ API రౌట్
 app.post('/api/student-login', (req, res) => {
     const { admissionNumber, mobileNumber } = req.body;
@@ -196,17 +290,28 @@ app.get('/:filename', (req, res, next) => {
 // =========================================================================
 app.post('/api/evaluate-sheet', async (req, res) => {
     const { url } = req.body;
-    if (!url) return res.status(400).json({ success: false, message: "రెస్పాన్స్ షీట్ URL అవసరం!" });
+    if (!url) return res.status(400).json({ success: false, message: "Response sheet URL is required!" });
+
+    // Check if key file was updated on disk, automatically reloads if modified
+    checkAndLoadMasterKey();
+
+    const cleanUrl = url.trim();
+
+    // Instant 0-second cache check (serves repeated URLs in 0ms)
+    if (evaluationCache.has(cleanUrl)) {
+        console.log(`[Cache Hit - 0s] Instant result served for: ${cleanUrl}`);
+        return res.json(evaluationCache.get(cleanUrl));
+    }
 
     try {
-        // A. రెస్పాన్స్ షీట్ HTML డౌన్లోడ్
+        // A. Download Response Sheet HTML
         const response = await axios.get(url, { 
             timeout: 25000,
             headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
         });
         const $ = cheerio.load(response.data);
 
-        // B. అభ్యర్థి వివరాల సేకరణ
+        // B. Candidate details
         const testDateText = $("td:contains('Test Date')").next().text().trim() || "N/A";
         const testTimeText = $("td:contains('Test Time')").next().text().trim() || "N/A";
         const examShift = testTimeText.includes('3:00 PM') ? 'Shift2' : 'Shift1';
@@ -219,37 +324,10 @@ app.post('/api/evaluate-sheet', async (req, res) => {
             examShift: examShift
         };
 
-        // C. ఎక్సెల్ మాస్టర్ కీ లోడింగ్
-        const excelPath = path.join(__dirname, 'JEE_Master_Key.xlsx');
-        if (!fs.existsSync(excelPath)) {
-            return res.status(500).json({ success: false, message: "సర్వర్లో JEE_Master_Key.xlsx ఫైల్ లభించలేదు!" });
+        // C. JEE Master Key (From RAM Cache - 0ms Disk Read)
+        if (!MASTER_KEY_MAP || Object.keys(MASTER_KEY_MAP).length === 0) {
+            return res.status(500).json({ success: false, message: "JEE_Master_Key.xlsx file not found on server!" });
         }
-        
-        const workbook = xlsx.readFile(excelPath);
-        const targetSheetName = workbook.SheetNames.find(name => {
-            const rows = xlsx.utils.sheet_to_json(workbook.Sheets[name]);
-            return rows.length > 0;
-        }) || workbook.SheetNames[0];
-
-        const sheetData = xlsx.utils.sheet_to_json(workbook.Sheets[targetSheetName]);
-
-        const MASTER_KEY_MAP = {};
-        sheetData.forEach(row => {
-            const rawQId = (row['Question ID'] || row['QuestionID'] || row['QID'])?.toString().trim();
-            if (rawQId) {
-                const uniqueKeys = [
-                    row['OptionID1'] || row['NTA KEY1'] || row['CorrectOptionID'],
-                    row['OptionID2'] || row['NTA KEY2'],
-                    row['OptionID3'] || row['NTA KEY3'],
-                    row['OptionID4'] || row['NTA KEY4']
-                ].map(v => v?.toString().trim()).filter(Boolean);
-
-                MASTER_KEY_MAP[rawQId] = {
-                    keys: [...new Set(uniqueKeys)],
-                    isDrop: uniqueKeys.some(k => k.toUpperCase() === 'DROP')
-                };
-            }
-        });
 
         let totalMarks = 0;
         let correctCount = 0;
@@ -429,8 +507,7 @@ app.post('/api/evaluate-sheet', async (req, res) => {
 
         handleScoreEvaluationAlert(url, studentInfo, totalMarks);
 
-        // E. ఫైనల్ రెస్పాన్స్
-        res.json({
+        const resultData = {
             success: true,
             studentInfo,
             totalMarks,
@@ -438,7 +515,13 @@ app.post('/api/evaluate-sheet', async (req, res) => {
             wrongCount,
             unattemptedCount,
             subjects
-        });
+        };
+
+        // Save to cache for instant 0s result on repeated evaluations
+        saveEvaluationToCache(cleanUrl, resultData);
+
+        // E. ఫైనల్ రెస్పాన్స్
+        res.json(resultData);
 
     } catch (error) {
         console.error("[Evaluation Error]", error.message);
@@ -446,6 +529,29 @@ app.post('/api/evaluate-sheet', async (req, res) => {
     }
 });
 
-// 9. Render Cloud & Local Dynamic Port Binding
+// 9. Real-time Visitor Counter API (Persistent Disk Storage)
+const VISITOR_FILE = path.join(__dirname, 'visitor_stats.json');
+let visitorCount = 15358;
+
+try {
+    if (fs.existsSync(VISITOR_FILE)) {
+        const vData = JSON.parse(fs.readFileSync(VISITOR_FILE, 'utf-8'));
+        if (vData && vData.count) visitorCount = Number(vData.count);
+    } else {
+        fs.writeFileSync(VISITOR_FILE, JSON.stringify({ count: visitorCount }));
+    }
+} catch (e) {
+    console.error("[Visitor Counter Error]", e.message);
+}
+
+app.get('/api/visitor-count', (req, res) => {
+    visitorCount++;
+    try {
+        fs.writeFileSync(VISITOR_FILE, JSON.stringify({ count: visitorCount }));
+    } catch (e) {}
+    res.json({ count: visitorCount });
+});
+
+// 10. Render Cloud & Local Dynamic Port Binding
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server is running on port ${PORT}...`));
