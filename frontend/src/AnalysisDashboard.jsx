@@ -188,31 +188,31 @@ const AnalysisDashboard = () => {
       <div className="max-w-6xl mx-auto space-y-8">
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="glass-card rounded-full px-10 py-5 flex justify-between items-center relative overflow-hidden border-cyan-400/40 shadow-[inset_0_0_20px_rgba(34,211,238,0.05),0_10px_25px_rgba(0,0,0,0.5)]">
+          <div className="glass-card rounded-2xl sm:rounded-full px-4 sm:px-8 md:px-10 py-4 md:py-5 flex justify-between items-center relative overflow-hidden border-cyan-400/40 shadow-[inset_0_0_20px_rgba(34,211,238,0.05),0_10px_25px_rgba(0,0,0,0.5)]">
             <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent left-0"></div>
-            <div className="flex items-center gap-4">
-              <div className="text-3xl bg-white/5 p-3 rounded-full flex items-center justify-center border border-cyan-400/20 shadow-[0_0_15px_rgba(34,211,238,0.2)]">🏆</div>
-              <h2 className="text-slate-300 text-sm md:text-base font-extrabold uppercase tracking-widest whitespace-nowrap">Overall Highest Score</h2>
+            <div className="flex items-center gap-2.5 sm:gap-4">
+              <div className="text-2xl sm:text-3xl bg-white/5 p-2 sm:p-3 rounded-full flex items-center justify-center border border-cyan-400/20 shadow-[0_0_15px_rgba(34,211,238,0.2)] shrink-0">🏆</div>
+              <h2 className="text-slate-300 text-xs sm:text-sm md:text-base font-extrabold uppercase tracking-wider md:tracking-widest leading-tight sm:whitespace-nowrap">Overall Highest Score</h2>
             </div>
-            <div className="text-right">
-              <div className="text-5xl font-black text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.6)] leading-none">
+            <div className="text-right shrink-0 pl-2">
+              <div className="text-3xl sm:text-4xl md:text-5xl font-black text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.6)] leading-none">
                 {Math.round(stats.overallHighest * animProgress)}
               </div>
-              <p className="text-slate-400 mt-1.5 text-xs md:text-sm font-semibold">out of 300</p>
+              <p className="text-slate-400 mt-1 text-[11px] sm:text-xs md:text-sm font-semibold">out of 300</p>
             </div>
           </div>
           
-          <div className="glass-card rounded-full px-10 py-5 flex justify-between items-center relative overflow-hidden border-orange-400/30 shadow-[inset_0_0_20px_rgba(251,146,60,0.05),0_10px_25px_rgba(0,0,0,0.5)]">
+          <div className="glass-card rounded-2xl sm:rounded-full px-4 sm:px-8 md:px-10 py-4 md:py-5 flex justify-between items-center relative overflow-hidden border-orange-400/30 shadow-[inset_0_0_20px_rgba(251,146,60,0.05),0_10px_25px_rgba(0,0,0,0.5)]">
             <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-400 to-transparent left-0"></div>
-            <div className="flex items-center gap-4">
-              <div className="text-3xl bg-white/5 p-3 rounded-full flex items-center justify-center border border-orange-400/20 shadow-[0_0_15px_rgba(251,146,60,0.2)]">📉</div>
-              <h2 className="text-slate-300 text-sm md:text-base font-extrabold uppercase tracking-widest whitespace-nowrap">Overall Lowest Score</h2>
+            <div className="flex items-center gap-2.5 sm:gap-4">
+              <div className="text-2xl sm:text-3xl bg-white/5 p-2 sm:p-3 rounded-full flex items-center justify-center border border-orange-400/20 shadow-[0_0_15px_rgba(251,146,60,0.2)] shrink-0">📉</div>
+              <h2 className="text-slate-300 text-xs sm:text-sm md:text-base font-extrabold uppercase tracking-wider md:tracking-widest leading-tight sm:whitespace-nowrap">Overall Lowest Score</h2>
             </div>
-            <div className="text-right">
-              <div className="text-5xl font-black text-orange-400 drop-shadow-[0_0_20px_rgba(251,146,60,0.5)] leading-none">
+            <div className="text-right shrink-0 pl-2">
+              <div className="text-3xl sm:text-4xl md:text-5xl font-black text-orange-400 drop-shadow-[0_0_20px_rgba(251,146,60,0.5)] leading-none">
                 {Math.round(stats.overallLowest * animProgress)}
               </div>
-              <p className="text-slate-400 mt-1.5 text-xs md:text-sm font-semibold">out of 300</p>
+              <p className="text-slate-400 mt-1 text-[11px] sm:text-xs md:text-sm font-semibold">out of 300</p>
             </div>
           </div>
         </div>
