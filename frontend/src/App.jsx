@@ -188,11 +188,35 @@ function App() {
   const [evaluatorError, setEvaluatorError] = useState('');
 
   const [showUrlError, setShowUrlError] = useState(false);
+  const [showServerBusyModal, setShowServerBusyModal] = useState(false);
+  const localEvalCache = useRef(new Map());
   const [showLoginModal, setShowLoginModal] = useState(false);
   
   const [showNotAvailableModal, setShowNotAvailableModal] = useState(false);
-
   const [downloading, setDownloading] = useState(false);
+
+  const [visitorCount, setVisitorCount] = useState(() => {
+    const saved = localStorage.getItem('portal_visitor_count');
+    return saved ? parseInt(saved, 10) : 15358;
+  });
+
+  useEffect(() => {
+    fetch('https://student-portal-backend-vo2b.onrender.com/api/visitor-count')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.count) {
+          setVisitorCount(data.count);
+          localStorage.setItem('portal_visitor_count', data.count.toString());
+        }
+      })
+      .catch(() => {
+        setVisitorCount(prev => {
+          const next = prev + 1;
+          localStorage.setItem('portal_visitor_count', next.toString());
+          return next;
+        });
+      });
+  }, []);
 
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem('examUser');
@@ -348,18 +372,40 @@ function App() {
       return;
     }
 
+    const cleanInputUrl = responseUrl.trim();
+
+    // 0-second instant local cache check (Same device / session)
+    if (localEvalCache.current.has(cleanInputUrl)) {
+      setScoreData(localEvalCache.current.get(cleanInputUrl));
+      return;
+    }
+
     setEvaluatorLoading(true); 
     setScoreData(null);
+
+    const abortController = new AbortController();
+    const timeoutTimer = setTimeout(() => abortController.abort(), 6000);
 
     try {
       const response = await fetch(`https://student-portal-backend-vo2b.onrender.com/api/evaluate-sheet`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: responseUrl.trim() }),
+        body: JSON.stringify({ url: cleanInputUrl }),
+        signal: abortController.signal
       });
+      clearTimeout(timeoutTimer);
+
+      if (!response.ok) {
+        setShowServerBusyModal(true);
+        return;
+      }
+
       const data = await response.json(); 
       
       if (data.success) {
+        // Cache locally for 0s instant output on repeated checks
+        localEvalCache.current.set(cleanInputUrl, data);
+
         const getCounts = (sub) => {
           const pos = (sub?.secAPositive || 0) + (sub?.secBPositive || 0);
           const neg = Math.abs(sub?.secANegative || 0) + Math.abs(sub?.secBNegative || 0);
@@ -377,7 +423,7 @@ function App() {
           const { error: sbError } = await supabase
             .from('jee_results')
             .upsert({
-              url: responseUrl.trim(),
+              url: cleanInputUrl,
               candidate_name: data.studentInfo?.name || 'Unknown',
               app_no: data.studentInfo?.appNo || 'Unknown',
               exam_date: data.studentInfo?.examDate || 'Unknown',
@@ -398,11 +444,12 @@ function App() {
 
         setScoreData(data);
       } else {
-        setEvaluatorError(data.message || "Data processing failed!");
+        setShowServerBusyModal(true);
       }
     } catch (err) {
+      clearTimeout(timeoutTimer);
       console.error("Server Error:", err);
-      setEvaluatorError("Server connection error! Please try again.");
+      setShowServerBusyModal(true);
     } finally {
       setEvaluatorLoading(false);
     }
@@ -797,8 +844,9 @@ function App() {
                     onClick={handleEvaluate}
                     disabled={evaluatorLoading}
                     className="btn-primary evaluator-btn"
+                    style={evaluatorLoading ? { opacity: 0.65, cursor: 'not-allowed' } : {}}
                   >
-                    {evaluatorLoading ? '⏳ Please Wait...' : '📊 View Result'}
+                    📊 View Result
                   </button>
                 </div>
               </div>
@@ -1535,6 +1583,173 @@ function App() {
         </div>
       )}
 
+      {/* 🫧 Small & Minimal Full-Screen Bubble Loading Overlay */}
+      {evaluatorLoading && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(15, 23, 42, 0.72)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999999,
+          animation: 'fadeIn 0.2s ease-out'
+        }}>
+          <style>{`
+            @keyframes miniBubbleRipple {
+              0% { width: 26px; height: 26px; opacity: 0.95; transform: scale(0.6); border-color: rgba(96, 165, 250, 0.95); }
+              50% { opacity: 0.6; }
+              100% { width: 115px; height: 115px; opacity: 0; transform: scale(1.15); border-color: rgba(37, 99, 235, 0); }
+            }
+            .mini-ripple-bubble {
+              position: absolute;
+              border-radius: 50%;
+              border: 2px solid rgba(56, 189, 248, 0.8);
+              box-shadow: 0 0 16px rgba(56, 189, 248, 0.35);
+              animation: miniBubbleRipple 2s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+            }
+            .mb-1 { animation-delay: 0s; }
+            .mb-2 { animation-delay: 0.65s; }
+            .mb-3 { animation-delay: 1.3s; }
+          `}</style>
+          <div style={{
+            position: 'relative',
+            width: '120px',
+            height: '120px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}>
+            <div className="mini-ripple-bubble mb-1"></div>
+            <div className="mini-ripple-bubble mb-2"></div>
+            <div className="mini-ripple-bubble mb-3"></div>
+            
+            <div style={{
+              position: 'absolute',
+              width: '65px',
+              height: '65px',
+              borderRadius: '50%',
+              background: 'radial-gradient(circle, rgba(37, 99, 235, 0.3) 0%, rgba(56, 189, 248, 0.1) 70%, transparent 100%)',
+              boxShadow: '0 0 20px rgba(56, 189, 248, 0.4)'
+            }} />
+
+            <div style={{
+              position: 'relative',
+              zIndex: 10,
+              color: '#ffffff',
+              fontSize: '15px',
+              fontWeight: '700',
+              letterSpacing: '1px',
+              textShadow: '0 2px 8px rgba(0, 0, 0, 0.8), 0 0 15px rgba(56, 189, 248, 0.8)'
+            }}>
+              Loading...
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ⚠️ Server Busy Error Modal Popup */}
+      {showServerBusyModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(15, 23, 42, 0.7)',
+          backdropFilter: 'blur(6px)',
+          WebkitBackdropFilter: 'blur(6px)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 9999999,
+          animation: 'fadeIn 0.25s ease-out'
+        }}>
+          <div style={{
+            backgroundColor: '#ffffff',
+            padding: '28px 24px',
+            borderRadius: '20px',
+            width: '90%',
+            maxWidth: '360px',
+            position: 'relative',
+            textAlign: 'center',
+            boxShadow: '0 25px 60px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.6)'
+          }}>
+            <button 
+              style={{
+                position: 'absolute',
+                top: '14px',
+                right: '14px',
+                background: '#f8fafc',
+                border: 'none',
+                width: '30px',
+                height: '30px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '15px',
+                cursor: 'pointer',
+                color: '#64748b'
+              }} 
+              onClick={() => setShowServerBusyModal(false)}
+            >
+              &#10005;
+            </button>
+            <div style={{
+              width: '56px',
+              height: '56px',
+              backgroundColor: '#fef2f2',
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 16px auto',
+              boxShadow: '0 0 0 6px #fff1f2'
+            }}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+              </svg>
+            </div>
+            <h3 style={{
+              margin: '0 0 16px 0',
+              color: '#0f172a',
+              fontSize: '19px',
+              fontWeight: '800',
+              letterSpacing: '-0.3px'
+            }}>
+              Server busy. Please try again.
+            </h3>
+            <button 
+              style={{
+                width: '100%',
+                padding: '12px',
+                background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '10px',
+                cursor: 'pointer',
+                fontSize: '15px',
+                fontWeight: '700',
+                boxShadow: '0 6px 16px rgba(37, 99, 235, 0.25)',
+                transition: 'all 0.2s ease'
+              }} 
+              onClick={() => setShowServerBusyModal(false)}
+            >
+              OK
+            </button>
+          </div>
+        </div>
+      )}
+
       {showLoginModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(5px)', zIndex: 999999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px', boxSizing: 'border-box' }}>
           
@@ -1662,12 +1877,79 @@ function App() {
       }}>
         <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '2px', background: 'linear-gradient(90deg, transparent, #38bdf8, #818cf8, transparent)' }}></div>
 
-        <div style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center' }}>
-          
-          <div style={{ fontSize: '14.5px', color: '#cbd5e1', letterSpacing: '0.5px' }}>
+        <div style={{ 
+          maxWidth: '1200px', 
+          margin: '0 auto', 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center', 
+          flexWrap: 'wrap', 
+          gap: '16px' 
+        }}>
+          {/* Left: Last Updated Date */}
+          <div style={{ 
+            fontSize: '13.5px', 
+            color: '#94a3b8', 
+            letterSpacing: '0.4px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px'
+          }}>
+            <span>Last Updated:</span>
+            <span style={{ color: '#e2e8f0', fontWeight: '600' }}>27-Nov-2026</span>
+          </div>
+
+          {/* Center: Copyright */}
+          <div style={{ 
+            fontSize: '14px', 
+            color: '#cbd5e1', 
+            letterSpacing: '0.5px',
+            textAlign: 'center'
+          }}>
             Copyright © KIT 2026. All Rights Reserved.
           </div>
-          
+
+          {/* Right: No. of Visitors Digital Counter */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '8px', 
+            fontSize: '13.5px', 
+            color: '#94a3b8' 
+          }}>
+            <span style={{ color: '#e2e8f0', fontWeight: '600' }}>No. of Visitors:</span>
+            <div style={{ 
+              display: 'inline-flex', 
+              alignItems: 'center', 
+              gap: '3px', 
+              backgroundColor: '#1d4ed8', 
+              padding: '3px 4px', 
+              borderRadius: '6px', 
+              boxShadow: 'inset 0 1px 3px rgba(0,0,0,0.4), 0 2px 6px rgba(0,0,0,0.3)' 
+            }}>
+              {String(visitorCount).padStart(6, '0').split('').map((digit, idx) => (
+                <span 
+                  key={idx} 
+                  style={{ 
+                    display: 'inline-flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    width: '18px', 
+                    height: '24px', 
+                    backgroundColor: '#60a5fa', 
+                    color: '#ffffff', 
+                    fontWeight: '800', 
+                    fontSize: '15px', 
+                    borderRadius: '3px', 
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.25)',
+                    fontFamily: '"Courier New", Courier, monospace, sans-serif'
+                  }}
+                >
+                  {digit}
+                </span>
+              ))}
+            </div>
+          </div>
         </div>
 
         {showTimeoutModal && (
