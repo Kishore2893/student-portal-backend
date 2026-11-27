@@ -251,6 +251,15 @@ function App() {
   const [photoAvailable, setPhotoAvailable] = useState(true);
   const [signAvailable, setSignAvailable] = useState(true);
   const [avatarImgError, setAvatarImgError] = useState(false);
+  const [isMobileScorecard, setIsMobileScorecard] = useState(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobileScorecard(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const getStudentInitials = (name) => {
     if (!name) return 'ST';
@@ -299,7 +308,7 @@ function App() {
   }, []);
 
   const handleDownloadJPG = async () => {
-    const element = document.getElementById('scorecard-modal-content');
+    const element = document.getElementById('scorecard-download-canvas') || document.getElementById('scorecard-modal-content');
     if (!element) return;
 
     setDownloading(true);
@@ -325,7 +334,7 @@ function App() {
         await document.fonts.ready;
       }
 
-      const fullWidth = Math.max(element.scrollWidth, element.offsetWidth, 980);
+      const fullWidth = 980;
       const fullHeight = element.scrollHeight;
 
       let imgData;
@@ -1401,13 +1410,340 @@ function App() {
         )}
       </div>
 
-      {scoreData && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(8px)', zIndex: 99999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '10px', boxSizing: 'border-box' }}>
-          
-          <div style={{ width: '100%', maxWidth: '1000px', maxHeight: '94vh', overflowY: 'auto', overflowX: 'auto', borderRadius: '16px', boxShadow: '0 0 40px rgba(13, 71, 161, 0.4)', WebkitOverflowScrolling: 'touch' }}>
-            <div id="scorecard-modal-content" style={{ backgroundColor: '#071022', width: '100%', minWidth: '980px', border: '1px solid #1e3a8a', borderRadius: '16px', overflow: 'hidden', display: 'flex', flexDirection: 'column', fontFamily: '"Segoe UI", sans-serif', userSelect: 'none', WebkitUserSelect: 'none', MozUserSelect: 'none', msUserSelect: 'none', boxSizing: 'border-box' }}>
+      {scoreData && (() => {
+        const renderMobileScorecard = () => {
+          return (
+            <div 
+              id="scorecard-modal-content"
+              style={{
+                width: '100%',
+                maxWidth: '430px',
+                margin: '0 auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                boxSizing: 'border-box'
+              }}
+            >
               <style>{`
-                #scorecard-modal-content, #scorecard-modal-content * {
+                #scorecard-modal-content, #scorecard-modal-content *,
+                #scorecard-download-canvas, #scorecard-download-canvas * {
+                  -webkit-user-select: none !important;
+                  -moz-user-select: none !important;
+                  -ms-user-select: none !important;
+                  user-select: none !important;
+                }
+              `}</style>
+
+              {/* Top Action Bar (Buttons equal size: Download on left, Close on right) */}
+              <div id="modal-action-buttons" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px', width: '100%' }}>
+                <button 
+                  onClick={handleDownloadJPG}
+                  disabled={downloading}
+                  style={{
+                    flex: 1,
+                    background: downloading ? '#1d4ed8' : 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                    color: '#ffffff',
+                    border: '1px solid #3b82f6',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    fontWeight: '700',
+                    fontSize: '13px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    boxShadow: '0 4px 12px rgba(37, 99, 235, 0.4)',
+                    cursor: downloading ? 'not-allowed' : 'pointer'
+                  }}
+                  title="Download JPG"
+                >
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  {downloading ? 'Downloading...' : 'Download JPG'}
+                </button>
+                <button 
+                  onClick={() => setScoreData(null)}
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#dc2626',
+                    color: '#ffffff',
+                    border: '1px solid #b91c1c',
+                    padding: '10px 12px',
+                    borderRadius: '8px',
+                    fontWeight: '700',
+                    fontSize: '13px',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(220, 38, 38, 0.4)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  Close Report ✕
+                </button>
+              </div>
+
+              {/* Main Scorecard Card */}
+              <div 
+                style={{
+                  width: '100%',
+                  backgroundColor: '#071022',
+                  border: '1px solid #1e3a8a',
+                  borderRadius: '14px',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  boxShadow: '0 0 35px rgba(13, 71, 161, 0.4)'
+                }}
+              >
+                {/* Header */}
+                <div style={{
+                  padding: '10px 12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  borderBottom: '1px solid #1e293b',
+                  background: 'linear-gradient(90deg, #071022 0%, #0d234a 50%, #071022 100%)'
+                }}>
+                  <div style={{ background: '#ffffff', borderRadius: '50%', padding: '2px', display: 'flex', flexShrink: 0 }}>
+                    <div style={{ width: '24px', height: '24px', background: 'linear-gradient(45deg, #3b82f6, #ef4444, #eab308, #22c55e)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ width: '9px', height: '9px', backgroundColor: 'white', borderRadius: '50%' }}></div>
+                    </div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '13.5px', fontWeight: '800', color: '#ffffff', letterSpacing: '0.3px' }}>JEE-Main Response Report</div>
+                    <div style={{ color: '#94a3b8', fontSize: '9.5px', fontWeight: '500' }}>Subject-Wise Performance Analysis</div>
+                  </div>
+                </div>
+
+                {/* Card Body */}
+                <div style={{ padding: '8px 6px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {/* Student Info: 2 columns, Name spans 2 */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '5px' }}>
+                    <div style={{ gridColumn: 'span 2', backgroundColor: '#334155', borderRadius: '6px', padding: '5px 7px', border: '1px solid #475569' }}>
+                      <div style={{ color: '#cbd5e1', fontSize: '8.5px', marginBottom: '2px', whiteSpace: 'nowrap' }}>Student Name:</div>
+                      <div style={{ color: '#ffffff', fontSize: '11px', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{scoreData.studentInfo?.name || "N/A"}</div>
+                    </div>
+                    <div style={{ backgroundColor: '#334155', borderRadius: '6px', padding: '5px 7px', border: '1px solid #475569' }}>
+                      <div style={{ color: '#cbd5e1', fontSize: '8.5px', marginBottom: '2px', whiteSpace: 'nowrap' }}>Application No:</div>
+                      <div style={{ color: '#ffffff', fontSize: '10.5px', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{scoreData.studentInfo?.appNo || "N/A"}</div>
+                    </div>
+                    <div style={{ backgroundColor: '#334155', borderRadius: '6px', padding: '5px 7px', border: '1px solid #475569' }}>
+                      <div style={{ color: '#cbd5e1', fontSize: '8.5px', marginBottom: '2px', whiteSpace: 'nowrap' }}>Roll Number:</div>
+                      <div style={{ color: '#ffffff', fontSize: '10.5px', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{scoreData.studentInfo?.rollNo || "N/A"}</div>
+                    </div>
+                    <div style={{ backgroundColor: '#334155', borderRadius: '6px', padding: '5px 7px', border: '1px solid #475569' }}>
+                      <div style={{ color: '#cbd5e1', fontSize: '8.5px', marginBottom: '2px', whiteSpace: 'nowrap' }}>Test Date:</div>
+                      <div style={{ color: '#ffffff', fontSize: '10.5px', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{scoreData.studentInfo?.examDate || "N/A"}</div>
+                    </div>
+                    <div style={{ backgroundColor: '#334155', borderRadius: '6px', padding: '5px 7px', border: '1px solid #475569' }}>
+                      <div style={{ color: '#cbd5e1', fontSize: '8.5px', marginBottom: '2px', whiteSpace: 'nowrap' }}>Test Time:</div>
+                      <div style={{ color: '#ffffff', fontSize: '10.5px', fontWeight: '700', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{scoreData.studentInfo?.examShift === 'Shift2' ? '3:00 PM - 6:00 PM' : '9:00 AM - 12:00 PM'}</div>
+                    </div>
+                  </div>
+
+                  {/* User-Suggested Subject Score Matrix Table: Rows = Maths, Physics, Chem; Cols = Sec A, Sec B */}
+                  <div style={{ backgroundColor: '#f8fafc', borderRadius: '10px', padding: '8px 6px' }}>
+                    <div style={{ margin: '0 0 6px 0', fontSize: '12px', color: '#0f172a', fontWeight: '800' }}>Subject Score Matrix Table</div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '82px 1fr 1fr', gap: '4px', alignItems: 'center' }}>
+                      <div></div>
+                      <div style={{ backgroundColor: '#e0e7ff', color: '#4338ca', borderRadius: '6px', padding: '5px 2px', textAlign: 'center', fontWeight: '800', fontSize: '10.5px' }}>Section A</div>
+                      <div style={{ backgroundColor: '#bae6fd', color: '#0369a1', borderRadius: '6px', padding: '5px 2px', textAlign: 'center', fontWeight: '800', fontSize: '10.5px' }}>Section B</div>
+
+                      {[
+                        { name: 'Mathematics', key: 'Mathematics', grad: 'linear-gradient(90deg, #1e3a8a, #3b82f6)' },
+                        { name: 'Physics', key: 'Physics', grad: 'linear-gradient(90deg, #14532d, #22c55e)' },
+                        { name: 'Chemistry', key: 'Chemistry', grad: 'linear-gradient(90deg, #b45309, #eab308)' }
+                      ].map((s, idx) => (
+                        <React.Fragment key={idx}>
+                          <div style={{ background: s.grad, color: 'white', textAlign: 'center', padding: '5px 2px', borderRadius: '20px', fontWeight: 'bold', fontSize: '9.5px', display: 'flex', alignItems: 'center', justifyContent: 'center', whiteSpace: 'nowrap' }}>
+                            {s.name}
+                          </div>
+                          {/* Section A */}
+                          <div style={{ backgroundColor: '#eef2ff', border: '1px solid #a5b4fc', borderRadius: '6px', padding: '4px 6px', fontSize: '9px', display: 'flex', flexDirection: 'column', gap: '1.5px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ color: '#4f46e5' }}>Positive (+)</span>
+                              <span style={{ fontWeight: 'bold', color: '#16a34a' }}>{scoreData.subjects?.[s.key]?.secAPositive ?? 0}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ color: '#4f46e5' }}>Negative (-)</span>
+                              <span style={{ fontWeight: 'bold', color: '#ef4444' }}>{scoreData.subjects?.[s.key]?.secANegative ?? 0}</span>
+                            </div>
+                            <div style={{ borderTop: '1px solid #a5b4fc', margin: '2px 0' }}></div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: '800', color: '#312e81', fontSize: '10px' }}>
+                              <span>Total</span>
+                              <span>{scoreData.subjects?.[s.key]?.secATotal ?? 0}</span>
+                            </div>
+                          </div>
+                          {/* Section B */}
+                          <div style={{ backgroundColor: '#e0f2fe', border: '1px solid #7dd3fc', borderRadius: '6px', padding: '4px 6px', fontSize: '9px', display: 'flex', flexDirection: 'column', gap: '1.5px' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ color: '#0369a1' }}>Positive (+)</span>
+                              <span style={{ fontWeight: 'bold', color: '#16a34a' }}>{scoreData.subjects?.[s.key]?.secBPositive ?? 0}</span>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <span style={{ color: '#0369a1' }}>Negative (-)</span>
+                              <span style={{ fontWeight: 'bold', color: '#ef4444' }}>{scoreData.subjects?.[s.key]?.secBNegative ?? 0}</span>
+                            </div>
+                            <div style={{ borderTop: '1px solid #7dd3fc', margin: '2px 0' }}></div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: '800', color: '#0c4a6e', fontSize: '10px' }}>
+                              <span>Total</span>
+                              <span>{scoreData.subjects?.[s.key]?.secBTotal ?? 0}</span>
+                            </div>
+                          </div>
+                        </React.Fragment>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Subject Wise Marks */}
+                  <div style={{ backgroundColor: '#f8fafc', borderRadius: '10px', padding: '7px 6px' }}>
+                    <div style={{ fontSize: '10px', fontWeight: '800', color: '#0f172a', textTransform: 'uppercase' }}>Subject Wise Marks</div>
+                    <div style={{ display: 'flex', gap: '5px', marginTop: '4px' }}>
+                      <div style={{ flex: 1, backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '7px', padding: '5px 2px', textAlign: 'center' }}>
+                        <div style={{ color: '#1e3a8a', fontSize: '9px', fontWeight: '700' }}>Mathematics</div>
+                        <div style={{ fontSize: '18px', fontWeight: '900', color: '#1d4ed8', lineHeight: 1.1 }}>{scoreData.subjects?.Mathematics?.totalMarks ?? 0}</div>
+                      </div>
+                      <div style={{ flex: 1, backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '7px', padding: '5px 2px', textAlign: 'center' }}>
+                        <div style={{ color: '#14532d', fontSize: '9px', fontWeight: '700' }}>Physics</div>
+                        <div style={{ fontSize: '18px', fontWeight: '900', color: '#15803d', lineHeight: 1.1 }}>{scoreData.subjects?.Physics?.totalMarks ?? 0}</div>
+                      </div>
+                      <div style={{ flex: 1, backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '7px', padding: '5px 2px', textAlign: 'center' }}>
+                        <div style={{ color: '#78350f', fontSize: '9px', fontWeight: '700' }}>Chemistry</div>
+                        <div style={{ fontSize: '18px', fontWeight: '900', color: '#b45309', lineHeight: 1.1 }}>{scoreData.subjects?.Chemistry?.totalMarks ?? 0}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Grand Total Card */}
+                  <div style={{ background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)', borderRadius: '10px', padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'white', boxShadow: '0 4px 12px rgba(37, 99, 235, 0.3)' }}>
+                    <div>
+                      <div style={{ fontSize: '10px', color: '#bfdbfe', fontWeight: '800', textTransform: 'uppercase' }}>🏆 Grand Total Score</div>
+                      <div style={{ fontSize: '9px', color: '#93c5fd', fontWeight: '500' }}>Maximum Marks: 300</div>
+                    </div>
+                    <div style={{ fontSize: '22px', fontWeight: '900', color: '#ffffff' }}>
+                      {scoreData.totalMarks ?? 0} <span style={{ fontSize: '12px', fontWeight: '700', color: '#93c5fd' }}>/ 300</span>
+                    </div>
+                  </div>
+
+                  {/* Detailed Question Analysis Section Header */}
+                  <div style={{ display: 'flex', alignItems: 'center', margin: '4px 0 6px' }}>
+                    <div style={{ flex: 1, height: '1px', background: '#cbd5e0' }}></div>
+                    <div style={{ padding: '3px 10px', background: '#f0f2f5', border: '1px solid #cbd5e0', borderRadius: '12px', fontWeight: '800', fontSize: '9.5px', color: '#2d3748', textTransform: 'uppercase', letterSpacing: '0.3px', whiteSpace: 'nowrap' }}>
+                      Detailed Question Analysis
+                    </div>
+                    <div style={{ flex: 1, height: '1px', background: '#cbd5e0' }}></div>
+                  </div>
+
+                  {/* 3 COLUMNS SIDE-BY-SIDE: MATHEMATICS, PHYSICS, CHEMISTRY */}
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '3px', width: '100%' }}>
+                    {[
+                      { name: 'Mathematics', fullName: 'Mathematics', pill_col: '#3a6fc5' },
+                      { name: 'Physics', fullName: 'Physics', pill_col: '#32a852' },
+                      { name: 'Chemistry', fullName: 'Chemistry', pill_col: '#dca826' }
+                    ].map((sub, sIdx) => {
+                      const questions = scoreData.subjects?.[sub.fullName]?.questions || [];
+                      const secAPos = scoreData.subjects?.[sub.fullName]?.secAPositive || 0;
+                      const secBPos = scoreData.subjects?.[sub.fullName]?.secBPositive || 0;
+                      const secANeg = scoreData.subjects?.[sub.fullName]?.secANegative || 0;
+                      const secBNeg = scoreData.subjects?.[sub.fullName]?.secBNegative || 0;
+                      
+                      const cCount = scoreData.subjects?.[sub.fullName]?.correct ?? ((secAPos + secBPos) / 4);
+                      const wCount = scoreData.subjects?.[sub.fullName]?.wrong ?? (Math.abs(secANeg) + Math.abs(secBNeg));
+                      const uCount = Math.max(0, 25 - (cCount + wCount));
+                      
+                      const totalQ = 25;
+                      const c_percent = Math.round((cCount / totalQ) * 100) || 0;
+                      const w_percent = Math.round((wCount / totalQ) * 100) || 0;
+                      const u_percent = Math.max(0, 100 - (c_percent + w_percent));
+
+                      return (
+                        <div key={sIdx} style={{ position: 'relative', minWidth: 0 }}>
+                          <div style={{ position: 'absolute', top: '-8px', left: '50%', transform: 'translateX(-50%)', color: 'white', fontWeight: 'bold', padding: '2px 6px', borderRadius: '8px', fontSize: '8px', whiteSpace: 'nowrap', zIndex: 5, background: sub.pill_col }}>
+                            {sub.name}
+                          </div>
+                          <div style={{ borderRadius: '7px', overflow: 'hidden', paddingTop: '9px', background: 'white', border: `1.5px solid ${sub.pill_col}`, display: 'flex', flexDirection: 'column' }}>
+                            <div style={{ padding: '4px 2px 3px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+                              <div style={{ height: '13px', background: '#e2e8f0', borderRadius: '6px', margin: '2px 0 3px 0', display: 'flex', overflow: 'hidden', fontSize: '7.5px', fontWeight: '800', lineHeight: 1 }}>
+                                <div style={{ width: `${c_percent}%`, minWidth: c_percent > 0 ? '16px' : '0', background: '#4ade80', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#064e3b' }}>{c_percent > 0 ? `${c_percent}%` : ''}</div>
+                                <div style={{ width: `${w_percent}%`, minWidth: w_percent > 0 ? '16px' : '0', background: '#f87171', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7f1d1d' }}>{w_percent > 0 ? `${w_percent}%` : ''}</div>
+                                <div style={{ width: `${u_percent}%`, minWidth: u_percent > 0 ? '16px' : '0', background: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1e293b' }}>{u_percent > 0 ? `${u_percent}%` : ''}</div>
+                              </div>
+                              <div style={{ display: 'flex', justifyContent: 'space-around', fontSize: '8px', fontWeight: '700', color: '#475569' }}>
+                                <span><b style={{ color: '#16a34a' }}>✓</b>{cCount}</span>
+                                <span><b style={{ color: '#dc2626' }}>✗</b>{wCount}</span>
+                                <span><b style={{ color: '#64748b' }}>○</b>{uCount}</span>
+                              </div>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '3px 2px', borderBottom: '1px solid #e2e8f0', borderTop: '1px solid #e2e8f0', fontSize: '8.5px', fontWeight: '700', color: '#475569', background: '#f8fafc' }}>
+                              <span style={{ width: '22px', textAlign: 'center', flexShrink: 0 }}>Q.No</span>
+                              <span style={{ flex: 1, textAlign: 'center' }}>Q.ID</span>
+                              <span style={{ width: '32px', textAlign: 'center', flexShrink: 0, fontSize: '8px' }}>Status</span>
+                            </div>
+                            <div style={{ padding: '0 1px 3px' }}>
+                              {Array.from({ length: 25 }).map((_, i) => {
+                                const qNum = i + 1;
+                                const rowBg = qNum <= 20 ? (qNum % 2 !== 0 ? '#f8fafc' : '#ffffff') : (qNum % 2 !== 0 ? '#f0fafe' : '#ffffff');
+                                const questionData = questions[i] || {};
+                                const status = questionData.status || 'Unattempted';
+                                const isCorrect = status.toLowerCase() === 'correct';
+                                const isWrong = status.toLowerCase() === 'wrong';
+                                const icon = isCorrect ? '✓' : isWrong ? '✗' : '○';
+                                const statusColor = isCorrect ? '#16a34a' : isWrong ? '#dc2626' : '#94a3b8';
+                                const qId = questionData.questionId || '-';
+
+                                return (
+                                  <div key={qNum} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '3px 1px', borderBottom: '1px solid #edf2f7', fontSize: '8.5px', background: rowBg }}>
+                                    <span style={{ width: '22px', textAlign: 'center', fontWeight: '600', color: '#64748b', flexShrink: 0 }}>{qNum}.</span>
+                                    <span style={{ flex: 1, textAlign: 'center', color: '#1e293b', letterSpacing: '-0.3px', whiteSpace: 'nowrap', overflow: 'hidden' }}>{qId}</span>
+                                    <span style={{ width: '32px', textAlign: 'center', color: statusColor, fontWeight: 'bold', fontSize: '10px', flexShrink: 0 }}>{icon}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Legend */}
+                  <div style={{ marginTop: '4px', padding: '6px', background: '#edf2f7', borderRadius: '6px', textAlign: 'center', fontWeight: '700', color: '#2d3748', fontSize: '9.5px' }}>
+                    <span style={{ color: '#16a34a', margin: '0 5px' }}>✓ Correct</span>
+                    <span style={{ color: '#dc2626', margin: '0 5px' }}>✗ Wrong</span>
+                    <span style={{ color: '#64748b', margin: '0 5px' }}>○ Unattempted</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        const renderDesktopScorecard = (isDownload = false) => {
+          return (
+            <div 
+              id={isDownload ? "scorecard-download-canvas" : "scorecard-modal-content"} 
+              style={{ 
+                backgroundColor: '#071022', 
+                width: isDownload ? '980px' : '100%', 
+                minWidth: isDownload ? '980px' : undefined, 
+                border: '1px solid #1e3a8a', 
+                borderRadius: '16px', 
+                overflow: 'hidden', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                fontFamily: '"Segoe UI", sans-serif', 
+                userSelect: 'none', 
+                WebkitUserSelect: 'none', 
+                boxSizing: 'border-box' 
+              }}
+            >
+              <style>{`
+                #scorecard-modal-content, #scorecard-modal-content *,
+                #scorecard-download-canvas, #scorecard-download-canvas * {
                   -webkit-user-select: none !important;
                   -moz-user-select: none !important;
                   -ms-user-select: none !important;
@@ -1415,220 +1751,274 @@ function App() {
                 }
               `}</style>
             
-            <div style={{ padding: '12px 25px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #1e293b', background: 'linear-gradient(90deg, #071022 0%, #0d234a 50%, #071022 100%)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                <div style={{ background: '#ffffff', borderRadius: '50%', padding: '3px', display: 'flex' }}>
-                   <div style={{ width: '36px', height: '36px', background: 'linear-gradient(45deg, #3b82f6, #ef4444, #eab308, #22c55e)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                     <div style={{ width: '16px', height: '16px', backgroundColor: 'white', borderRadius: '50%' }}></div>
-                   </div>
-                </div>
-                <div>
-                  <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '800', color: '#ffffff', letterSpacing: '0.5px' }}>JEE-Main Response Report</h2>
-                  <div style={{ color: '#94a3b8', fontSize: '12px', fontWeight: '500', marginTop: '2px' }}>Subject-Wise Performance Analysis</div>
-                </div>
-              </div>
-              
-              <div id="modal-action-buttons" style={{ display: 'flex', gap: '10px' }}>
-                <button 
-                  onClick={handleDownloadJPG} 
-                  disabled={downloading}
-                  style={{ 
-                    backgroundColor: downloading ? '#1d4ed8' : '#2563eb', 
-                    color: '#ffffff', 
-                    border: '1px solid #1d4ed8', 
-                    padding: '6px 14px', 
-                    borderRadius: '6px', 
-                    cursor: downloading ? 'not-allowed' : 'pointer', 
-                    fontWeight: '600', 
-                    fontSize: '13px', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    gap: '6px' 
-                  }} 
-                  title="Download as JPG"
-                >
-                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                  {downloading ? 'Downloading...' : 'Download'}
-                </button>
-                <button onClick={() => setScoreData(null)} style={{ backgroundColor: '#dc2626', color: '#ffffff', border: '1px solid #b91c1c', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>
-                  Close Report ✕
-                </button>
-              </div>
-            </div>
-
-            <div style={{ padding: '15px 25px', flex: 1 }}>
-              <div style={{ display: 'flex', flexWrap: 'nowrap', gap: '10px', marginBottom: '15px', width: '100%' }}>
-                {[
-                  { label: "Student Name:", value: scoreData.studentInfo?.name || "N/A", flex: '2' },
-                  { label: "Application No:", value: scoreData.studentInfo?.appNo || "N/A", flex: '1' },
-                  { label: "Roll Number:", value: scoreData.studentInfo?.rollNo || "N/A", flex: '1' },
-                  { label: "Test Date:", value: scoreData.studentInfo?.examDate || "N/A", flex: '1' },
-                  { label: "Test Time:", value: scoreData.studentInfo?.examShift === 'Shift2' ? '3:00 PM - 6:00 PM' : '9:00 AM - 12:00 PM', flex: '1.2' }
-                ].map((info, idx) => (
-                  <div key={idx} style={{ backgroundColor: '#475569', borderRadius: '8px', padding: '8px 10px', flex: info.flex, minWidth: '0', border: '1px solid #64748b' }}>
-                    <div style={{ color: '#cbd5e1', fontSize: '10px', marginBottom: '3px', whiteSpace: 'nowrap', lineHeight: '1.2' }}>{info.label}</div>
-                    <div style={{ color: '#ffffff', fontSize: '12px', fontWeight: '700', whiteSpace: 'nowrap', lineHeight: '1.4' }}>{info.value}</div>
+              {/* Header */}
+              <div style={{ 
+                padding: isDownload ? '16px 25px' : '12px 18px', 
+                display: 'flex', 
+                flexWrap: isDownload ? 'nowrap' : 'wrap', 
+                justifyContent: 'space-between', 
+                alignItems: 'center', 
+                gap: '10px', 
+                borderBottom: '1px solid #1e293b', 
+                background: 'linear-gradient(90deg, #071022 0%, #0d234a 50%, #071022 100%)' 
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{ background: '#ffffff', borderRadius: '50%', padding: '3px', display: 'flex' }}>
+                     <div style={{ width: '36px', height: '36px', background: 'linear-gradient(45deg, #3b82f6, #ef4444, #eab308, #22c55e)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                       <div style={{ width: '16px', height: '16px', backgroundColor: 'white', borderRadius: '50%' }}></div>
+                     </div>
                   </div>
-                ))}
+                  <div>
+                    <h2 style={{ margin: 0, fontSize: isDownload ? '20px' : '18px', fontWeight: '800', color: '#ffffff', letterSpacing: '0.5px' }}>JEE-Main Response Report</h2>
+                    <div style={{ color: '#94a3b8', fontSize: '12px', fontWeight: '500', marginTop: '2px' }}>Subject-Wise Performance Analysis</div>
+                  </div>
+                </div>
+                
+                {!isDownload && (
+                  <div id="modal-action-buttons" style={{ display: 'flex', gap: '8px' }}>
+                    <button 
+                      onClick={handleDownloadJPG} 
+                      disabled={downloading}
+                      style={{ 
+                        backgroundColor: downloading ? '#1d4ed8' : '#2563eb', 
+                        color: '#ffffff', 
+                        border: '1px solid #1d4ed8', 
+                        padding: '6px 14px', 
+                        borderRadius: '6px', 
+                        cursor: downloading ? 'not-allowed' : 'pointer', 
+                        fontWeight: '600', 
+                        fontSize: '13px', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '6px' 
+                      }} 
+                      title="Download as JPG"
+                    >
+                      <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                      {downloading ? 'Downloading...' : 'Download'}
+                    </button>
+                    <button onClick={() => setScoreData(null)} style={{ backgroundColor: '#dc2626', color: '#ffffff', border: '1px solid #b91c1c', padding: '6px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600', fontSize: '13px' }}>
+                      Close Report ✕
+                    </button>
+                  </div>
+                )}
               </div>
 
-              <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '15px', marginBottom: '15px' }}>
-                <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', color: '#0f172a' }}>Subject Score Matrix Table</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr 1fr 1fr', gap: '10px' }}>
-                  <div></div>
-                  <div style={{ background: 'linear-gradient(90deg, #1e3a8a, #3b82f6)', color: 'white', textAlign: 'center', padding: '8px', borderRadius: '25px', fontWeight: 'bold', fontSize: '13px' }}>Mathematics</div>
-                  <div style={{ background: 'linear-gradient(90deg, #14532d, #22c55e)', color: 'white', textAlign: 'center', padding: '8px', borderRadius: '25px', fontWeight: 'bold', fontSize: '13px' }}>Physics</div>
-                  <div style={{ background: 'linear-gradient(90deg, #b45309, #eab308)', color: 'white', textAlign: 'center', padding: '8px', borderRadius: '25px', fontWeight: 'bold', fontSize: '13px' }}>Chemistry</div>
-
-                  <div style={{ backgroundColor: '#e0e7ff', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#4338ca', padding: '10px', fontSize: '13px' }}>Section A</div>
+              <div style={{ padding: isDownload ? '15px 25px' : '15px 16px', flex: 1 }}>
+                {/* Student Info */}
+                <div style={{ 
+                  display: isDownload ? 'flex' : 'grid', 
+                  gridTemplateColumns: isDownload ? undefined : 'repeat(auto-fit, minmax(130px, 1fr))',
+                  flexWrap: isDownload ? 'nowrap' : undefined, 
+                  gap: '8px', 
+                  marginBottom: '15px', 
+                  width: '100%' 
+                }}>
                   {[
-                    { subj: 'Mathematics', sec: 'A' },
-                    { subj: 'Physics', sec: 'A' },
-                    { subj: 'Chemistry', sec: 'A' }
-                  ].map((item, idx) => (
-                    <div key={`A-${idx}`} style={{ backgroundColor: '#eef2ff', borderRadius: '12px', padding: '10px', border: '1px solid #a5b4fc' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '13px' }}><span style={{color: '#4f46e5'}}>Positive (+)</span> <span style={{ fontWeight: 'bold', color: '#16a34a' }}>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Positive`] ?? 0}</span></div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '13px' }}><span style={{color: '#4f46e5'}}>Negative (-)</span> <span style={{ fontWeight: 'bold', color: '#ef4444' }}>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Negative`] ?? 0}</span></div>
-                      <div style={{ borderTop: '1px solid #a5b4fc', margin: '6px 0' }}></div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#312e81', fontWeight: 'bold', fontSize: '14px' }}><span>Total</span> <span>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Total`] ?? 0}</span></div>
-                    </div>
-                  ))}
-
-                  <div style={{ backgroundColor: '#bae6fd', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#0369a1', padding: '10px', fontSize: '13px' }}>Section B</div>
-                  {[
-                    { subj: 'Mathematics', sec: 'B' },
-                    { subj: 'Physics', sec: 'B' },
-                    { subj: 'Chemistry', sec: 'B' }
-                  ].map((item, idx) => (
-                    <div key={`B-${idx}`} style={{ backgroundColor: '#e0f2fe', borderRadius: '12px', padding: '10px', border: '1px solid #7dd3fc' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '13px' }}><span style={{color: '#0369a1'}}>Positive (+)</span> <span style={{ fontWeight: 'bold', color: '#16a34a' }}>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Positive`] ?? 0}</span></div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '13px' }}><span style={{color: '#0369a1'}}>Negative (-)</span> <span style={{ fontWeight: 'bold', color: '#ef4444' }}>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Negative`] ?? 0}</span></div>
-                      <div style={{ borderTop: '1px solid #7dd3fc', margin: '6px 0' }}></div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#0c4a6e', fontWeight: 'bold', fontSize: '14px' }}><span>Total</span> <span>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Total`] ?? 0}</span></div>
+                    { label: "Student Name:", value: scoreData.studentInfo?.name || "N/A", flex: '2' },
+                    { label: "Application No:", value: scoreData.studentInfo?.appNo || "N/A", flex: '1' },
+                    { label: "Roll Number:", value: scoreData.studentInfo?.rollNo || "N/A", flex: '1' },
+                    { label: "Test Date:", value: scoreData.studentInfo?.examDate || "N/A", flex: '1' },
+                    { label: "Test Time:", value: scoreData.studentInfo?.examShift === 'Shift2' ? '3:00 PM - 6:00 PM' : '9:00 AM - 12:00 PM', flex: '1.2' }
+                  ].map((info, idx) => (
+                    <div key={idx} style={{ backgroundColor: '#475569', borderRadius: '8px', padding: '8px 10px', flex: isDownload ? info.flex : undefined, minWidth: '0', border: '1px solid #64748b' }}>
+                      <div style={{ color: '#cbd5e1', fontSize: '10px', marginBottom: '3px', whiteSpace: 'nowrap', lineHeight: '1.2' }}>{info.label}</div>
+                      <div style={{ color: '#ffffff', fontSize: '12px', fontWeight: '700', whiteSpace: 'nowrap', lineHeight: '1.4' }}>{info.value}</div>
                     </div>
                   ))}
                 </div>
-              </div>
 
-              <div style={{ display: 'flex', gap: '15px' }}>
-                <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '12px 15px', flex: '1.2', display: 'flex', flexDirection: 'column' }}>
-                  <h3 style={{ margin: '0 0 8px 0', fontSize: '15px', color: '#0f172a', textTransform: 'uppercase' }}>Subject Wise Marks</h3>
-                  <div style={{ display: 'flex', gap: '10px', flex: 1 }}>
-                    <div style={{ flex: 1, backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-                      <div style={{ color: '#1e3a8a', fontSize: '13px', marginBottom: '2px', fontWeight: '600' }}>Maths</div>
-                      <div style={{ fontSize: '24px', fontWeight: '800', color: '#1d4ed8', lineHeight: 1 }}>{scoreData.subjects?.Mathematics?.totalMarks ?? 0}</div>
-                    </div>
-                    <div style={{ flex: 1, backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-                      <div style={{ color: '#14532d', fontSize: '13px', marginBottom: '2px', fontWeight: '600' }}>Physics</div>
-                      <div style={{ fontSize: '24px', fontWeight: '800', color: '#15803d', lineHeight: 1 }}>{scoreData.subjects?.Physics?.totalMarks ?? 0}</div>
-                    </div>
-                    <div style={{ flex: 1, backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
-                      <div style={{ color: '#78350f', fontSize: '13px', marginBottom: '2px', fontWeight: '600' }}>Chemistry</div>
-                      <div style={{ fontSize: '24px', fontWeight: '800', color: '#b45309', lineHeight: 1 }}>{scoreData.subjects?.Chemistry?.totalMarks ?? 0}</div>
+                {/* Subject Score Matrix Table */}
+                <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '15px', marginBottom: '15px' }}>
+                  <h3 style={{ margin: '0 0 10px 0', fontSize: '16px', color: '#0f172a' }}>Subject Score Matrix Table</h3>
+                  <div style={{ overflowX: isDownload ? 'visible' : 'auto', WebkitOverflowScrolling: 'touch' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '110px 1fr 1fr 1fr', gap: '10px', minWidth: isDownload ? undefined : '420px' }}>
+                      <div></div>
+                      <div style={{ background: 'linear-gradient(90deg, #1e3a8a, #3b82f6)', color: 'white', textAlign: 'center', padding: '8px', borderRadius: '25px', fontWeight: 'bold', fontSize: '13px' }}>Mathematics</div>
+                      <div style={{ background: 'linear-gradient(90deg, #14532d, #22c55e)', color: 'white', textAlign: 'center', padding: '8px', borderRadius: '25px', fontWeight: 'bold', fontSize: '13px' }}>Physics</div>
+                      <div style={{ background: 'linear-gradient(90deg, #b45309, #eab308)', color: 'white', textAlign: 'center', padding: '8px', borderRadius: '25px', fontWeight: 'bold', fontSize: '13px' }}>Chemistry</div>
+
+                      <div style={{ backgroundColor: '#e0e7ff', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#4338ca', padding: '10px', fontSize: '13px' }}>Section A</div>
+                      {[
+                        { subj: 'Mathematics', sec: 'A' },
+                        { subj: 'Physics', sec: 'A' },
+                        { subj: 'Chemistry', sec: 'A' }
+                      ].map((item, idx) => (
+                        <div key={`A-${idx}`} style={{ backgroundColor: '#eef2ff', borderRadius: '12px', padding: '10px', border: '1px solid #a5b4fc' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '13px' }}><span style={{color: '#4f46e5'}}>Positive (+)</span> <span style={{ fontWeight: 'bold', color: '#16a34a' }}>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Positive`] ?? 0}</span></div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '13px' }}><span style={{color: '#4f46e5'}}>Negative (-)</span> <span style={{ fontWeight: 'bold', color: '#ef4444' }}>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Negative`] ?? 0}</span></div>
+                          <div style={{ borderTop: '1px solid #a5b4fc', margin: '6px 0' }}></div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#312e81', fontWeight: 'bold', fontSize: '14px' }}><span>Total</span> <span>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Total`] ?? 0}</span></div>
+                        </div>
+                      ))}
+
+                      <div style={{ backgroundColor: '#bae6fd', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', color: '#0369a1', padding: '10px', fontSize: '13px' }}>Section B</div>
+                      {[
+                        { subj: 'Mathematics', sec: 'B' },
+                        { subj: 'Physics', sec: 'B' },
+                        { subj: 'Chemistry', sec: 'B' }
+                      ].map((item, idx) => (
+                        <div key={`B-${idx}`} style={{ backgroundColor: '#e0f2fe', borderRadius: '12px', padding: '10px', border: '1px solid #7dd3fc' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '13px' }}><span style={{color: '#0369a1'}}>Positive (+)</span> <span style={{ fontWeight: 'bold', color: '#16a34a' }}>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Positive`] ?? 0}</span></div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '13px' }}><span style={{color: '#0369a1'}}>Negative (-)</span> <span style={{ fontWeight: 'bold', color: '#ef4444' }}>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Negative`] ?? 0}</span></div>
+                          <div style={{ borderTop: '1px solid #7dd3fc', margin: '6px 0' }}></div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#0c4a6e', fontWeight: 'bold', fontSize: '14px' }}><span>Total</span> <span>{scoreData.subjects?.[item.subj]?.[`sec${item.sec}Total`] ?? 0}</span></div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
 
-                <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '12px', flex: '0.8', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)', borderRadius: '10px', padding: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'white', border: 'none', boxShadow: '0 8px 20px rgba(37, 99, 235, 0.25)', flex: 1 }}>
-                    <div style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: '13px', color: '#bfdbfe', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px', fontWeight: '800' }}>🏆 Grand Total Score</div>
-                      <div style={{ fontSize: '36px', fontWeight: '900', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', lineHeight: '1.2' }}>
-                        {scoreData.totalMarks ?? 0} <span style={{ fontSize: '18px', fontWeight: '600', color: '#93c5fd', lineHeight: '1.2' }}>/ 300</span>
+                {/* Marks and Grand Total */}
+                <div style={{ display: 'flex', flexWrap: isDownload ? 'nowrap' : 'wrap', gap: '15px' }}>
+                  <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '12px 15px', flex: isDownload ? '1.2' : '1.2 1 280px', display: 'flex', flexDirection: 'column' }}>
+                    <h3 style={{ margin: '0 0 8px 0', fontSize: '15px', color: '#0f172a', textTransform: 'uppercase' }}>Subject Wise Marks</h3>
+                    <div style={{ display: 'flex', gap: '10px', flex: 1 }}>
+                      <div style={{ flex: 1, backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '10px', padding: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                        <div style={{ color: '#1e3a8a', fontSize: '13px', marginBottom: '2px', fontWeight: '600' }}>Maths</div>
+                        <div style={{ fontSize: '24px', fontWeight: '800', color: '#1d4ed8', lineHeight: 1 }}>{scoreData.subjects?.Mathematics?.totalMarks ?? 0}</div>
+                      </div>
+                      <div style={{ flex: 1, backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                        <div style={{ color: '#14532d', fontSize: '13px', marginBottom: '2px', fontWeight: '600' }}>Physics</div>
+                        <div style={{ fontSize: '24px', fontWeight: '800', color: '#15803d', lineHeight: 1 }}>{scoreData.subjects?.Physics?.totalMarks ?? 0}</div>
+                      </div>
+                      <div style={{ flex: 1, backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '10px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+                        <div style={{ color: '#78350f', fontSize: '13px', marginBottom: '2px', fontWeight: '600' }}>Chemistry</div>
+                        <div style={{ fontSize: '24px', fontWeight: '800', color: '#b45309', lineHeight: 1 }}>{scoreData.subjects?.Chemistry?.totalMarks ?? 0}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div style={{ backgroundColor: '#f8fafc', borderRadius: '12px', padding: '12px', flex: isDownload ? '0.8' : '0.8 1 200px', display: 'flex', flexDirection: 'column' }}>
+                    <div style={{ background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%)', borderRadius: '10px', padding: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center', color: 'white', border: 'none', boxShadow: '0 8px 20px rgba(37, 99, 235, 0.25)', flex: 1 }}>
+                      <div style={{ textAlign: 'center' }}>
+                        <div style={{ fontSize: '13px', color: '#bfdbfe', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px', fontWeight: '800' }}>🏆 Grand Total Score</div>
+                        <div style={{ fontSize: '36px', fontWeight: '900', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', lineHeight: '1.2' }}>
+                          {scoreData.totalMarks ?? 0} <span style={{ fontSize: '18px', fontWeight: '600', color: '#93c5fd', lineHeight: '1.2' }}>/ 300</span>
+                        </div>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', margin: '30px 0 20px' }}>
-                <div style={{ flex: 1, height: '2px', background: 'linear-gradient(to right, transparent, #cbd5e0)' }}></div>
-                <div style={{ padding: '10px 25px', background: '#f0f2f5', border: '1px solid #cbd5e0', borderRadius: '20px', fontWeight: 'bold', fontSize: '15px', color: '#2d3748', textTransform: 'uppercase', letterSpacing: '1px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>Detailed Question-Wise Analysis</div>
-                <div style={{ flex: 1, height: '2px', background: 'linear-gradient(to left, transparent, #cbd5e0)' }}></div>
-              </div>
+                {/* Section title */}
+                <div style={{ display: 'flex', alignItems: 'center', margin: '30px 0 20px' }}>
+                  <div style={{ flex: 1, height: '2px', background: 'linear-gradient(to right, transparent, #cbd5e0)' }}></div>
+                  <div style={{ padding: '10px 25px', background: '#f0f2f5', border: '1px solid #cbd5e0', borderRadius: '20px', fontWeight: 'bold', fontSize: '15px', color: '#2d3748', textTransform: 'uppercase', letterSpacing: '1px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', textAlign: 'center' }}>Detailed Question-Wise Analysis</div>
+                  <div style={{ flex: 1, height: '2px', background: 'linear-gradient(to left, transparent, #cbd5e0)' }}></div>
+                </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px', marginTop: '25px' }}>
-                {[
-                  { name: 'Mathematics', pill_col: '#3a6fc5', bg: '#fdfdfd' },
-                  { name: 'Physics', pill_col: '#32a852', bg: '#fdfdfd' },
-                  { name: 'Chemistry', pill_col: '#dca826', bg: '#fdfdfd' }
-                ].map((sub, sIdx) => {
-                  const questions = scoreData.subjects?.[sub.name]?.questions || [];
-                  const secAPos = scoreData.subjects?.[sub.name]?.secAPositive || 0;
-                  const secBPos = scoreData.subjects?.[sub.name]?.secBPositive || 0;
-                  const secANeg = scoreData.subjects?.[sub.name]?.secANegative || 0;
-                  const secBNeg = scoreData.subjects?.[sub.name]?.secBNegative || 0;
-                  
-                  const cCount = scoreData.subjects?.[sub.name]?.correct ?? ((secAPos + secBPos) / 4);
-                  const wCount = scoreData.subjects?.[sub.name]?.wrong ?? (Math.abs(secANeg) + Math.abs(secBNeg));
-                  const uCount = Math.max(0, 25 - (cCount + wCount));
-                  
-                  const totalQ = 25;
-                  const c_percent = Math.round((cCount / totalQ) * 100) || 0;
-                  const w_percent = Math.round((wCount / totalQ) * 100) || 0;
-                  const u_percent = Math.max(0, 100 - (c_percent + w_percent));
+                {/* Question-Wise Analysis Grid: 3 columns for download/desktop, responsive auto-fit for mobile */}
+                <div style={{ 
+                  display: 'grid', 
+                  gridTemplateColumns: 'repeat(3, 1fr)', 
+                  gap: '15px', 
+                  marginTop: '25px' 
+                }}>
+                  {[
+                    { name: 'Mathematics', pill_col: '#3a6fc5', bg: '#fdfdfd' },
+                    { name: 'Physics', pill_col: '#32a852', bg: '#fdfdfd' },
+                    { name: 'Chemistry', pill_col: '#dca826', bg: '#fdfdfd' }
+                  ].map((sub, sIdx) => {
+                    const questions = scoreData.subjects?.[sub.name]?.questions || [];
+                    const secAPos = scoreData.subjects?.[sub.name]?.secAPositive || 0;
+                    const secBPos = scoreData.subjects?.[sub.name]?.secBPositive || 0;
+                    const secANeg = scoreData.subjects?.[sub.name]?.secANegative || 0;
+                    const secBNeg = scoreData.subjects?.[sub.name]?.secBNegative || 0;
+                    
+                    const cCount = scoreData.subjects?.[sub.name]?.correct ?? ((secAPos + secBPos) / 4);
+                    const wCount = scoreData.subjects?.[sub.name]?.wrong ?? (Math.abs(secANeg) + Math.abs(secBNeg));
+                    const uCount = Math.max(0, 25 - (cCount + wCount));
+                    
+                    const totalQ = 25;
+                    const c_percent = Math.round((cCount / totalQ) * 100) || 0;
+                    const w_percent = Math.round((wCount / totalQ) * 100) || 0;
+                    const u_percent = Math.max(0, 100 - (c_percent + w_percent));
 
-                  return (
-                    <div key={sIdx} style={{ position: 'relative', minWidth: 0, marginBottom: '20px' }}>
-                      <div style={{ position: 'absolute', top: '-14px', left: '50%', transform: 'translateX(-50%)', color: 'white', fontWeight: 'bold', padding: '4px 30px', borderRadius: '20px', zIndex: 10, fontSize: '14px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)', letterSpacing: '0.5px', background: sub.pill_col }}>
-                        {sub.name}
-                      </div>
-                      <div style={{ borderRadius: '12px', overflow: 'hidden', paddingTop: '15px', background: 'white', border: `2px solid ${sub.pill_col}`, display: 'flex', flexDirection: 'column' }}>
-                        <div style={{ background: '#ffffff', padding: '15px 12px 12px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-                          <div style={{ height: '22px', background: '#e2e8f0', borderRadius: '20px', margin: '8px 0 12px 0', display: 'flex', overflow: 'hidden', fontSize: '12px', fontWeight: '800', color: 'white', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)' }}>
-                            <div style={{ width: `${c_percent}%`, minWidth: c_percent > 0 ? '38px' : '0', background: '#4ade80', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#064e3b' }}>{c_percent > 0 ? `${c_percent}%` : ''}</div>
-                            <div style={{ width: `${w_percent}%`, minWidth: w_percent > 0 ? '38px' : '0', background: '#f87171', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7f1d1d' }}>{w_percent > 0 ? `${w_percent}%` : ''}</div>
-                            <div style={{ width: `${u_percent}%`, minWidth: u_percent > 0 ? '38px' : '0', background: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1e293b' }}>{u_percent > 0 ? `${u_percent}%` : ''}</div>
+                    return (
+                      <div key={sIdx} style={{ position: 'relative', minWidth: 0, marginBottom: '20px' }}>
+                        <div style={{ position: 'absolute', top: '-14px', left: '50%', transform: 'translateX(-50%)', color: 'white', fontWeight: 'bold', padding: '4px 30px', borderRadius: '20px', zIndex: 10, fontSize: '14px', boxShadow: '0 2px 4px rgba(0,0,0,0.2)', letterSpacing: '0.5px', background: sub.pill_col }}>
+                          {sub.name}
+                        </div>
+                        <div style={{ borderRadius: '12px', overflow: 'hidden', paddingTop: '15px', background: 'white', border: `2px solid ${sub.pill_col}`, display: 'flex', flexDirection: 'column' }}>
+                          <div style={{ background: '#ffffff', padding: '15px 12px 12px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+                            <div style={{ height: '22px', background: '#e2e8f0', borderRadius: '20px', margin: '8px 0 12px 0', display: 'flex', overflow: 'hidden', fontSize: '12px', fontWeight: '800', color: 'white', boxShadow: 'inset 0 1px 2px rgba(0,0,0,0.1)' }}>
+                              <div style={{ width: `${c_percent}%`, minWidth: c_percent > 0 ? '38px' : '0', background: '#4ade80', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#064e3b' }}>{c_percent > 0 ? `${c_percent}%` : ''}</div>
+                              <div style={{ width: `${w_percent}%`, minWidth: w_percent > 0 ? '38px' : '0', background: '#f87171', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#7f1d1d' }}>{w_percent > 0 ? `${w_percent}%` : ''}</div>
+                              <div style={{ width: `${u_percent}%`, minWidth: u_percent > 0 ? '38px' : '0', background: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#1e293b' }}>{u_percent > 0 ? `${u_percent}%` : ''}</div>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: '600', color: '#475569' }}>
+                              <span><span style={{ color: '#16a34a' }}>Correct:</span> {cCount}</span>
+                              <span><span style={{ color: '#dc2626' }}>Wrong:</span> {wCount}</span>
+                              <span><span style={{ color: '#64748b' }}>Unattempted:</span> {uCount}</span>
+                            </div>
                           </div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: '600', color: '#475569' }}>
-                            <span><span style={{ color: '#16a34a' }}>Correct:</span> {cCount}</span>
-                            <span><span style={{ color: '#dc2626' }}>Wrong:</span> {wCount}</span>
-                            <span><span style={{ color: '#64748b' }}>Unattempted:</span> {uCount}</span>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 5px', borderBottom: '2px solid #e2e8f0', borderTop: '1px solid #e2e8f0', fontSize: '13px', fontWeight: '700', color: '#475569', background: '#f8fafc' }}>
+                            <span style={{ width: '50px', textAlign: 'center' }}>Q.No</span>
+                            <span style={{ flex: 1, textAlign: 'center' }}>Q.ID</span>
+                            <span style={{ width: '50px', textAlign: 'center' }}>Status</span>
+                          </div>
+                          <div style={{ padding: '0 8px 8px' }}>
+                            {Array.from({ length: 25 }).map((_, i) => {
+                              const qNum = i + 1;
+                              const rowBg = qNum <= 20 ? (qNum % 2 !== 0 ? '#f9f9fd' : 'transparent') : (qNum % 2 !== 0 ? '#f0fafe' : 'transparent');
+                              const questionData = questions[i] || {};
+                              const status = questionData.status || 'Unattempted';
+                              const isCorrect = status.toLowerCase() === 'correct';
+                              const isWrong = status.toLowerCase() === 'wrong';
+                              const icon = isCorrect ? '✓' : isWrong ? '✗' : '○';
+                              const statusColor = isCorrect ? '#38a169' : isWrong ? '#e53e3e' : '#718096';
+                              const qId = questionData.questionId || '-';
+
+                              return (
+                                <div key={qNum} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 5px', borderBottom: '1px solid #edf2f7', fontSize: '13px', borderRadius: '4px', marginBottom: '2px', background: rowBg }}>
+                                  <span style={{ width: '50px', textAlign: 'center' }}>{qNum}.</span>
+                                  <span style={{ flex: 1, textAlign: 'center' }}>{qId}</span>
+                                  <span style={{ width: '50px', textAlign: 'center', color: statusColor, fontWeight: 'bold', fontSize: '14px' }}>{icon}</span>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 5px', borderBottom: '2px solid #e2e8f0', borderTop: '1px solid #e2e8f0', fontSize: '13px', fontWeight: '700', color: '#475569', background: '#f8fafc' }}>
-                          <span style={{ width: '50px', textAlign: 'center' }}>Q.No</span>
-                          <span style={{ flex: 1, textAlign: 'center' }}>Q.ID</span>
-                          <span style={{ width: '50px', textAlign: 'center' }}>Status</span>
-                        </div>
-                        <div style={{ padding: '0 8px 8px' }}>
-                          {Array.from({ length: 25 }).map((_, i) => {
-                            const qNum = i + 1;
-                            const rowBg = qNum <= 20 ? (qNum % 2 !== 0 ? '#f9f9fd' : 'transparent') : (qNum % 2 !== 0 ? '#f0fafe' : 'transparent');
-                            const questionData = questions[i] || {};
-                            const status = questionData.status || 'Unattempted';
-                            const isCorrect = status.toLowerCase() === 'correct';
-                            const isWrong = status.toLowerCase() === 'wrong';
-                            const icon = isCorrect ? '✓' : isWrong ? '✗' : '○';
-                            const statusColor = isCorrect ? '#38a169' : isWrong ? '#e53e3e' : '#718096';
-                            const qId = questionData.questionId || '-';
-
-                            return (
-                              <div key={qNum} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 5px', borderBottom: '1px solid #edf2f7', fontSize: '13px', borderRadius: '4px', marginBottom: '2px', background: rowBg }}>
-                                <span style={{ width: '50px', textAlign: 'center' }}>{qNum}.</span>
-                                <span style={{ flex: 1, textAlign: 'center' }}>{qId}</span>
-                                <span style={{ width: '50px', textAlign: 'center', color: statusColor, fontWeight: 'bold', fontSize: '14px' }}>{icon}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
 
-              <div style={{ marginTop: '15px', padding: '12px', background: '#edf2f7', borderRadius: '8px', textAlign: 'center', fontWeight: '500', color: '#2d3748', fontSize: '13px' }}>
-                <span style={{ color: '#38a169', margin: '0 15px', fontWeight: 'bold' }}>✓ Correct</span>
-                <span style={{ color: '#e53e3e', margin: '0 15px', fontWeight: 'bold' }}>✗ Wrong</span>
-                <span style={{ color: '#718096', margin: '0 15px', fontWeight: 'bold' }}>○ Unattempted</span>
+                {/* Legend */}
+                <div style={{ marginTop: '15px', padding: '12px', background: '#edf2f7', borderRadius: '8px', textAlign: 'center', fontWeight: '500', color: '#2d3748', fontSize: '13px' }}>
+                  <span style={{ color: '#38a169', margin: '0 15px', fontWeight: 'bold' }}>✓ Correct</span>
+                  <span style={{ color: '#e53e3e', margin: '0 15px', fontWeight: 'bold' }}>✗ Wrong</span>
+                  <span style={{ color: '#718096', margin: '0 15px', fontWeight: 'bold' }}>○ Unattempted</span>
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        const renderScorecardContent = (isDownload = false) => {
+          if (!isDownload && isMobileScorecard) {
+            return renderMobileScorecard();
+          }
+          return renderDesktopScorecard(isDownload);
+        };
+
+        return (
+          <>
+            {/* 1. Visible Modal for Screen (Mobile & Desktop) */}
+            <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0, 0, 0, 0.85)', backdropFilter: 'blur(8px)', zIndex: 99999, display: 'flex', justifyContent: 'center', alignItems: 'center', padding: isMobileScorecard ? '8px 6px' : '10px', boxSizing: 'border-box' }}>
+              <div style={{ width: '100%', maxWidth: isMobileScorecard ? '430px' : '1000px', maxHeight: '96vh', overflowY: 'auto', overflowX: 'hidden', borderRadius: isMobileScorecard ? '14px' : '16px', boxShadow: isMobileScorecard ? 'none' : '0 0 40px rgba(13, 71, 161, 0.4)', WebkitOverflowScrolling: 'touch' }}>
+                {renderScorecardContent(false)}
               </div>
             </div>
 
-          </div>
-          </div>
-        </div>
-      )}
+            {/* 2. Dedicated High-Res 980px Export Canvas (Hidden zero-size container, never shows on screen, used strictly by handleDownloadJPG) */}
+            <div style={{ position: 'fixed', left: 0, top: 0, width: 0, height: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: -9999 }}>
+              {renderScorecardContent(true)}
+            </div>
+          </>
+        );
+      })()}
 
       {showUrlError && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(6px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 999999, animation: 'fadeIn 0.3s ease-out' }}>
