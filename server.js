@@ -531,12 +531,17 @@ app.post('/api/evaluate-sheet', async (req, res) => {
 
 // 9. Real-time Visitor Counter API (Persistent Disk Storage)
 const VISITOR_FILE = path.join(__dirname, 'visitor_stats.json');
-let visitorCount = 15358;
+let visitorCount = 111;
 
 try {
     if (fs.existsSync(VISITOR_FILE)) {
         const vData = JSON.parse(fs.readFileSync(VISITOR_FILE, 'utf-8'));
-        if (vData && vData.count) visitorCount = Number(vData.count);
+        if (vData && vData.count && Number(vData.count) >= 111 && Number(vData.count) < 15000) {
+            visitorCount = Number(vData.count);
+        } else {
+            visitorCount = 111;
+            fs.writeFileSync(VISITOR_FILE, JSON.stringify({ count: visitorCount }));
+        }
     } else {
         fs.writeFileSync(VISITOR_FILE, JSON.stringify({ count: visitorCount }));
     }
