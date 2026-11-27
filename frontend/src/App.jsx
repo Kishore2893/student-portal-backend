@@ -782,6 +782,66 @@ function App() {
           z-index: 2;
         }
 
+        /* ─── Photo & Sign Clean Compact Design (Dual-Tone & No Redundant Bar) ─── */
+        .card-d1 {
+          background: #ffffff;
+          border-radius: 20px;
+          border: 1.5px solid #e2e8f0;
+          padding: 20px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
+          position: relative;
+          overflow: hidden;
+        }
+        .card-d1::before {
+          content: '';
+          position: absolute;
+          top: 0; left: 0; right: 0; height: 4px;
+        }
+        .card-d1.photo::before { background: linear-gradient(90deg, #2563eb, #38bdf8); }
+        .card-d1.sign::before { background: linear-gradient(90deg, #7c3aed, #c084fc); }
+
+        .box-clean-photo {
+          border: 1.5px solid #dbeafe;
+          border-radius: 14px;
+          background: linear-gradient(180deg, #f0f7ff 0%, #f8fafc 100%);
+          height: 195px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 10px;
+          box-shadow: inset 0 2px 6px rgba(37, 99, 235, 0.03);
+          box-sizing: border-box;
+        }
+
+        .box-clean-sign {
+          border: 1.5px solid #f3e8ff;
+          border-radius: 14px;
+          background: linear-gradient(180deg, #faf5ff 0%, #f8fafc 100%);
+          height: 195px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 14px;
+          box-shadow: inset 0 2px 6px rgba(124, 58, 237, 0.03);
+          box-sizing: border-box;
+        }
+        .sign-plate-clean {
+          background: #ffffff;
+          border: 1.5px solid #f1f5f9;
+          border-radius: 10px;
+          padding: 14px 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
+          width: 88%;
+          height: 120px;
+          box-sizing: border-box;
+        }
+
         @media (max-width: 768px) {
           .evaluator-card { flex-direction: column; }
           .evaluator-left { border-right: none; border-bottom: 3px solid #3b82f6; }
@@ -1101,114 +1161,65 @@ function App() {
                   </div>
                 </div>
 
-                <div style={{ height: '1px', background: 'linear-gradient(90deg, #e2e8f0 0%, #cbd5e1 50%, #e2e8f0 100%)', margin: '0 0 28px 0' }}></div>
-
                 {/* ─── Compact Cards Grid (Photo & Signature) ─── */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 340px))', justifyContent: 'center', gap: '24px', width: '100%', boxSizing: 'border-box' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(290px, 360px))', justifyContent: 'center', gap: '28px', width: '100%', boxSizing: 'border-box' }}>
                   
-                  {/* ─── Card 1: Passport Size Photo ─── */}
-                  <div style={{
-                    backgroundColor: '#ffffff',
-                    border: '1.5px solid #e2e8f0',
-                    borderRadius: '16px',
-                    padding: '20px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    boxSizing: 'border-box',
-                    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.03)'
-                  }}>
+                  {/* ─── Card 1: Passport Size Photo (Clean Compact) ─── */}
+                  <div className="card-d1 photo">
                     <div>
                       {/* Card Header */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#334155" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                            <circle cx="9" cy="7" r="4" />
-                            <polyline points="16 11 18 13 22 9" />
-                          </svg>
-                          <span style={{ fontSize: '16px', fontWeight: '700', color: '#1e293b' }}>Passport Size Photo</span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+                          <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                              <circle cx="9" cy="7" r="4" />
+                              <polyline points="16 11 18 13 22 9" />
+                            </svg>
+                          </div>
+                          <span style={{ fontSize: '16px', fontWeight: '700', color: '#1e293b' }}>Photo</span>
                         </div>
-                        <span style={{ backgroundColor: '#e0f2fe', color: '#0284c7', fontSize: '11px', fontWeight: '800', padding: '2px 8px', borderRadius: '6px' }}>
+                        <span style={{ backgroundColor: '#e0f2fe', color: '#0284c7', border: '1px solid #bae6fd', fontSize: '11px', fontWeight: '800', padding: '3px 9px', borderRadius: '6px' }}>
                           .JPG
                         </span>
                       </div>
 
-                      {/* Photo Frame */}
-                      <div style={{
-                        border: '1.5px solid #e2e8f0',
-                        borderRadius: '12px',
-                        overflow: 'hidden',
-                        backgroundColor: '#f8fafc',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        height: '240px',
-                        padding: '12px',
-                        boxSizing: 'border-box'
-                      }}>
+                      {/* Photo Frame (Clean Compact, No Name Bar) */}
+                      <div className="box-clean-photo">
                         {photoAvailable ? (
-                          <>
-                            <div style={{
-                              flex: 1,
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              width: '100%',
-                              overflow: 'hidden'
-                            }}>
-                              <img 
-                                src={photoSrc} 
-                                alt="Candidate Photo" 
-                                onLoad={() => setPhotoAvailable(true)}
-                                onError={() => {
-                                  const adm = user?.admissionNumber;
-                                  if (!adm) { setPhotoAvailable(false); return; }
-                                  if (photoSrc.includes('/photos/' + adm + '_Photo.jpg')) {
-                                    setPhotoSrc('https://student-portal-backend-vo2b.onrender.com/Photos/' + adm + '_Photo.jpg');
-                                  } else if (photoSrc.includes('/Photos/' + adm + '_Photo.jpg')) {
-                                    setPhotoSrc('https://student-portal-backend-vo2b.onrender.com/photos/' + adm + '.jpg');
-                                  } else if (photoSrc.includes('/photos/' + adm + '.jpg')) {
-                                    setPhotoSrc('https://student-portal-backend-vo2b.onrender.com/photos/' + adm + '_Photo.jpeg');
-                                  } else if (photoSrc.includes(adm + '_Photo.jpeg')) {
-                                    setPhotoSrc('https://student-portal-backend-vo2b.onrender.com/photos/' + adm + '_Photo.png');
-                                  } else {
-                                    setPhotoAvailable(false);
-                                  }
-                                }}
-                                style={{
-                                  width: '125px',
-                                  height: '155px',
-                                  objectFit: 'cover',
-                                  borderRadius: '6px',
-                                  border: '1px solid #cbd5e1',
-                                  boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
-                                  backgroundColor: '#ffffff',
-                                  display: 'block'
-                                }}
-                              />
-                            </div>
-                            <div style={{
-                              width: '100%',
-                              padding: '8px 4px 2px 4px',
-                              fontSize: '12px',
-                              fontWeight: '800',
-                              color: '#1e293b',
-                              textAlign: 'center',
-                              letterSpacing: '0.4px',
-                              textTransform: 'uppercase',
-                              whiteSpace: 'nowrap',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis'
-                            }}>
-                              {user.studentName}
-                            </div>
-                          </>
+                          <img 
+                            src={photoSrc} 
+                            alt="Candidate Photo" 
+                            onLoad={() => setPhotoAvailable(true)}
+                            onError={() => {
+                              const adm = user?.admissionNumber;
+                              if (!adm) { setPhotoAvailable(false); return; }
+                              if (photoSrc.includes('/photos/' + adm + '_Photo.jpg')) {
+                                setPhotoSrc('https://student-portal-backend-vo2b.onrender.com/Photos/' + adm + '_Photo.jpg');
+                              } else if (photoSrc.includes('/Photos/' + adm + '_Photo.jpg')) {
+                                setPhotoSrc('https://student-portal-backend-vo2b.onrender.com/photos/' + adm + '.jpg');
+                              } else if (photoSrc.includes('/photos/' + adm + '.jpg')) {
+                                setPhotoSrc('https://student-portal-backend-vo2b.onrender.com/photos/' + adm + '_Photo.jpeg');
+                              } else if (photoSrc.includes(adm + '_Photo.jpeg')) {
+                                setPhotoSrc('https://student-portal-backend-vo2b.onrender.com/photos/' + adm + '_Photo.png');
+                              } else {
+                                setPhotoAvailable(false);
+                              }
+                            }}
+                            style={{
+                              width: '122px',
+                              height: '152px',
+                              objectFit: 'cover',
+                              borderRadius: '9px',
+                              border: '2.5px solid #ffffff',
+                              boxShadow: '0 6px 18px rgba(37, 99, 235, 0.16)',
+                              display: 'block'
+                            }}
+                          />
                         ) : (
                           <div style={{ textAlign: 'center', color: '#94a3b8' }}>
                             <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px auto', border: '1px solid #e2e8f0' }}>
-                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                             </div>
                             <div style={{ fontSize: '14px', fontWeight: '700', color: '#64748b' }}>Photo Not Available</div>
                             <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '3px' }}>File not found on server</div>
@@ -1217,7 +1228,7 @@ function App() {
                       </div>
                     </div>
 
-                    {/* Download Button */}
+                    {/* Download Button (Moved Up) */}
                     <button
                       onClick={() => {
                         if (!photoAvailable) {
@@ -1228,26 +1239,26 @@ function App() {
                       }}
                       disabled={!photoAvailable}
                       style={{
-                        marginTop: '18px',
+                        marginTop: '15px',
                         width: '100%',
-                        padding: '11px 18px',
-                        background: !photoAvailable ? '#94a3b8' : 'linear-gradient(90deg, #1d4ed8 0%, #2563eb 100%)',
+                        padding: '11.5px 18px',
+                        background: !photoAvailable ? '#94a3b8' : 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 100%)',
                         color: '#ffffff',
                         border: 'none',
-                        borderRadius: '25px',
-                        fontSize: '14px',
+                        borderRadius: '30px',
+                        fontSize: '13.5px',
                         fontWeight: '700',
                         cursor: !photoAvailable ? 'not-allowed' : 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '8px',
-                        boxShadow: !photoAvailable ? 'none' : '0 4px 12px rgba(37, 99, 235, 0.3)',
+                        boxShadow: !photoAvailable ? 'none' : '0 4px 14px rgba(37, 99, 235, 0.28)',
                         opacity: !photoAvailable ? 0.7 : 1,
                         transition: 'all 0.2s ease'
                       }}
                     >
-                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                         <polyline points="7 10 12 15 17 10" />
                         <line x1="12" y1="15" x2="12" y2="3" />
@@ -1256,80 +1267,63 @@ function App() {
                     </button>
                   </div>
 
-                  {/* ─── Card 2: Specimen Signature ─── */}
-                  <div style={{
-                    backgroundColor: '#ffffff',
-                    border: '1.5px solid #e2e8f0',
-                    borderRadius: '16px',
-                    padding: '20px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    boxSizing: 'border-box',
-                    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.03)'
-                  }}>
+                  {/* ─── Card 2: Specimen Signature (Clean Compact) ─── */}
+                  <div className="card-d1 sign">
                     <div>
                       {/* Card Header */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#9333ea" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="m12 19 7-7 3 3-7 7-3-3z" />
-                            <path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
-                            <path d="m2 2 7.586 7.586" />
-                            <circle cx="11" cy="11" r="2" />
-                          </svg>
-                          <span style={{ fontSize: '16px', fontWeight: '700', color: '#1e293b' }}>Specimen Signature</span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+                          <div style={{ width: '32px', height: '32px', borderRadius: '8px', backgroundColor: '#faf5ff', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="m18 2 4 4-12 12H6v-4L18 2z" />
+                              <path d="m15 5 4 4" />
+                            </svg>
+                          </div>
+                          <span style={{ fontSize: '16px', fontWeight: '700', color: '#1e293b' }}>Signature</span>
                         </div>
-                        <span style={{ backgroundColor: '#f3e8ff', color: '#9333ea', fontSize: '11px', fontWeight: '800', padding: '2px 8px', borderRadius: '6px' }}>
+                        <span style={{ backgroundColor: '#f3e8ff', color: '#7e22ce', border: '1px solid #e9d5ff', fontSize: '11px', fontWeight: '800', padding: '3px 9px', borderRadius: '6px' }}>
                           .JPG
                         </span>
                       </div>
 
-                      {/* Signature Frame */}
-                      <div style={{
-                        border: '1.5px solid #e2e8f0',
-                        borderRadius: '12px',
-                        backgroundColor: '#ffffff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        height: '240px',
-                        padding: '16px',
-                        boxSizing: 'border-box'
-                      }}>
+                      {/* Signature Frame (Clean Compact, No Specimen Bar) */}
+                      <div className="box-clean-sign">
                         {signAvailable ? (
-                          <img 
-                            src={signSrc} 
-                            alt="Candidate Signature" 
-                            onLoad={() => setSignAvailable(true)}
-                            onError={() => {
-                              const adm = user?.admissionNumber;
-                              if (!adm) { setSignAvailable(false); return; }
-                              const base = 'https://student-portal-backend-vo2b.onrender.com';
-                              if (signSrc.includes('/Signatures/' + adm + '_Sign.jpg')) {
-                                setSignSrc(base + '/signatures/' + adm + '_Sign.jpg');
-                              } else if (signSrc.includes('/signatures/' + adm + '_Sign.jpg')) {
-                                setSignSrc(base + '/Signature/' + adm + '_Sign.jpg');
-                              } else if (signSrc.includes('/Signature/' + adm + '_Sign.jpg')) {
-                                setSignSrc(base + '/photos/' + adm + '_Sign.jpg');
-                              } else if (signSrc.includes('/photos/' + adm + '_Sign.jpg')) {
-                                setSignSrc(base + '/Photos/' + adm + '_Sign.jpg');
-                              } else if (signSrc.includes('/Photos/' + adm + '_Sign.jpg')) {
-                                setSignSrc(base + '/Signatures/' + adm + '.jpg');
-                              } else {
-                                setSignAvailable(false);
-                              }
-                            }}
-                            style={{
-                              maxWidth: '85%',
-                              maxHeight: '85px',
-                              objectFit: 'contain',
-                              display: 'block'
-                            }}
-                          />
+                          <div className="sign-plate-clean">
+                            <img 
+                              src={signSrc} 
+                              alt="Candidate Signature" 
+                              onLoad={() => setSignAvailable(true)}
+                              onError={() => {
+                                const adm = user?.admissionNumber;
+                                if (!adm) { setSignAvailable(false); return; }
+                                const base = 'https://student-portal-backend-vo2b.onrender.com';
+                                if (signSrc.includes('/Signatures/' + adm + '_Sign.jpg')) {
+                                  setSignSrc(base + '/signatures/' + adm + '_Sign.jpg');
+                                } else if (signSrc.includes('/signatures/' + adm + '_Sign.jpg')) {
+                                  setSignSrc(base + '/Signature/' + adm + '_Sign.jpg');
+                                } else if (signSrc.includes('/Signature/' + adm + '_Sign.jpg')) {
+                                  setSignSrc(base + '/photos/' + adm + '_Sign.jpg');
+                                } else if (signSrc.includes('/photos/' + adm + '_Sign.jpg')) {
+                                  setSignSrc(base + '/Photos/' + adm + '_Sign.jpg');
+                                } else if (signSrc.includes('/Photos/' + adm + '_Sign.jpg')) {
+                                  setSignSrc(base + '/Signatures/' + adm + '.jpg');
+                                } else {
+                                  setSignAvailable(false);
+                                }
+                              }}
+                              style={{
+                                maxWidth: '100%',
+                                maxHeight: '90px',
+                                objectFit: 'contain',
+                                filter: 'contrast(1.15)',
+                                display: 'block'
+                              }}
+                            />
+                          </div>
                         ) : (
                           <div style={{ textAlign: 'center', color: '#94a3b8' }}>
-                            <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px auto', border: '1px solid #e2e8f0' }}>
+                            <div style={{ width: '48px', height: '48px', borderRadius: '50%', backgroundColor: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px auto', border: '1px solid #e2e8f0' }}>
                               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m18 2 4 4-14 14H4v-4L18 2z"/><path d="m14.5 5.5 4 4"/></svg>
                             </div>
                             <div style={{ fontSize: '14px', fontWeight: '700', color: '#64748b' }}>Signature Not Available</div>
@@ -1339,7 +1333,7 @@ function App() {
                       </div>
                     </div>
 
-                    {/* Download Button */}
+                    {/* Download Button (Moved Up) */}
                     <button
                       onClick={() => {
                         if (!signAvailable) {
@@ -1350,26 +1344,26 @@ function App() {
                       }}
                       disabled={!signAvailable}
                       style={{
-                        marginTop: '18px',
+                        marginTop: '15px',
                         width: '100%',
-                        padding: '11px 18px',
-                        background: !signAvailable ? '#94a3b8' : 'linear-gradient(90deg, #7e22ce 0%, #2563eb 100%)',
+                        padding: '11.5px 18px',
+                        background: !signAvailable ? '#94a3b8' : 'linear-gradient(135deg, #6d28d9 0%, #7c3aed 100%)',
                         color: '#ffffff',
                         border: 'none',
-                        borderRadius: '25px',
-                        fontSize: '14px',
+                        borderRadius: '30px',
+                        fontSize: '13.5px',
                         fontWeight: '700',
                         cursor: !signAvailable ? 'not-allowed' : 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '8px',
-                        boxShadow: !signAvailable ? 'none' : '0 4px 12px rgba(126, 34, 206, 0.3)',
+                        boxShadow: !signAvailable ? 'none' : '0 4px 14px rgba(124, 58, 237, 0.28)',
                         opacity: !signAvailable ? 0.7 : 1,
                         transition: 'all 0.2s ease'
                       }}
                     >
-                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                         <polyline points="7 10 12 15 17 10" />
                         <line x1="12" y1="15" x2="12" y2="3" />
