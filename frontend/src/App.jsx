@@ -751,6 +751,37 @@ function App() {
         
         .login-btn-top { position: absolute; right: 30px; top: 65%; transform: translateY(-50%); }
         
+        .student-profile-banner {
+          position: relative;
+          overflow: hidden;
+          background-color: #0b1d3a;
+          color: white;
+          padding: 24px 30px;
+          border-radius: 18px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 16px;
+          margin-bottom: 25px;
+          box-shadow: 0 12px 30px -8px rgba(0,0,0,0.25);
+          border: 1px solid rgba(255,255,255,0.12);
+        }
+        .student-profile-banner::before {
+          content: '';
+          position: absolute;
+          inset: 0;
+          background-image: radial-gradient(circle, rgba(255, 255, 255, 0.35) 1.5px, transparent 1.6px);
+          background-size: 18px 18px;
+          background-repeat: repeat;
+          pointer-events: none;
+          z-index: 1;
+        }
+        .student-profile-banner > * {
+          position: relative;
+          z-index: 2;
+        }
+
         @media (max-width: 768px) {
           .evaluator-card { flex-direction: column; }
           .evaluator-left { border-right: none; border-bottom: 3px solid #3b82f6; }
@@ -871,21 +902,10 @@ function App() {
 
         ) : (
           <div style={{ maxWidth: '1020px', width: '100%', margin: '30px auto', padding: '0 20px', boxSizing: 'border-box' }}>
-            <div style={{ 
-              background: `radial-gradient(circle, rgba(255, 255, 255, 0.26) 1.5px, transparent 1.5px), linear-gradient(135deg, #0b1d3a, ${currentThemeColor})`, 
-              backgroundSize: '18px 18px, 100% 100%',
-              color: 'white', 
-              padding: '24px 30px', 
-              borderRadius: '18px', 
-              display: 'flex', 
-              justifyContent: 'space-between', 
-              alignItems: 'center', 
-              flexWrap: 'wrap',
-              gap: '16px',
-              marginBottom: '25px', 
-              boxShadow: '0 12px 30px -8px rgba(0,0,0,0.2)', 
-              border: '1px solid rgba(255,255,255,0.1)' 
-            }}>
+            <div 
+              className="student-profile-banner"
+              style={{ background: `linear-gradient(135deg, #0b1d3a 0%, ${currentThemeColor} 100%)` }}
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                 <div style={{
                   width: '56px',
@@ -1023,65 +1043,65 @@ function App() {
             {activeExam === 'Photo & Sign' ? (
               <div style={{
                 backgroundColor: '#ffffff',
-                borderRadius: '18px',
+                borderRadius: '20px',
                 border: '1px solid #e2e8f0',
-                padding: '24px 28px',
+                padding: '28px 32px 34px 32px',
                 boxSizing: 'border-box',
                 width: '100%',
-                boxShadow: '0 4px 16px -2px rgba(0, 0, 0, 0.04)'
+                boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 4px 10px -2px rgba(0, 0, 0, 0.02)'
               }}>
-                {/* ─── Top Header Section ─── */}
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px', marginBottom: '12px' }}>
+                {/* ─── Top Header Section (Single Clean Title + Stacked Badge) ─── */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', marginBottom: '22px' }}>
                   <div style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '10px',
-                    backgroundColor: '#eff6ff',
+                    width: '42px',
+                    height: '42px',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+                    border: '1.5px solid #bfdbfe',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexShrink: 0,
+                    color: '#2563eb',
+                    boxShadow: '0 2px 8px rgba(37, 99, 235, 0.12)',
                     marginTop: '2px'
                   }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                       <path d="m9 12 2 2 4-4" />
                     </svg>
                   </div>
-                  <div>
-                    <h2 style={{ margin: 0, fontSize: '20px', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.3px' }}>
-                      Candidate Identity Attachments
-                    </h2>
-                    <p style={{ margin: '3px 0 0 0', fontSize: '13px', color: '#64748b', fontWeight: '500' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+                    <h2 style={{ margin: 0, fontSize: '22px', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.3px', lineHeight: '1.2' }}>
                       Photo & Signature
-                    </p>
+                    </h2>
+
+                    {/* 🌟 Dynamic Status Badge (Directly below Title) */}
+                    {photoAvailable && signAvailable ? (
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', backgroundColor: '#f0fdf4', border: '1px solid #86efac', padding: '4px 12px', borderRadius: '20px', color: '#15803d', fontSize: '12px', fontWeight: '700', letterSpacing: '0.2px', width: 'max-content', boxShadow: '0 1px 3px rgba(34, 197, 94, 0.08)' }}>
+                        <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#22c55e', boxShadow: '0 0 6px #22c55e' }}></span>
+                        <span>Both Records Active</span>
+                      </div>
+                    ) : photoAvailable && !signAvailable ? (
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', padding: '4px 12px', borderRadius: '20px', color: '#1d4ed8', fontSize: '12px', fontWeight: '700', letterSpacing: '0.2px', width: 'max-content' }}>
+                        <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#3b82f6', boxShadow: '0 0 6px #3b82f6' }}></span>
+                        <span>Photo Available Only</span>
+                      </div>
+                    ) : !photoAvailable && signAvailable ? (
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', backgroundColor: '#faf5ff', border: '1px solid #e9d5ff', padding: '4px 12px', borderRadius: '20px', color: '#7e22ce', fontSize: '12px', fontWeight: '700', letterSpacing: '0.2px', width: 'max-content' }}>
+                        <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#a855f7', boxShadow: '0 0 6px #a855f7' }}></span>
+                        <span>Signature Available Only</span>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', padding: '4px 12px', borderRadius: '20px', color: '#dc2626', fontSize: '12px', fontWeight: '700', letterSpacing: '0.2px', width: 'max-content' }}>
+                        <span style={{ width: '7px', height: '7px', borderRadius: '50%', backgroundColor: '#ef4444' }}></span>
+                        <span>No Records Available</span>
+                      </div>
+                    )}
                   </div>
                 </div>
 
-                {/* 🌟 Dynamic Status Badge */}
-                {photoAvailable && signAvailable ? (
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', padding: '4px 12px', borderRadius: '20px', color: '#166534', fontSize: '12.5px', fontWeight: '700' }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#22c55e' }}></span>
-                    <span>Both Records Active</span>
-                  </div>
-                ) : photoAvailable && !signAvailable ? (
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', padding: '4px 12px', borderRadius: '20px', color: '#1d4ed8', fontSize: '12.5px', fontWeight: '700' }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#3b82f6' }}></span>
-                    <span>Photo Available Only</span>
-                  </div>
-                ) : !photoAvailable && signAvailable ? (
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: '#faf5ff', border: '1px solid #e9d5ff', padding: '4px 12px', borderRadius: '20px', color: '#7e22ce', fontSize: '12.5px', fontWeight: '700' }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#a855f7' }}></span>
-                    <span>Signature Available Only</span>
-                  </div>
-                ) : (
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', backgroundColor: '#fef2f2', border: '1px solid #fecaca', padding: '4px 12px', borderRadius: '20px', color: '#dc2626', fontSize: '12.5px', fontWeight: '700' }}>
-                    <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444' }}></span>
-                    <span>No Records Available</span>
-                  </div>
-                )}
-
-                <div style={{ height: '1px', backgroundColor: '#f1f5f9', margin: '18px 0 24px 0' }}></div>
+                <div style={{ height: '1px', background: 'linear-gradient(90deg, #e2e8f0 0%, #cbd5e1 50%, #e2e8f0 100%)', margin: '0 0 28px 0' }}></div>
 
                 {/* ─── Compact Cards Grid (Photo & Signature) ─── */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 340px))', justifyContent: 'center', gap: '24px', width: '100%', boxSizing: 'border-box' }}>
