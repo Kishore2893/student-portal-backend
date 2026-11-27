@@ -872,8 +872,8 @@ function App() {
         ) : (
           <div style={{ maxWidth: '1020px', width: '100%', margin: '30px auto', padding: '0 20px', boxSizing: 'border-box' }}>
             <div style={{ 
-              background: `radial-gradient(rgba(255, 255, 255, 0.16) 1.2px, transparent 1.2px), linear-gradient(135deg, #0b1d3a, ${currentThemeColor})`, 
-              backgroundSize: '16px 16px, 100% 100%',
+              background: `radial-gradient(circle, rgba(255, 255, 255, 0.26) 1.5px, transparent 1.5px), linear-gradient(135deg, #0b1d3a, ${currentThemeColor})`, 
+              backgroundSize: '18px 18px, 100% 100%',
               color: 'white', 
               padding: '24px 30px', 
               borderRadius: '18px', 
