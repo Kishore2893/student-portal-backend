@@ -233,11 +233,23 @@ function App() {
   const [signSrc, setSignSrc] = useState('');
   const [photoAvailable, setPhotoAvailable] = useState(true);
   const [signAvailable, setSignAvailable] = useState(true);
+  const [avatarImgError, setAvatarImgError] = useState(false);
+
+  const getStudentInitials = (name) => {
+    if (!name) return 'ST';
+    const clean = name.trim().replace(/[^a-zA-Z\s]/g, '');
+    const parts = clean.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return clean.slice(0, 2).toUpperCase() || 'ST';
+  };
 
   useEffect(() => {
     if (user?.admissionNumber) {
       setPhotoAvailable(true);
       setSignAvailable(true);
+      setAvatarImgError(false);
       const backendBase = 'https://student-portal-backend-vo2b.onrender.com';
       const pUrl = user?.photoUrl || user?.photo || (backendBase + '/photos/' + user.admissionNumber + '_Photo.jpg');
       const sUrl = user?.signatureUrl || user?.signUrl || user?.sign || (backendBase + '/Signatures/' + user.admissionNumber + '_Sign.jpg');
@@ -248,6 +260,7 @@ function App() {
       setSignSrc('');
       setPhotoAvailable(false);
       setSignAvailable(false);
+      setAvatarImgError(false);
     }
   }, [user]);
 
@@ -873,12 +886,43 @@ function App() {
               boxShadow: '0 12px 30px -8px rgba(0,0,0,0.2)', 
               border: '1px solid rgba(255,255,255,0.1)' 
             }}>
-              <div>
-                <div style={{ display: 'inline-block', backgroundColor: 'rgba(255, 255, 255, 0.15)', color: '#ffffff', fontSize: '11px', fontWeight: '800', padding: '4px 10px', borderRadius: '20px', textTransform: 'uppercase', letterSpacing: '0.8px', marginBottom: '6px' }}>
-                  🎓 Verified Candidate Profile
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '50%',
+                  border: '2px solid #ffffff',
+                  boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  flexShrink: 0,
+                  backgroundColor: '#0284c7',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  {photoSrc && !avatarImgError ? (
+                    <img 
+                      src={photoSrc} 
+                      alt={user?.studentName || 'Student'} 
+                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      onError={() => setAvatarImgError(true)}
+                    />
+                  ) : (
+                    <span style={{ color: '#ffffff', fontWeight: '800', fontSize: '20px', letterSpacing: '0.5px' }}>
+                      {getStudentInitials(user?.studentName)}
+                    </span>
+                  )}
                 </div>
-                <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '800', letterSpacing: '-0.3px' }}>Welcome, {user?.studentName}! 👋</h2>
-                <p style={{ margin: '4px 0 0 0', fontSize: '13.5px', color: '#cbd5e1' }}>Admission ID: <strong style={{ color: '#ffffff' }}>{user.admissionNumber}</strong></p>
+
+                <div>
+                  <h2 style={{ margin: 0, fontSize: '21px', fontWeight: '800', letterSpacing: '-0.2px', color: '#ffffff' }}>
+                    {user?.studentName}
+                  </h2>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '13.5px', color: '#93c5fd', fontWeight: '600', letterSpacing: '0.2px' }}>
+                    Admission ID: <span style={{ color: '#ffffff', fontWeight: '700' }}>{user.admissionNumber}</span>
+                  </p>
+                </div>
               </div>
               
               <button 
