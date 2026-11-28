@@ -183,12 +183,13 @@ const AnalysisDashboard = () => {
           border-radius: 24px;
           padding: 32px 28px;
           box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
-          transition: transform 0.25s ease, box-shadow 0.25s ease;
+          transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
           box-sizing: border-box;
         }
         .dash-outer-box:hover {
           transform: translateY(-4px);
-          box-shadow: 0 16px 36px -6px rgba(59, 130, 246, 0.15);
+          border-color: #3b82f6;
+          box-shadow: 0 16px 36px -4px rgba(59, 130, 246, 0.22);
         }
 
         .kpi-border-hi {
