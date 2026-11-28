@@ -108,12 +108,13 @@ const AutoPopup = () => {
 
 const QuickGuideSection = () => {
   return (
-    <div style={{ width: '100%', maxWidth: '1020px', padding: '0 20px 25px 20px', margin: '0 auto', boxSizing: 'border-box' }}>
+    <div style={{ width: '100%', padding: '0 4% 25px 4%', boxSizing: 'border-box', display: 'flex', justifyContent: 'center' }}>
+      <div style={{ width: '100%', maxWidth: '1200px' }}>
       <style>{`
         .guide-divider {
           display: flex;
           align-items: center;
-          margin: 10px 0 24px;
+          margin: 6px 0 24px;
         }
         .guide-divider-line {
           flex: 1;
@@ -136,7 +137,7 @@ const QuickGuideSection = () => {
         .guide-grid {
           display: grid;
           grid-template-columns: repeat(3, 1fr);
-          gap: 18px;
+          gap: 20px;
         }
         .guide-card {
           background: #ffffff;
@@ -314,6 +315,7 @@ const QuickGuideSection = () => {
           </div>
         </div>
       </div>
+      </div>
     </div>
   );
 };
@@ -341,7 +343,8 @@ const FaqAccordion = () => {
   ];
 
   return (
-    <section style={{ width: '100%', padding: '20px 20px 45px 20px', maxWidth: '1020px', margin: '0 auto', boxSizing: 'border-box' }}>
+    <section style={{ width: '100%', padding: '10px 4% 45px 4%', display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
+      <div style={{ width: '100%', maxWidth: '1200px', background: '#ffffff', border: '1.5px solid #e2e8f0', borderRadius: '24px', padding: '32px 28px', boxShadow: '0 10px 30px -5px rgba(0, 0, 0, 0.05)', boxSizing: 'border-box' }}>
       <style>{`
         .faq-item {
           background: #ffffff;
@@ -382,20 +385,41 @@ const FaqAccordion = () => {
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 12px;
-          transition: transform 0.2s ease, background-color 0.2s ease;
+          font-size: 11px;
+          transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.25s ease, color 0.25s ease;
+        }
+        .faq-icon-btn.open {
+          transform: rotate(180deg);
+        }
+        .faq-collapse-body {
+          display: grid;
+          grid-template-rows: 0fr;
+          transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .faq-collapse-body.open {
+          grid-template-rows: 1fr;
+        }
+        .faq-collapse-inner {
+          overflow: hidden;
+          min-height: 0;
         }
         .faq-answer {
-          padding: 0 20px 18px 20px;
+          padding: 14px 20px 18px 20px;
           font-size: 13.5px;
           line-height: 1.6;
           color: #475569;
           border-top: 1px solid #f1f5f9;
-          padding-top: 14px;
+          transition: opacity 0.35s ease, transform 0.35s ease;
+          opacity: 0;
+          transform: translateY(-6px);
+        }
+        .faq-collapse-body.open .faq-answer {
+          opacity: 1;
+          transform: translateY(0);
         }
         @media (max-width: 640px) {
           .faq-title { font-size: 13.5px; }
-          .faq-answer { font-size: 12.5px; padding: 0 16px 14px 16px; padding-top: 10px; }
+          .faq-answer { font-size: 12.5px; padding: 10px 16px 14px 16px; }
           .faq-header { padding: 14px 16px; }
         }
       `}</style>
@@ -419,23 +443,26 @@ const FaqAccordion = () => {
                   <span>{faq.q}</span>
                 </div>
                 <div 
-                  className="faq-icon-btn" 
+                  className={`faq-icon-btn ${isOpen ? 'open' : ''}`} 
                   style={{ 
                     backgroundColor: isOpen ? '#2563eb' : '#f1f5f9',
                     color: isOpen ? '#ffffff' : '#64748b'
                   }}
                 >
-                  {isOpen ? '▲' : '▼'}
+                  ▼
                 </div>
               </div>
-              {isOpen && (
-                <div className="faq-answer">
-                  {faq.a}
+              <div className={`faq-collapse-body ${isOpen ? 'open' : ''}`}>
+                <div className="faq-collapse-inner">
+                  <div className="faq-answer">
+                    {faq.a}
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           );
         })}
+      </div>
       </div>
     </section>
   );
