@@ -155,7 +155,12 @@ const AnalysisDashboard = () => {
   };
 
   return (
-    <section className="w-full py-10 px-4" style={{ 
+    <section style={{ 
+      width: '100%',
+      padding: '20px 4% 30px 4%',
+      display: 'flex',
+      justifyContent: 'center',
+      boxSizing: 'border-box',
       background: '#f8fafc', 
       fontFamily: "'Inter', sans-serif"
     }}>
@@ -171,12 +176,15 @@ const AnalysisDashboard = () => {
         .inner-label { position: absolute; transform: translate(-50%, -50%); font-weight: bold; font-size: 0.8rem; color: white; z-index: 20; transition: opacity 0.5s ease; }
         
         .dash-outer-box {
+          width: 100%;
+          max-width: 1200px;
           background: #ffffff;
           border: 1.5px solid #e2e8f0;
           border-radius: 24px;
           padding: 32px 28px;
           box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
           transition: transform 0.25s ease, box-shadow 0.25s ease;
+          box-sizing: border-box;
         }
         .dash-outer-box:hover {
           transform: translateY(-4px);
@@ -223,13 +231,13 @@ const AnalysisDashboard = () => {
         }
       `}</style>
 
-      <div className="max-w-6xl mx-auto dash-outer-box">
+      <div className="dash-outer-box">
         <header className="text-center mb-8">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">
             JEE Main 2027 <span className="text-[#0284c7]">Live Exam Analysis Dashboard</span>
           </h2>
           <p className="text-slate-500 text-xs sm:text-sm mt-2 font-medium">
-            Aggregated performance analytics from over <span className="text-[#0284c7] font-bold">{stats.totalStudents || '1,248+'}</span> evaluated student response sheets
+            Aggregated performance analytics from over <span className="text-[#0284c7] font-bold">{Math.round(stats.totalStudents * animProgress)}</span> evaluated student response sheets
           </p>
         </header>
 
@@ -277,7 +285,7 @@ const AnalysisDashboard = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6" style={{ marginTop: '24px' }}>
           
           {/* Mathematics Card */}
           <div className="glass-card rounded-3xl p-0 flex flex-col h-full overflow-hidden border-slate-700/50 pb-6">
