@@ -106,6 +106,341 @@ const AutoPopup = () => {
   );
 };
 
+const QuickGuideSection = () => {
+  return (
+    <div style={{ width: '100%', maxWidth: '1020px', padding: '0 20px 25px 20px', margin: '0 auto', boxSizing: 'border-box' }}>
+      <style>{`
+        .guide-divider {
+          display: flex;
+          align-items: center;
+          margin: 10px 0 24px;
+        }
+        .guide-divider-line {
+          flex: 1;
+          height: 1px;
+          background: #e2e8f0;
+        }
+        .guide-divider-badge {
+          padding: 6px 18px;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 9999px;
+          font-weight: 800;
+          font-size: 11.5px;
+          color: #334155;
+          text-transform: uppercase;
+          letter-spacing: 0.6px;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+          margin: 0 14px;
+        }
+        .guide-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 18px;
+        }
+        .guide-card {
+          background: #ffffff;
+          border: 1.5px solid #e2e8f0;
+          border-radius: 18px;
+          padding: 22px 20px;
+          box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+          transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+          display: flex;
+          flex-direction: column;
+        }
+        .guide-card:hover {
+          transform: translateY(-6px);
+          border-color: #3b82f6;
+          box-shadow: 0 14px 28px -4px rgba(59, 130, 246, 0.18);
+        }
+        .guide-card-head {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 16px;
+        }
+        .guide-ico-wrap {
+          width: 44px;
+          height: 44px;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 22px;
+          flex-shrink: 0;
+        }
+        .guide-card-title {
+          font-size: 15px;
+          font-weight: 800;
+          color: #0f172a;
+          line-height: 1.25;
+        }
+        .guide-card-sub {
+          font-size: 11.5px;
+          color: #64748b;
+          font-weight: 500;
+          margin-top: 2px;
+        }
+        .guide-step-row {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+          margin-bottom: 10px;
+        }
+        .guide-step-badge {
+          background: #2563eb;
+          color: #ffffff;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 11px;
+          font-weight: 800;
+          flex-shrink: 0;
+          margin-top: 1px;
+        }
+        .guide-step-text {
+          font-size: 12px;
+          color: #334155;
+          line-height: 1.5;
+        }
+        .guide-feat-pill {
+          padding: 8px 12px;
+          background: #f8fafc;
+          border: 1px solid #f1f5f9;
+          border-radius: 8px;
+          font-size: 12px;
+          color: #1e293b;
+          margin-bottom: 8px;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+        @media (max-width: 900px) {
+          .guide-grid {
+            grid-template-columns: 1fr;
+            gap: 14px;
+          }
+        }
+      `}</style>
+
+      <div className="guide-divider">
+        <div className="guide-divider-line"></div>
+        <div className="guide-divider-badge">💡 Quick Guide & Exam Pattern</div>
+        <div className="guide-divider-line"></div>
+      </div>
+
+      <div className="guide-grid">
+        {/* Card 1: How to Calculate */}
+        <div className="guide-card">
+          <div className="guide-card-head">
+            <div className="guide-ico-wrap" style={{ background: '#eff6ff', border: '1px solid #bfdbfe' }}>📋</div>
+            <div>
+              <div className="guide-card-title">How to Calculate?</div>
+              <div className="guide-card-sub">Simple 3-step evaluation</div>
+            </div>
+          </div>
+          <div className="guide-step-row">
+            <div className="guide-step-badge">1</div>
+            <div className="guide-step-text"><b>Copy URL:</b> Copy your official response sheet link.</div>
+          </div>
+          <div className="guide-step-row">
+            <div className="guide-step-badge">2</div>
+            <div className="guide-step-text"><b>Paste in Box:</b> Paste link into input field above.</div>
+          </div>
+          <div className="guide-step-row" style={{ marginBottom: 0 }}>
+            <div className="guide-step-badge">3</div>
+            <div className="guide-step-text"><b>View Result:</b> Click "View Result" to see & download scorecard.</div>
+          </div>
+        </div>
+
+        {/* Card 2: Marking & Exam Pattern */}
+        <div className="guide-card">
+          <div className="guide-card-head">
+            <div className="guide-ico-wrap" style={{ background: '#f0fdf4', border: '1px solid #bbf7d0' }}>⚖️</div>
+            <div>
+              <div className="guide-card-title">Marking & Exam Pattern</div>
+              <div className="guide-card-sub">Official NTA JEE Pattern</div>
+            </div>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '12px' }}>
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '7px', padding: '6px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ color: '#166534', fontWeight: 700, fontSize: '11.5px' }}>✓ Correct</span>
+              <span style={{ background: '#22c55e', color: 'white', borderRadius: '4px', padding: '1px 6px', fontSize: '11px', fontWeight: 800 }}>+4</span>
+            </div>
+            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '7px', padding: '6px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ color: '#991b1b', fontWeight: 700, fontSize: '11.5px' }}>✗ Wrong</span>
+              <span style={{ background: '#ef4444', color: 'white', borderRadius: '4px', padding: '1px 6px', fontSize: '11px', fontWeight: 800 }}>-1</span>
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px' }}>
+              <div style={{ width: '26px', height: '26px', borderRadius: '8px', background: '#eff6ff', color: '#2563eb', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>📚</div>
+              <div style={{ fontSize: '12px', color: '#1e293b', lineHeight: 1.4 }}><b>Subjects:</b> Physics, Chemistry, Mathematics</div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px' }}>
+              <div style={{ width: '26px', height: '26px', borderRadius: '8px', background: '#f0fdf4', color: '#16a34a', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>📝</div>
+              <div style={{ fontSize: '12px', color: '#1e293b', lineHeight: 1.4 }}><b>75 Questions:</b> 20 MCQs + 5 NV per Subject</div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px' }}>
+              <div style={{ width: '26px', height: '26px', borderRadius: '8px', background: '#faf5ff', color: '#7c3aed', fontSize: '13px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>⏱️</div>
+              <div style={{ fontSize: '12px', color: '#1e293b', lineHeight: 1.4 }}><b>Exam Specs:</b> 300 Max Marks • 3 Hours Duration</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Card 3: Key Features */}
+        <div className="guide-card">
+          <div className="guide-card-head">
+            <div className="guide-ico-wrap" style={{ background: '#faf5ff', border: '1px solid #e9d5ff' }}>🚀</div>
+            <div>
+              <div className="guide-card-title">Key Features</div>
+              <div className="guide-card-sub">Fast, Safe & Accurate</div>
+            </div>
+          </div>
+          <div className="guide-feat-pill">
+            <span style={{ color: '#16a34a', fontWeight: 'bold' }}>✓</span>
+            <span><b>No Login Required:</b> 100% free instant evaluation.</span>
+          </div>
+          <div className="guide-feat-pill">
+            <span style={{ color: '#16a34a', fontWeight: 'bold' }}>✓</span>
+            <span><b>Section A & B Matrix:</b> Deep subject-wise analysis.</span>
+          </div>
+          <div className="guide-feat-pill" style={{ marginBottom: 0 }}>
+            <span style={{ color: '#16a34a', fontWeight: 'bold' }}>✓</span>
+            <span><b>Downloadable Card:</b> High-res JPG export in 1 click.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const FaqAccordion = () => {
+  const [openIdx, setOpenIdx] = useState(-1);
+
+  const faqs = [
+    {
+      q: "Is JEE Main score calculator accurate?",
+      a: "Yes, it is 100% accurate! The evaluation is calculated strictly based on the official answer keys and marking scheme released by NTA."
+    },
+    {
+      q: "Is there negative marking in JEE Main?",
+      a: "Yes. For each correct response, +4 marks are awarded. For each incorrect response in both Section A (MCQs) and Section B (Numerical Value Questions), -1 mark is deducted. Unattempted questions receive 0 marks."
+    },
+    {
+      q: "Do I need login details to calculate score?",
+      a: "No login is required! You only need your official candidate response sheet URL (digialm.com) to instantly view your complete score and question breakdown."
+    },
+    {
+      q: "Why You Should Use This Tool?",
+      a: "Our tool provides instant, comprehensive subject-wise breakdown, Section A and Section B performance analysis, downloadable high-res scorecards, and live comparison with peer students across all shifts."
+    }
+  ];
+
+  return (
+    <section style={{ width: '100%', padding: '20px 20px 45px 20px', maxWidth: '1020px', margin: '0 auto', boxSizing: 'border-box' }}>
+      <style>{`
+        .faq-item {
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 14px;
+          margin-bottom: 12px;
+          overflow: hidden;
+          transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+        .faq-item:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 20px rgba(59, 130, 246, 0.08);
+          border-color: #93c5fd;
+        }
+        .faq-item.active {
+          border-color: #3b82f6;
+          box-shadow: 0 10px 25px rgba(59, 130, 246, 0.1);
+        }
+        .faq-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 18px 20px;
+          cursor: pointer;
+          user-select: none;
+        }
+        .faq-title {
+          font-size: 15px;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        .faq-icon-btn {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 12px;
+          transition: transform 0.2s ease, background-color 0.2s ease;
+        }
+        .faq-answer {
+          padding: 0 20px 18px 20px;
+          font-size: 13.5px;
+          line-height: 1.6;
+          color: #475569;
+          border-top: 1px solid #f1f5f9;
+          padding-top: 14px;
+        }
+        @media (max-width: 640px) {
+          .faq-title { font-size: 13.5px; }
+          .faq-answer { font-size: 12.5px; padding: 0 16px 14px 16px; padding-top: 10px; }
+          .faq-header { padding: 14px 16px; }
+        }
+      `}</style>
+      <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+        <h2 style={{ fontSize: '26px', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.4px', margin: 0 }}>
+          Frequently Asked Questions (FAQs)
+        </h2>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {faqs.map((faq, idx) => {
+          const isOpen = openIdx === idx;
+          const icons = ['🎯', '⚖️', '🔒', '🌟'];
+          return (
+            <div key={idx} className={`faq-item ${isOpen ? 'active' : ''}`}>
+              <div 
+                className="faq-header" 
+                onClick={() => setOpenIdx(isOpen ? -1 : idx)}
+              >
+                <div className="faq-title" style={{ color: isOpen ? '#1d4ed8' : '#1e293b' }}>
+                  <span>{icons[idx]}</span>
+                  <span>{faq.q}</span>
+                </div>
+                <div 
+                  className="faq-icon-btn" 
+                  style={{ 
+                    backgroundColor: isOpen ? '#2563eb' : '#f1f5f9',
+                    color: isOpen ? '#ffffff' : '#64748b'
+                  }}
+                >
+                  {isOpen ? '▲' : '▼'}
+                </div>
+              </div>
+              {isOpen && (
+                <div className="faq-answer">
+                  {faq.a}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+};
+
 const renderExamIcon = (exam, isActive) => {
   const iconColor = isActive ? '#ffffff' : '#64748b';
   switch (exam) {
@@ -879,7 +1214,7 @@ function App() {
         <div className="header-content-wrapper" style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           
           <div style={{ textAlign: 'center' }}>
-            <h1 style={{ margin: 0, fontSize: '30px', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.5px' }}>JEE MAIN 2027 SCORE EVALUATOR</h1>
+            <h1 style={{ margin: 0, fontSize: '30px', fontWeight: '800', color: '#0f172a', letterSpacing: '-0.5px' }}>JEE MAIN 2027 SCORE CALCULATOR</h1>
             <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#64748b', fontWeight: '600', letterSpacing: '0.2px' }}>Don’t wait for results — know your score in seconds!</p>
           </div>
 
@@ -928,8 +1263,8 @@ function App() {
 
       <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         {!user ? (
-          
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'stretch', padding: '25px 4% 15px 4%', width: '100%', boxSizing: 'border-box' }}>
+          <>
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'stretch', padding: '25px 4% 15px 4%', width: '100%', boxSizing: 'border-box' }}>
             
             <div className="modern-card evaluator-card">
               <div className="evaluator-left" style={{ background: 'linear-gradient(135deg, #0b1d3a, #1e3a8a)', color: '#ffffff', padding: '35px', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', textAlign: 'center' }}>
@@ -986,6 +1321,8 @@ function App() {
 
           </div>
 
+          <QuickGuideSection />
+        </>
         ) : (
           <div style={{ maxWidth: '1020px', width: '100%', margin: '30px auto', padding: '0 20px', boxSizing: 'border-box' }}>
             <div 
@@ -2306,7 +2643,10 @@ function App() {
       )}
 
       {!showLoginModal && !user && (
-        <AnalysisDashboard />
+        <>
+          <AnalysisDashboard />
+          <FaqAccordion />
+        </>
       )}
       
       {showNotAvailableModal && (
@@ -2372,7 +2712,7 @@ function App() {
             letterSpacing: '0.5px',
             textAlign: 'center'
           }}>
-            Copyright © KIT 2026. All Rights Reserved.
+            Copyright © 2026 KIT. All rights reserved | Designed for fast & accurate student score evaluation.
           </div>
 
           {/* Right: No. of Visitors Digital Counter */}
