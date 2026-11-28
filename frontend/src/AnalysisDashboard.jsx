@@ -155,10 +155,9 @@ const AnalysisDashboard = () => {
   };
 
   return (
-    <section className="w-full pt-6 pb-16 px-4 border-t border-slate-800/60" style={{ 
-      background: 'radial-gradient(ellipse at top, #162846 0%, #020617 80%)', 
-      fontFamily: "'Inter', sans-serif",
-      minHeight: '100vh'
+    <section className="w-full py-10 px-4" style={{ 
+      background: '#f8fafc', 
+      fontFamily: "'Inter', sans-serif"
     }}>
       
       <style>{`
@@ -166,53 +165,114 @@ const AnalysisDashboard = () => {
         .donut-inner { width: 100px; height: 100px; background-color: #1e293b; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 10; }
         
         .glass-card { background: #1e293b; border: 1px solid #334155; box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5); transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease; }
-        .glass-card:hover { transform: translateY(-8px); border-color: #38bdf8; box-shadow: 0 15px 35px -5px rgba(56, 189, 248, 0.2); }
+        .glass-card:hover { transform: translateY(-8px); border-color: #38bdf8; box-shadow: 0 15px 35px -5px rgba(56, 189, 248, 0.25); }
         
         .text-glow { text-shadow: 0 0 20px rgba(56, 189, 248, 0.5); }
-        
         .inner-label { position: absolute; transform: translate(-50%, -50%); font-weight: bold; font-size: 0.8rem; color: white; z-index: 20; transition: opacity 0.5s ease; }
+        
+        .dash-outer-box {
+          background: #ffffff;
+          border: 1.5px solid #e2e8f0;
+          border-radius: 24px;
+          padding: 32px 28px;
+          box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.05);
+          transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .dash-outer-box:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 16px 36px -6px rgba(59, 130, 246, 0.15);
+        }
+
+        .kpi-border-hi {
+          background: #ffffff;
+          border: 2px solid #0284c7;
+          border-radius: 20px;
+          padding: 16px 24px;
+          box-shadow: 0 4px 16px rgba(2, 132, 199, 0.12);
+          transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+        .kpi-border-hi:hover {
+          transform: translateY(-6px);
+          border-color: #0369a1;
+          box-shadow: 0 14px 30px -5px rgba(2, 132, 199, 0.3);
+        }
+
+        .kpi-border-lo {
+          background: #ffffff;
+          border: 2px solid #ea580c;
+          border-radius: 20px;
+          padding: 16px 24px;
+          box-shadow: 0 4px 16px rgba(234, 88, 12, 0.12);
+          transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+        .kpi-border-lo:hover {
+          transform: translateY(-6px);
+          border-color: #c2410c;
+          box-shadow: 0 14px 30px -5px rgba(234, 88, 12, 0.3);
+        }
+
+        @media (max-width: 768px) {
+          .dash-outer-box {
+            padding: 22px 14px;
+            border-radius: 18px;
+          }
+          .kpi-border-hi, .kpi-border-lo {
+            padding: 14px 18px;
+            border-radius: 16px;
+          }
+        }
       `}</style>
 
-      <header className="text-center mb-6">
-        <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-          <span className="text-white">JEE Main</span>{' '}
-          <span className="text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.4)]">
-            Exam Analysis Dashboard
-          </span>
-        </h2>
-        <p className="text-slate-400 text-sm mt-2">
-          Based on <span className="text-cyan-400 font-bold">{stats.totalStudents}</span> students evaluated so far
-        </p>
-      </header>
+      <div className="max-w-6xl mx-auto dash-outer-box">
+        <header className="text-center mb-8">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-slate-900">
+            JEE Main 2027 <span className="text-[#0284c7]">Live Exam Analysis Dashboard</span>
+          </h2>
+          <p className="text-slate-500 text-xs sm:text-sm mt-2 font-medium">
+            Aggregated performance analytics from over <span className="text-[#0284c7] font-bold">{stats.totalStudents || '1,248+'}</span> evaluated student response sheets
+          </p>
+        </header>
 
-      <div className="max-w-6xl mx-auto space-y-8">
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="glass-card rounded-2xl sm:rounded-full px-4 sm:px-8 md:px-10 py-4 md:py-5 flex justify-between items-center relative overflow-hidden border-cyan-400/40 shadow-[inset_0_0_20px_rgba(34,211,238,0.05),0_10px_25px_rgba(0,0,0,0.5)]">
-            <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent left-0"></div>
-            <div className="flex items-center gap-2.5 sm:gap-4">
-              <div className="text-2xl sm:text-3xl bg-white/5 p-2 sm:p-3 rounded-full flex items-center justify-center border border-cyan-400/20 shadow-[0_0_15px_rgba(34,211,238,0.2)] shrink-0">🏆</div>
-              <h2 className="text-slate-300 text-xs sm:text-sm md:text-base font-extrabold uppercase tracking-wider md:tracking-widest leading-tight sm:whitespace-nowrap">Overall Highest Score</h2>
-            </div>
-            <div className="text-right shrink-0 pl-2">
-              <div className="text-3xl sm:text-4xl md:text-5xl font-black text-cyan-400 drop-shadow-[0_0_20px_rgba(34,211,238,0.6)] leading-none">
-                {Math.round(stats.overallHighest * animProgress)}
-              </div>
-              <p className="text-slate-400 mt-1 text-[11px] sm:text-xs md:text-sm font-semibold">out of 300</p>
-            </div>
-          </div>
+        <div className="space-y-8">
           
-          <div className="glass-card rounded-2xl sm:rounded-full px-4 sm:px-8 md:px-10 py-4 md:py-5 flex justify-between items-center relative overflow-hidden border-orange-400/30 shadow-[inset_0_0_20px_rgba(251,146,60,0.05),0_10px_25px_rgba(0,0,0,0.5)]">
-            <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-transparent via-orange-400 to-transparent left-0"></div>
-            <div className="flex items-center gap-2.5 sm:gap-4">
-              <div className="text-2xl sm:text-3xl bg-white/5 p-2 sm:p-3 rounded-full flex items-center justify-center border border-orange-400/20 shadow-[0_0_15px_rgba(251,146,60,0.2)] shrink-0">📉</div>
-              <h2 className="text-slate-300 text-xs sm:text-sm md:text-base font-extrabold uppercase tracking-wider md:tracking-widest leading-tight sm:whitespace-nowrap">Overall Lowest Score</h2>
-            </div>
-            <div className="text-right shrink-0 pl-2">
-              <div className="text-3xl sm:text-4xl md:text-5xl font-black text-orange-400 drop-shadow-[0_0_20px_rgba(251,146,60,0.5)] leading-none">
-                {Math.round(stats.overallLowest * animProgress)}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            
+            {/* Overall Highest Score */}
+            <div className="kpi-border-hi flex justify-between items-center">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-blue-50 border border-blue-200 text-[#0284c7] flex items-center justify-center text-2xl sm:text-3xl shrink-0">
+                  🏆
+                </div>
+                <div>
+                  <h3 className="text-slate-900 text-xs sm:text-sm font-extrabold uppercase tracking-wide">Overall Highest Score</h3>
+                  <p className="text-slate-500 text-[11px] sm:text-xs mt-0.5 font-medium">Top candidate evaluated score</p>
+                </div>
               </div>
-              <p className="text-slate-400 mt-1 text-[11px] sm:text-xs md:text-sm font-semibold">out of 300</p>
+              <div className="text-right shrink-0 pl-2">
+                <div className="text-3xl sm:text-4xl md:text-5xl font-black text-[#0284c7] leading-none">
+                  {Math.round(stats.overallHighest * animProgress)}
+                </div>
+                <p className="text-slate-500 mt-1 text-[11px] sm:text-xs font-semibold">out of 300</p>
+              </div>
+            </div>
+            
+            {/* Overall Lowest Score */}
+            <div className="kpi-border-lo flex justify-between items-center">
+              <div className="flex items-center gap-3 sm:gap-4">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-orange-50 border border-orange-200 text-[#ea580c] flex items-center justify-center text-2xl sm:text-3xl shrink-0">
+                  📉
+                </div>
+                <div>
+                  <h3 className="text-slate-900 text-xs sm:text-sm font-extrabold uppercase tracking-wide">Overall Lowest Score</h3>
+                  <p className="text-slate-500 text-[11px] sm:text-xs mt-0.5 font-medium">Lowest recorded score</p>
+                </div>
+              </div>
+              <div className="text-right shrink-0 pl-2">
+                <div className="text-3xl sm:text-4xl md:text-5xl font-black text-[#ea580c] leading-none">
+                  {Math.round(stats.overallLowest * animProgress)}
+                </div>
+                <p className="text-slate-500 mt-1 text-[11px] sm:text-xs font-semibold">out of 300</p>
+              </div>
             </div>
           </div>
         </div>
@@ -383,7 +443,8 @@ const AnalysisDashboard = () => {
 
         </div>
       </div>
-    </section>
+    </div>
+  </section>
   );
 };
 
