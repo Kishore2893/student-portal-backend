@@ -344,8 +344,15 @@ const FaqAccordion = () => {
 
   return (
     <section style={{ width: '100%', padding: '10px 4% 45px 4%', display: 'flex', justifyContent: 'center', boxSizing: 'border-box' }}>
-      <div style={{ width: '100%', maxWidth: '1200px', background: '#ffffff', border: '1.5px solid #e2e8f0', borderRadius: '24px', padding: '32px 28px', boxShadow: '0 10px 30px -5px rgba(0, 0, 0, 0.05)', boxSizing: 'border-box' }}>
+      <div className="faq-outer-box" style={{ width: '100%', maxWidth: '1200px', background: '#ffffff', border: '1.5px solid #e2e8f0', borderRadius: '24px', padding: '32px 28px', boxShadow: '0 10px 30px -5px rgba(0, 0, 0, 0.05)', boxSizing: 'border-box' }}>
       <style>{`
+        .faq-outer-box {
+          transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+        }
+        .faq-outer-box:hover {
+          border-color: #3b82f6 !important;
+          box-shadow: 0 16px 36px -4px rgba(59, 130, 246, 0.22);
+        }
         .faq-item {
           background: #ffffff;
           border: 1px solid #e2e8f0;
@@ -534,6 +541,12 @@ const renderExamIcon = (exam, isActive) => {
       return <span style={{ fontSize: '16px', flexShrink: 0 }}>📄</span>;
   }
 };
+
+const autoBuildDate = import.meta.env?.VITE_BUILD_DATE || (() => {
+  const d = new Date();
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${String(d.getDate()).padStart(2, '0')}-${months[d.getMonth()]}-${d.getFullYear()}`;
+})();
 
 function App() {
   const [admissionNumber, setAdmissionNumber] = useState('');
@@ -2729,7 +2742,7 @@ function App() {
             gap: '6px'
           }}>
             <span>Last Updated:</span>
-            <span style={{ color: '#e2e8f0', fontWeight: '600' }}>27-Nov-2026</span>
+            <span style={{ color: '#e2e8f0', fontWeight: '600' }}>{autoBuildDate}</span>
           </div>
 
           {/* Center: Copyright */}
