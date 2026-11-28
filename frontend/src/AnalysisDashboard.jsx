@@ -451,7 +451,6 @@ const AnalysisDashboard = () => {
 
         </div>
       </div>
-    </div>
   </section>
   );
 };
